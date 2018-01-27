@@ -27,6 +27,7 @@ import java.util.Arrays;
 /**
  * Utility class to help on queue related tasks.
  */
+// TODO: We shouldn't have to use this at all. String-based traversal is a bad thing (tm), and has issues where keys are zero-length. Example: searching by genre where there are none.
 public class MediaIDHelper {
 
     // Media IDs used on browseable items of MediaBrowser

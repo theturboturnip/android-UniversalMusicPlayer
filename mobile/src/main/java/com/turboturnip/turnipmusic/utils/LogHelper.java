@@ -43,16 +43,16 @@ public class LogHelper {
 
     public static void v(String tag, Object... messages) {
         // Only log VERBOSE if build type is DEBUG
-        if (BuildConfig.DEBUG) {
+        //if (BuildConfig.DEBUG) {
             log(tag, Log.VERBOSE, null, messages);
-        }
+        //}
     }
 
     public static void d(String tag, Object... messages) {
         // Only log DEBUG if build type is DEBUG
-        if (BuildConfig.DEBUG) {
+        //if (BuildConfig.DEBUG) {
             log(tag, Log.DEBUG, null, messages);
-        }
+        //}
     }
 
     public static void i(String tag, Object... messages) {
@@ -76,7 +76,7 @@ public class LogHelper {
     }
 
     public static void log(String tag, int level, Throwable t, Object... messages) {
-        if (Log.isLoggable(tag, level)) {
+        if (true || Log.isLoggable(tag, level)) {
             String message;
             if (t == null && messages != null && messages.length == 1) {
                 // handle this common case without the extra cost of creating a stringbuffer:

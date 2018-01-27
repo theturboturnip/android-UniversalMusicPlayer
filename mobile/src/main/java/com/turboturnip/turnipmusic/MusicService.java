@@ -166,7 +166,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
         // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
-        mMusicProvider.retrieveMediaAsync(null /* Callback */);
+        mMusicProvider.retrieveMediaAsync(this, null);
 
         mPackageValidator = new PackageValidator(this);
 
@@ -198,7 +198,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         LocalPlayback playback = new LocalPlayback(this, mMusicProvider);
         mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager,
-                playback);
+                playback, this);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(this, "MusicService");
@@ -346,7 +346,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         } else {
             // otherwise, only return results when the music library is retrieved
             result.detach();
-            mMusicProvider.retrieveMediaAsync(new MusicProvider.Callback() {
+            mMusicProvider.retrieveMediaAsync(this, new MusicProvider.Callback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
                     result.sendResult(mMusicProvider.getChildren(parentMediaId, getResources()));

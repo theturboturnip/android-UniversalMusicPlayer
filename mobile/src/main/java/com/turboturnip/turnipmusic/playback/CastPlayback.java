@@ -23,6 +23,7 @@ import android.text.TextUtils;
 
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.MusicProviderSource;
+import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.google.android.gms.cast.MediaInfo;
@@ -191,8 +192,8 @@ public class CastPlayback implements Playback {
 
     private void loadMedia(String mediaId, boolean autoPlay) throws JSONException {
         String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
-        MediaMetadataCompat track = mMusicProvider.getMusic(musicId);
-        if (track == null) {
+        Song song = mMusicProvider.getMusic(musicId);
+        if (song == null) {
             throw new IllegalArgumentException("Invalid mediaId " + mediaId);
         }
         if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
@@ -201,7 +202,7 @@ public class CastPlayback implements Playback {
         }
         JSONObject customData = new JSONObject();
         customData.put(ITEM_ID, mediaId);
-        MediaInfo media = toCastMediaMetadata(track, customData);
+        MediaInfo media = toCastMediaMetadata(song, customData);
         mRemoteMediaClient.load(media, autoPlay, mCurrentPosition, customData);
     }
 
@@ -209,26 +210,27 @@ public class CastPlayback implements Playback {
      * Helper method to convert a {@link android.media.MediaMetadata} to a
      * {@link com.google.android.gms.cast.MediaInfo} used for sending media to the receiver app.
      *
-     * @param track {@link com.google.android.gms.cast.MediaMetadata}
+     * @param song {@link com.turboturnip.turnipmusic.model.Song}
      * @param customData custom data specifies the local mediaId used by the player.
      * @return mediaInfo {@link com.google.android.gms.cast.MediaInfo}
      */
-    private static MediaInfo toCastMediaMetadata(MediaMetadataCompat track,
+    private static MediaInfo toCastMediaMetadata(Song song,
                                                  JSONObject customData) {
+        MediaMetadataCompat originalMetadata = song.getMetadata();
         MediaMetadata mediaMetadata = new MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK);
         mediaMetadata.putString(MediaMetadata.KEY_TITLE,
-                track.getDescription().getTitle() == null ? "" :
-                        track.getDescription().getTitle().toString());
+                originalMetadata.getDescription().getTitle() == null ? "" :
+                        originalMetadata.getDescription().getTitle().toString());
         mediaMetadata.putString(MediaMetadata.KEY_SUBTITLE,
-                track.getDescription().getSubtitle() == null ? "" :
-                    track.getDescription().getSubtitle().toString());
+                originalMetadata.getDescription().getSubtitle() == null ? "" :
+                        originalMetadata.getDescription().getSubtitle().toString());
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_ARTIST,
-                track.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST));
+                originalMetadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST));
         mediaMetadata.putString(MediaMetadata.KEY_ALBUM_TITLE,
-                track.getString(MediaMetadataCompat.METADATA_KEY_ALBUM));
+                originalMetadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM));
         WebImage image = new WebImage(
                 new Uri.Builder().encodedPath(
-                        track.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI))
+                        originalMetadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI))
                         .build());
         // First image is used by the receiver for showing the audio album art.
         mediaMetadata.addImage(image);
@@ -237,7 +239,8 @@ public class CastPlayback implements Playback {
         mediaMetadata.addImage(image);
 
         //noinspection ResourceType
-        return new MediaInfo.Builder(track.getString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE))
+        // TODO: Does sending the file path make things not work?
+        return new MediaInfo.Builder(song.getFilePath())
                 .setContentType(MIME_TYPE_AUDIO_MPEG)
                 .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
                 .setMetadata(mediaMetadata)

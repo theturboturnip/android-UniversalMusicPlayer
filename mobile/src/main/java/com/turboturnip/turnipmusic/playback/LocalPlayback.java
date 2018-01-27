@@ -29,6 +29,7 @@ import android.text.TextUtils;
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.MusicProviderSource;
+import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -196,12 +197,12 @@ public final class LocalPlayback implements Playback {
 
         if (mediaHasChanged || mExoPlayer == null) {
             releaseResources(false); // release everything except the player
-            MediaMetadataCompat track =
+            Song song =
                     mMusicProvider.getMusic(
                             MediaIDHelper.extractMusicIDFromMediaID(
                                     item.getDescription().getMediaId()));
 
-            String source = track.getString(MusicProviderSource.CUSTOM_METADATA_TRACK_SOURCE);
+            String source = song.getFilePath();
             if (source != null) {
                 source = source.replaceAll(" ", "%20"); // Escape spaces for URLs
             }

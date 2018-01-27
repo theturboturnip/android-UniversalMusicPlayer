@@ -25,6 +25,7 @@ import android.text.TextUtils;
 
 import com.turboturnip.turnipmusic.VoiceSearchParams;
 import com.turboturnip.turnipmusic.model.MusicProvider;
+import com.turboturnip.turnipmusic.model.Song;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ public class QueueHelper {
         String categoryValue = hierarchy[1];
         LogHelper.d(TAG, "Creating playing queue for ", categoryType, ",  ", categoryValue);
 
-        Iterable<MediaMetadataCompat> tracks = null;
+        Iterable<Integer> tracks = null;
         // This sample only supports genre and by_search category types.
         if (categoryType.equals(MEDIA_ID_MUSICS_BY_GENRE)) {
             tracks = musicProvider.getMusicsByGenre(categoryValue);
@@ -69,7 +70,7 @@ public class QueueHelper {
             return null;
         }
 
-        return convertToQueue(tracks, hierarchy[0], hierarchy[1]);
+        return convertToQueue(musicProvider, tracks, hierarchy[0], hierarchy[1]);
     }
 
     public static List<MediaSessionCompat.QueueItem> getPlayingQueueFromSearch(String query,
@@ -88,7 +89,7 @@ public class QueueHelper {
             return getRandomQueue(musicProvider);
         }
 
-        List<MediaMetadataCompat> result = null;
+        List<Integer> result = null;
         if (params.isAlbumFocus) {
             result = musicProvider.searchMusicByAlbum(params.album);
         } else if (params.isGenreFocus) {
@@ -114,7 +115,7 @@ public class QueueHelper {
             }
         }
 
-        return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, query);
+        return convertToQueue(musicProvider, result, MEDIA_ID_MUSICS_BY_SEARCH, query);
     }
 
 
@@ -143,17 +144,20 @@ public class QueueHelper {
     }
 
     private static List<MediaSessionCompat.QueueItem> convertToQueue(
-            Iterable<MediaMetadataCompat> tracks, String... categories) {
+    		MusicProvider musicProvider,
+            Iterable<Integer> tracks, String... categories) {
         List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
         int count = 0;
-        for (MediaMetadataCompat track : tracks) {
+        for (int index : tracks) {
+            Song song = musicProvider.getMusic(index);
+            MediaMetadataCompat metadata = song.getMetadata();
 
             // We create a hierarchy-aware mediaID, so we know what the queue is about by looking
             // at the QueueItem media IDs.
             String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
-                    track.getDescription().getMediaId(), categories);
+		            metadata.getDescription().getMediaId(), categories);
 
-            MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(track)
+            MediaMetadataCompat trackCopy = new MediaMetadataCompat.Builder(metadata)
                     .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
                     .build();
 
@@ -174,17 +178,17 @@ public class QueueHelper {
      * @return list containing {@link MediaSessionCompat.QueueItem}'s
      */
     public static List<MediaSessionCompat.QueueItem> getRandomQueue(MusicProvider musicProvider) {
-        List<MediaMetadataCompat> result = new ArrayList<>(RANDOM_QUEUE_SIZE);
-        Iterable<MediaMetadataCompat> shuffled = musicProvider.getShuffledMusic();
-        for (MediaMetadataCompat metadata: shuffled) {
+        List<Integer> result = new ArrayList<>(RANDOM_QUEUE_SIZE);
+        Iterable<Integer> shuffled = musicProvider.getShuffledMusic();
+        for (int index: shuffled) {
             if (result.size() == RANDOM_QUEUE_SIZE) {
                 break;
             }
-            result.add(metadata);
+            result.add(index);
         }
         LogHelper.d(TAG, "getRandomQueue: result.size=", result.size());
 
-        return convertToQueue(result, MEDIA_ID_MUSICS_BY_SEARCH, "random");
+        return convertToQueue(musicProvider, result, MEDIA_ID_MUSICS_BY_SEARCH, "random");
     }
 
     public static boolean isIndexPlayable(int index, List<MediaSessionCompat.QueueItem> queue) {

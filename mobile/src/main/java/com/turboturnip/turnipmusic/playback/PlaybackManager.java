@@ -16,6 +16,7 @@
 
 package com.turboturnip.turnipmusic.playback;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -45,10 +46,11 @@ public class PlaybackManager implements Playback.Callback {
     private Playback mPlayback;
     private PlaybackServiceCallback mServiceCallback;
     private MediaSessionCallback mMediaSessionCallback;
+    private Context mContext;
 
     public PlaybackManager(PlaybackServiceCallback serviceCallback, Resources resources,
                            MusicProvider musicProvider, QueueManager queueManager,
-                           Playback playback) {
+                           Playback playback, Context context) {
         mMusicProvider = musicProvider;
         mServiceCallback = serviceCallback;
         mResources = resources;
@@ -56,6 +58,7 @@ public class PlaybackManager implements Playback.Callback {
         mMediaSessionCallback = new MediaSessionCallback();
         mPlayback = playback;
         mPlayback.setCallback(this);
+        mContext = context;
     }
 
     public Playback getPlayback() {
@@ -363,7 +366,7 @@ public class PlaybackManager implements Playback.Callback {
             LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
             mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);
-            mMusicProvider.retrieveMediaAsync(new MusicProvider.Callback() {
+            mMusicProvider.retrieveMediaAsync(mContext, new MusicProvider.Callback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
                     if (!success) {

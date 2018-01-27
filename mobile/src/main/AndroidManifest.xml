@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Set android.software.leanback to false, so the APK will be available to both
@@ -36,7 +37,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/UAmpAppTheme"
+        android:theme="@style/TurnipMusicAppTheme"
         android:banner="@drawable/banner_tv">
 
         <meta-data
@@ -79,7 +80,7 @@
         <activity
             android:name="com.turboturnip.turnipmusic.ui.tv.TvBrowseActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.UAmp.TVLeanback" >
+            android:theme="@style/Theme.TurnipMusic.TVLeanback" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
@@ -88,13 +89,13 @@
 
         <activity
             android:name="com.turboturnip.turnipmusic.ui.tv.TvVerticalGridActivity"
-            android:theme="@style/Theme.UAmp.TVLeanback"
+            android:theme="@style/Theme.TurnipMusic.TVLeanback"
             android:parentActivityName="com.turboturnip.turnipmusic.ui.tv.TvBrowseActivity" />
 
         <!-- Android TV UI when playing a song -->
         <activity
             android:name="com.turboturnip.turnipmusic.ui.tv.TvPlaybackActivity"
-            android:theme="@style/Theme.UAmp.TVLeanback"
+            android:theme="@style/Theme.TurnipMusic.TVLeanback"
             android:parentActivityName="com.turboturnip.turnipmusic.ui.tv.TvBrowseActivity" />
 
         <!--
