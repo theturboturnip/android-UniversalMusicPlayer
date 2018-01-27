@@ -13,27 +13,28 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+package com.turboturnip.turnipmusic.playback;
 
-// Top-level build file where you can add configuration options common to
-// all sub-projects/modules.
+import android.support.v4.media.session.PlaybackStateCompat;
 
-buildscript {
-    repositories {
-        jcenter()
+class SimplePlaybackServiceCallback implements PlaybackManager.PlaybackServiceCallback {
+    @Override
+    public void onPlaybackStart() {
+
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
 
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+    @Override
+    public void onNotificationRequired() {
+
     }
-}
 
-allprojects {
-    repositories {
-        jcenter()
-        maven {
-            url "https://maven.google.com"
-        }
+    @Override
+    public void onPlaybackStop() {
+
+    }
+
+    @Override
+    public void onPlaybackStateUpdated(PlaybackStateCompat newState) {
+
     }
 }

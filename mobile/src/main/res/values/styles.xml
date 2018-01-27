@@ -16,7 +16,7 @@
   -->
 <resources>
 
-    <style name="UAmpAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="TurnipMusicAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">#ffff5722</item>
         <item name="colorPrimaryDark">#ffbf360c</item>
         <item name="colorAccent">#ffff5722</item>
@@ -24,7 +24,7 @@
     </style>
 
 
-    <style name="CarTheme" parent="UAmpAppTheme">
+    <style name="CarTheme" parent="TurnipMusicAppTheme">
         <!-- colorPrimaryDark is currently used in Android Auto for:
              - App background
              - Drawer right side ("more" custom actions) background
@@ -41,7 +41,7 @@
         <item name="colorAccent">@color/bt_accent</item>
     </style>
 
-    <style name="WearTheme" parent="UAmpAppTheme">
+    <style name="WearTheme" parent="TurnipMusicAppTheme">
         <!-- colorPrimaryDark is currently used on Android Wear for:
              - Card background on media browse
              - Card background on 4-way media controls
