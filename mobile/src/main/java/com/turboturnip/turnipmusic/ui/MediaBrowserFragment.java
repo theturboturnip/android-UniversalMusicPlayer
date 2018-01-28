@@ -37,9 +37,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
 
 import java.util.ArrayList;
@@ -230,6 +230,7 @@ public class MediaBrowserFragment extends Fragment {
         mMediaId = getMediaId();
         if (mMediaId == null) {
             mMediaId = mMediaFragmentListener.getMediaBrowser().getRoot();
+	        //LogHelper.d(TAG,"media ID was null, now ", mMediaId);
         }
         updateTitle();
 
@@ -244,6 +245,7 @@ public class MediaBrowserFragment extends Fragment {
         // unsubscribe first.
         mMediaFragmentListener.getMediaBrowser().unsubscribe(mMediaId);
 
+        // This sends the request to get children.
         mMediaFragmentListener.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
 
         // Add MediaController callback so we can redraw the list when metadata changes:
@@ -282,7 +284,8 @@ public class MediaBrowserFragment extends Fragment {
     }
 
     private void updateTitle() {
-        if (MediaIDHelper.MEDIA_ID_ROOT.equals(mMediaId)) {
+    	// TODO: Inefficient as fuck, please change
+        if (new MusicFilter(mMediaId).isRoot()) {
             mMediaFragmentListener.setToolbarTitle(null);
             return;
         }

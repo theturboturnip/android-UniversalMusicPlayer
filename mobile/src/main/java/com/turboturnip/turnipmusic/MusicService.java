@@ -56,9 +56,6 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.turboturnip.turnipmusic.utils.MediaIDHelper.MEDIA_ID_EMPTY_ROOT;
-import static com.turboturnip.turnipmusic.utils.MediaIDHelper.MEDIA_ID_ROOT;
-
 /**
  * This class provides a MediaBrowser through a service. It exposes the media library to a browsing
  * client, through the onGetRoot and onLoadChildren methods. It also creates a MediaSession and
@@ -121,10 +118,10 @@ public class MusicService extends MediaBrowserServiceCompat implements
     private static final String TAG = LogHelper.makeLogTag(MusicService.class);
 
     // Extra on MediaSession that contains the Cast device name currently connected to
-    public static final String EXTRA_CONNECTED_CAST = "com.example.android.uamp.CAST_NAME";
+    public static final String EXTRA_CONNECTED_CAST = "com.turboturnip.turnipmusic.CAST_NAME";
     // The action of the incoming Intent indicating that it contains a command
     // to be executed (see {@link #onStartCommand})
-    public static final String ACTION_CMD = "com.example.android.uamp.ACTION_CMD";
+    public static final String ACTION_CMD = "com.turboturnip.turnipmusic.ACTION_CMD";
     // The key in the extras of the incoming Intent indicating the command that
     // should be executed (see {@link #onStartCommand})
     public static final String CMD_NAME = "CMD_NAME";
@@ -174,6 +171,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                 new QueueManager.MetadataUpdateListener() {
                     @Override
                     public void onMetadataChanged(MediaMetadataCompat metadata) {
+                    	LogHelper.d(TAG, metadata==null);
                         mSession.setMetadata(metadata);
                     }
 
@@ -191,7 +189,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                     @Override
                     public void onQueueUpdated(String title,
                                                List<MediaSessionCompat.QueueItem> newQueue) {
-                        mSession.setQueue(newQueue);
+                    	mSession.setQueue(newQueue);
                         mSession.setQueueTitle(title);
                     }
                 });
@@ -314,7 +312,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
             LogHelper.i(TAG, "OnGetRoot: Browsing NOT ALLOWED for unknown caller. "
                     + "Returning empty browser root so all apps can use MediaController."
                     + clientPackageName);
-            return new MediaBrowserServiceCompat.BrowserRoot(MEDIA_ID_EMPTY_ROOT, null);
+            return new MediaBrowserServiceCompat.BrowserRoot(MusicFilter.emptyFilter().toString(), null);
         }
         //noinspection StatementWithEmptyBody
         if (CarHelper.isValidCarPackage(clientPackageName)) {
@@ -331,25 +329,27 @@ public class MusicService extends MediaBrowserServiceCompat implements
             // on onLoadChildren, handle it accordingly.
         }
 
-        return new BrowserRoot(MEDIA_ID_ROOT, null);
+        return new BrowserRoot(MusicFilter.rootFilter().toString(), null);
     }
 
     @Override
-    public void onLoadChildren(@NonNull final String parentMediaId,
+    public void onLoadChildren(@NonNull final String parentFilter,
                                @NonNull final Result<List<MediaItem>> result) {
-        LogHelper.d(TAG, "OnLoadChildren: parentMediaId=", parentMediaId);
-        if (MEDIA_ID_EMPTY_ROOT.equals(parentMediaId)) {
+        LogHelper.d(TAG, "OnLoadChildren: parentFilter=", parentFilter);
+
+        MusicFilter parsedParentFiler = new MusicFilter(parentFilter);
+        if (parsedParentFiler.isEmpty()) {
             result.sendResult(new ArrayList<MediaItem>());
         } else if (mMusicProvider.isInitialized()) {
             // if music library is ready, return immediately
-            result.sendResult(mMusicProvider.getChildren(parentMediaId, getResources()));
+            result.sendResult(mMusicProvider.getChildren(parentFilter, getResources()));
         } else {
             // otherwise, only return results when the music library is retrieved
             result.detach();
             mMusicProvider.retrieveMediaAsync(this, new MusicProvider.Callback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
-                    result.sendResult(mMusicProvider.getChildren(parentMediaId, getResources()));
+                    result.sendResult(mMusicProvider.getChildren(parentFilter, getResources()));
                 }
             });
         }

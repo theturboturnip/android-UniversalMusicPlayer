@@ -22,16 +22,13 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.model.MusicProvider;
-import com.turboturnip.turnipmusic.model.MusicProviderSource;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -198,9 +195,7 @@ public final class LocalPlayback implements Playback {
         if (mediaHasChanged || mExoPlayer == null) {
             releaseResources(false); // release everything except the player
             Song song =
-                    mMusicProvider.getMusic(
-                            MediaIDHelper.extractMusicIDFromMediaID(
-                                    item.getDescription().getMediaId()));
+                    mMusicProvider.getMusic(item.getDescription().getMediaId());
 
             String source = song.getFilePath();
             if (source != null) {
@@ -228,7 +223,7 @@ public final class LocalPlayback implements Playback {
             // Produces DataSource instances through which media data is loaded.
             DataSource.Factory dataSourceFactory =
                     new DefaultDataSourceFactory(
-                            mContext, Util.getUserAgent(mContext, "uamp"), null);
+                            mContext, Util.getUserAgent(mContext, "turnipmusic"), null);
             // Produces Extractor instances for parsing the media data.
             ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
             // The MediaSource represents the media to be played.

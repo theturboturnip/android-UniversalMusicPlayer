@@ -80,8 +80,7 @@ public class DeviceMusicSource implements MusicProviderSource {
 				Long duration = musicCursor.getLong(durationColumn);
 				Long trackNumber = musicCursor.getLong(trackNumberColumn);
 
-				// TODO: This default is only needed untilwe stop using the MediaID system.
-				String genre = "Generic";
+				String genre = "";
 				{
 					Uri genreUri = MediaStore.Audio.Genres.getContentUriForAudioId("external", Integer.parseInt(id));
 					genresCursor = context.getContentResolver().query(genreUri,

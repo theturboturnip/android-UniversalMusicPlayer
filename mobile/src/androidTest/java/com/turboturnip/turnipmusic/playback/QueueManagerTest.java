@@ -23,7 +23,6 @@ import android.test.mock.MockResources;
 
 import com.turboturnip.turnipmusic.TestSetupHelper;
 import com.turboturnip.turnipmusic.model.MusicProvider;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.turboturnip.turnipmusic.utils.QueueHelper;
 import com.turboturnip.turnipmusic.utils.SimpleMusicProviderSource;
 

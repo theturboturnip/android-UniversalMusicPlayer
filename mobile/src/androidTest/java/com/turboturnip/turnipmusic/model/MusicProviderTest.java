@@ -81,8 +81,8 @@ public class MusicProviderTest {
     @Test
     public void testGetMusicsByGenre() throws Exception {
         int count = 0;
-        for (MediaMetadataCompat metadata: provider.getMusicsByGenre("Genre 1")) {
-            String genre = metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE);
+        for (int index: provider.getMusicsByGenre("Genre 1")) {
+            String genre = provider.getMusic(index).getMetadata().getString(MediaMetadataCompat.METADATA_KEY_GENRE);
             assertEquals("Genre 1", genre);
             count++;
         }
@@ -98,8 +98,8 @@ public class MusicProviderTest {
     @Test
     public void testSearchBySongTitle() throws Exception {
         int count = 0;
-        for (MediaMetadataCompat metadata: provider.searchMusicBySongTitle("Romantic")) {
-            String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+        for (int index: provider.searchMusicBySongTitle("Romantic")) {
+            String title = provider.getMusic(index).getMetadata().getString(MediaMetadataCompat.METADATA_KEY_TITLE);
             assertTrue(title.contains("Romantic"));
             count++;
         }
@@ -115,8 +115,8 @@ public class MusicProviderTest {
     @Test
     public void testSearchMusicByAlbum() throws Exception {
         int count = 0;
-        for (MediaMetadataCompat metadata: provider.searchMusicByAlbum("Album")) {
-            String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
+        for (int index: provider.searchMusicByAlbum("Album")) {
+            String title = provider.getMusic(index).getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
             assertTrue(title.contains("Album"));
             count++;
         }
@@ -132,8 +132,8 @@ public class MusicProviderTest {
     @Test
     public void testSearchMusicByArtist() throws Exception {
         int count = 0;
-        for (MediaMetadataCompat metadata : provider.searchMusicByArtist("Joe")) {
-            String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
+        for (int index : provider.searchMusicByArtist("Joe")) {
+            String title = provider.getMusic(index).getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ARTIST);
             assertTrue(title.contains("Joe"));
             count++;
         }
@@ -151,21 +151,24 @@ public class MusicProviderTest {
         Bitmap bIcon = Bitmap.createBitmap(2, 2, Bitmap.Config.ALPHA_8);
         Bitmap bArt = Bitmap.createBitmap(2, 2, Bitmap.Config.ALPHA_8);
 
-        MediaMetadataCompat metadata = provider.getShuffledMusic().iterator().next();
+        int index = provider.getShuffledMusic().iterator().next();
+        MediaMetadataCompat metadata = provider.getMusic(index).getMetadata();
         String musicId = metadata.getDescription().getMediaId();
 
         assertNotEquals(bArt, metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
         assertNotEquals(bIcon, metadata.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON));
 
         provider.updateMusicArt(musicId, bArt, bIcon);
-        MediaMetadataCompat newMetadata = provider.getMusic(musicId);
+	    index = provider.getShuffledMusic().iterator().next();
+	    MediaMetadataCompat newMetadata = provider.getMusic(index).getMetadata();
         assertEquals(bArt, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
         assertEquals(bIcon, newMetadata.getBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON));
     }
 
     @Test
     public void testFavorite() throws Exception {
-        MediaMetadataCompat metadata = provider.getShuffledMusic().iterator().next();
+	    int index = provider.getShuffledMusic().iterator().next();
+	    MediaMetadataCompat metadata = provider.getMusic(index).getMetadata();
         String musicId = metadata.getDescription().getMediaId();
 
         assertFalse(provider.isFavorite(musicId));

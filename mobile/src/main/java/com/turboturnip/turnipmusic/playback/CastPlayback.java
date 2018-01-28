@@ -22,10 +22,8 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import com.turboturnip.turnipmusic.model.MusicProvider;
-import com.turboturnip.turnipmusic.model.MusicProviderSource;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaStatus;
@@ -190,9 +188,9 @@ public class CastPlayback implements Playback {
         return mPlaybackState;
     }
 
+    // TODO: This assumes the mediaId is the musicID. Is that right?
     private void loadMedia(String mediaId, boolean autoPlay) throws JSONException {
-        String musicId = MediaIDHelper.extractMusicIDFromMediaID(mediaId);
-        Song song = mMusicProvider.getMusic(musicId);
+        Song song = mMusicProvider.getMusic(mediaId);
         if (song == null) {
             throw new IllegalArgumentException("Invalid mediaId " + mediaId);
         }

@@ -70,6 +70,7 @@ public interface Playback {
      */
     void updateLastKnownStreamPosition();
 
+    // TODO: This should take a Song or an integer index, *not* a QueueItem.
     void play(QueueItem item);
 
     void pause();

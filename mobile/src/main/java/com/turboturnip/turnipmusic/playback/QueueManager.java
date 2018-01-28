@@ -18,18 +18,21 @@ package com.turboturnip.turnipmusic.playback;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.media.session.MediaSession;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 
 import com.turboturnip.turnipmusic.AlbumArtCache;
+import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
-import com.turboturnip.turnipmusic.utils.QueueHelper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,33 +52,164 @@ public class QueueManager {
     private Resources mResources;
 
     // "Now playing" queue:
-    private List<MediaSessionCompat.QueueItem> mPlayingQueue;
-    private int mCurrentIndex;
+	private List<Integer> mHistory;
+    private List<Integer> mExplicitQueue;
+    private ImplicitQueue mImplicitQueue;
+    private int mCurrentSongIndex;
+    private int mCurrentCompiledQueueIndex;
+    private static final int MAX_LOOKBACK = 10;
 
-    public QueueManager(@NonNull MusicProvider musicProvider,
+	private List<MediaSessionCompat.QueueItem> mCompiledQueue;
+
+	public QueueManager(@NonNull MusicProvider musicProvider,
                         @NonNull Resources resources,
                         @NonNull MetadataUpdateListener listener) {
         this.mMusicProvider = musicProvider;
         this.mListener = listener;
         this.mResources = resources;
 
-        mPlayingQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
-        mCurrentIndex = 0;
+        mCompiledQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
+        mExplicitQueue = Collections.synchronizedList(new ArrayList<Integer>());
+        mHistory = Collections.synchronizedList(new ArrayList<Integer>());
+        mImplicitQueue = new ImplicitQueue(new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_GENRE, "")));
+	    mCurrentCompiledQueueIndex = -1;
+	    mCurrentSongIndex = -1;
     }
 
-    public boolean isSameBrowsingCategory(@NonNull String mediaId) {
-        String[] newBrowseHierarchy = MediaIDHelper.getHierarchy(mediaId);
-        MediaSessionCompat.QueueItem current = getCurrentMusic();
-        if (current == null) {
-            return false;
-        }
-        String[] currentBrowseHierarchy = MediaIDHelper.getHierarchy(
-                current.getDescription().getMediaId());
+	public boolean next(){
+		if (mCurrentSongIndex >= 0)
+			mHistory.add(mCurrentSongIndex);
+		// If the explicit queue has an item, use that
+		if (mExplicitQueue.size() > 0)
+			mCurrentSongIndex = mExplicitQueue.remove(0);
+		// Otherwise, get a new song from the implicit queue and tell the implicit queue we've used it
+		else {
+			mCurrentSongIndex = mImplicitQueue.nextIndex(mMusicProvider);
+			if (mCurrentSongIndex < 0) return false;
+			mImplicitQueue.onIndexPlayed(mCurrentSongIndex);
+		}
+		updateCompiledQueue();
+		return true;
+	}
+	public boolean previous(){
+		if (mHistory.size() > 1) {
+			mExplicitQueue.add(mCurrentSongIndex);
+			mCurrentSongIndex = mHistory.remove(mHistory.size() - 1);
+			updateCompiledQueue();
+			return true;
+		}
+		return false;
+	}
+	public boolean addToExplicitQueue(int songIndex) {
+		// If this is in the explicit queue, promote it to the current song.
+		if (mCurrentSongIndex < 0){
+			mCurrentSongIndex = songIndex;
+			updateCompiledQueue();
+			return true;
+		}else if (mExplicitQueue.contains(songIndex)){
+			mHistory.add(mCurrentSongIndex);
+			mCurrentSongIndex = songIndex;
+			// Cast it to object, so the explicit queue knows not to treat it as a removeAt(songIndex).
+			mExplicitQueue.remove((Object) songIndex);
+			updateCompiledQueue();
+			return true;
+		}
+		mExplicitQueue.add(songIndex);
+		updateCompiledQueue();
+		return false;
+	}
+	private void updateCompiledQueue(){
+		ArrayList<MediaSessionCompat.QueueItem> newCompiledQueue = new ArrayList<>();
+		mCurrentCompiledQueueIndex = 0;
 
-        return Arrays.equals(newBrowseHierarchy, currentBrowseHierarchy);
-    }
+		// Add songs from the history
+		int historyStartingIndex = mHistory.size() - MAX_LOOKBACK;
+		if (historyStartingIndex < 0) historyStartingIndex = 0;
+		for (int i = historyStartingIndex; i < mHistory.size(); i++){
+			newCompiledQueue.add(queueItemFromSongIndex(mHistory.get(i), mCurrentCompiledQueueIndex));
+			mCurrentCompiledQueueIndex += 1;
+		}
+		if (mCurrentSongIndex >= 0) {
+			newCompiledQueue.add(queueItemFromSongIndex(mCurrentSongIndex, mCurrentCompiledQueueIndex));
+			// Add songs from the explicit queue
+			for (int i = 0; i < mExplicitQueue.size(); i++) {
+				newCompiledQueue.add(queueItemFromSongIndex(mExplicitQueue.get(i), mCurrentCompiledQueueIndex + i + 1));
+			}
 
-    private void setCurrentQueueIndex(int index) {
+			// If we don't have any future songs, get one from the implicit queue
+			if (mCurrentCompiledQueueIndex == newCompiledQueue.size() - 1)
+				newCompiledQueue.add(queueItemFromSongIndex(mImplicitQueue.nextIndex(mMusicProvider), newCompiledQueue.size()));
+		}
+
+		mCompiledQueue = newCompiledQueue;
+		mListener.onQueueUpdated("Now Playing", mCompiledQueue);
+		mListener.onCurrentQueueIndexUpdated(mCurrentCompiledQueueIndex);
+	}
+	private MediaSessionCompat.QueueItem queueItemFromSongIndex(int songIndex, int queueIndex){
+		return new MediaSessionCompat.QueueItem(mMusicProvider.getMusic(songIndex).getMetadata().getDescription(), queueIndex);
+	}
+	public Song getCurrentSong(){
+		if (mCurrentSongIndex < 0) return null;
+		return mMusicProvider.getMusic(mCurrentSongIndex);
+	}
+	public MediaSessionCompat.QueueItem getCurrentCompiledQueueItem(){
+		if (mCurrentCompiledQueueIndex < 0) return null;
+		return mCompiledQueue.get(mCurrentCompiledQueueIndex);
+	}
+    // TODO: startJourney()
+	public void updateHistoryFromNewCompiledQueueIndex(int newCompiledQueueIndex){
+		if (newCompiledQueueIndex < 0 || mCurrentSongIndex < 0 || mCurrentCompiledQueueIndex < 0) return;
+		if (newCompiledQueueIndex == mCurrentCompiledQueueIndex) return;
+		if (newCompiledQueueIndex >= mCompiledQueue.size()){
+			LogHelper.e(TAG, "updateHistoryFromCompiledQueueIndex called with a higher index than possible!");
+			newCompiledQueueIndex = mCompiledQueue.size() - 1;
+		}
+
+		if (newCompiledQueueIndex < mCurrentCompiledQueueIndex){
+			// We've gone backwards, move all the history up to that point into the current song index and explicit queue.
+			int startingPoint = mHistory.size() - (mCurrentCompiledQueueIndex - newCompiledQueueIndex);
+			if (startingPoint < 0) startingPoint = 0;
+			int endingPoint = mHistory.size();
+			for (int i = startingPoint; i < endingPoint; i++) {
+				mExplicitQueue.add(mCurrentSongIndex);
+				mCurrentSongIndex = mHistory.get(i);
+			}
+			mHistory.removeAll(mHistory.subList(startingPoint, endingPoint));
+			mCurrentCompiledQueueIndex = newCompiledQueueIndex;
+		}else{
+			while (mCurrentCompiledQueueIndex < newCompiledQueueIndex){
+				mHistory.add(mCurrentSongIndex);
+				if (mExplicitQueue.size() > 0)
+					mCurrentSongIndex = mExplicitQueue.remove(0);
+				else {
+					mCurrentSongIndex = mImplicitQueue.nextIndex(mMusicProvider);
+					if (mCurrentSongIndex < 0){
+						LogHelper.e(TAG, "updateHistoryFromCompiledQueueIndex had a future index which is no longer valid!");
+						break;
+					}
+				}
+				mCurrentCompiledQueueIndex += 1;
+			}
+		}
+		updateCompiledQueue();
+	}
+	public void updateHistoryFromMediaIDFromCompiledQueue(String mediaID){
+		for (int i = 0; i < mCompiledQueue.size(); i++){
+			if (mCompiledQueue.get(i).getDescription().getMediaId().equals(mediaID)) {
+				updateHistoryFromNewCompiledQueueIndex(i);
+				return;
+			}
+		}
+	}
+
+	/*private void moveOn(int newSong) {
+		if (mCurrentSongIndex >= 0) {
+			mHisory.add(mCurrentSongIndex);
+		}
+		mImplicitQueue.onIndexPlayed(newIndex);
+	}*/
+
+    /*private void setCurrentQueueIndex(int index) {
         if (index >= 0 && index < mPlayingQueue.size()) {
             mCurrentIndex = index;
             mListener.onCurrentQueueIndexUpdated(mCurrentIndex);
@@ -105,7 +239,7 @@ public class QueueManager {
             // skip forwards when in last song will cycle back to start of the queue
             index %= mPlayingQueue.size();
         }
-        if (!QueueHelper.isIndexPlayable(index, mPlayingQueue)) {
+        if (!mPlayingQueue.isIndexPlayable(index)) {
             LogHelper.e(TAG, "Cannot increment queue index by ", amount,
                     ". Current=", mCurrentIndex, " queue length=", mPlayingQueue.size());
             return false;
@@ -114,21 +248,21 @@ public class QueueManager {
         return true;
     }
 
-    public boolean setQueueFromSearch(String query, Bundle extras) {
-        List<MediaSessionCompat.QueueItem> queue =
+    /*public boolean setQueueFromSearch(String query, Bundle extras) {
+        Queue queue =
                 QueueHelper.getPlayingQueueFromSearch(query, extras, mMusicProvider);
         setCurrentQueue(mResources.getString(R.string.search_queue_title), queue);
         updateMetadata();
         return queue != null && !queue.isEmpty();
-    }
+    }*/
 
-    public void setRandomQueue() {
+    /*public void setRandomQueue() {
         setCurrentQueue(mResources.getString(R.string.random_queue_title),
                 QueueHelper.getRandomQueue(mMusicProvider));
         updateMetadata();
-    }
+    }*/
 
-    public void setQueueFromMusic(String mediaId) {
+    /*public void setQueueFromMusic(String mediaId) {
         LogHelper.d(TAG, "setQueueFromMusic", mediaId);
 
         // The mediaId used here is not the unique musicId. This one comes from the
@@ -147,27 +281,27 @@ public class QueueManager {
                     QueueHelper.getPlayingQueue(mediaId, mMusicProvider), mediaId);
         }
         updateMetadata();
-    }
+    }*/
 
-    public MediaSessionCompat.QueueItem getCurrentMusic() {
+    /*public MediaSessionCompat.QueueItem getCurrentMusic() {
         if (!QueueHelper.isIndexPlayable(mCurrentIndex, mPlayingQueue)) {
             return null;
         }
         return mPlayingQueue.get(mCurrentIndex);
-    }
+    }*/
 
-    public int getCurrentQueueSize() {
+    /*public int getCurrentQueueSize() {
         if (mPlayingQueue == null) {
             return 0;
         }
         return mPlayingQueue.size();
-    }
+    }*/
 
-    protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue) {
+    /*protected void setCurrentQueue(String title, Queue newQueue) {
         setCurrentQueue(title, newQueue, null);
-    }
+    }*/
 
-    protected void setCurrentQueue(String title, List<MediaSessionCompat.QueueItem> newQueue,
+    /*protected void setCurrentQueue(String title, Queue newQueue,
                                    String initialMediaId) {
         mPlayingQueue = newQueue;
         int index = 0;
@@ -176,22 +310,15 @@ public class QueueManager {
         }
         mCurrentIndex = Math.max(index, 0);
         mListener.onQueueUpdated(title, newQueue);
-    }
+    }*/
 
     public void updateMetadata() {
-        MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
-        if (currentMusic == null) {
+        if (mCurrentSongIndex < 0) {
             mListener.onMetadataRetrieveError();
             return;
         }
-        final String musicId = MediaIDHelper.extractMusicIDFromMediaID(
-                currentMusic.getDescription().getMediaId());
-        Song song = mMusicProvider.getMusic(musicId);
-        if (song == null) {
-            throw new IllegalArgumentException("Invalid musicId " + musicId);
-        }
+        final Song song = getCurrentSong();
         MediaMetadataCompat metadata = song.getMetadata();
-
 
         mListener.onMetadataChanged(metadata);
 
@@ -203,17 +330,15 @@ public class QueueManager {
             AlbumArtCache.getInstance().fetch(albumUri, new AlbumArtCache.FetchListener() {
                 @Override
                 public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                    mMusicProvider.updateMusicArt(musicId, bitmap, icon);
+                    mMusicProvider.updateMusicArt(song.getSongID(), bitmap, icon);
 
                     // If we are still playing the same music, notify the listeners:
-                    MediaSessionCompat.QueueItem currentMusic = getCurrentMusic();
-                    if (currentMusic == null) {
+                    Song currentSong = getCurrentSong();
+                    if (currentSong == null) {
                         return;
                     }
-                    String currentPlayingId = MediaIDHelper.extractMusicIDFromMediaID(
-                            currentMusic.getDescription().getMediaId());
-                    if (musicId.equals(currentPlayingId)) {
-                        mListener.onMetadataChanged(mMusicProvider.getMusic(currentPlayingId).getMetadata());
+                    if (song == currentSong) {
+                        mListener.onMetadataChanged(currentSong.getMetadata());
                     }
                 }
             });
@@ -224,6 +349,6 @@ public class QueueManager {
         void onMetadataChanged(MediaMetadataCompat metadata);
         void onMetadataRetrieveError();
         void onCurrentQueueIndexUpdated(int queueIndex);
-        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newQueue);
+        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newCompiledQueue);
     }
 }

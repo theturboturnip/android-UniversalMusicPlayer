@@ -134,6 +134,7 @@ public class MediaItemViewHolder {
         // Set state to playable first, then override to playing or paused state if needed
         if (mediaItem.isPlayable()) {
             state = STATE_PLAYABLE;
+
             if (MediaIDHelper.isMediaItemPlaying(context, mediaItem)) {
                 state = getStateFromController(context);
             }

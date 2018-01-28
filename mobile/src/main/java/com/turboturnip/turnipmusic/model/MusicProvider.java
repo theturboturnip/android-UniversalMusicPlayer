@@ -16,7 +16,6 @@
 
 package com.turboturnip.turnipmusic.model;
 
-import android.accessibilityservice.FingerprintGestureController;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -26,9 +25,9 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
+import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,10 +37,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import static com.turboturnip.turnipmusic.utils.MediaIDHelper.MEDIA_ID_MUSICS_BY_GENRE;
-import static com.turboturnip.turnipmusic.utils.MediaIDHelper.MEDIA_ID_ROOT;
-import static com.turboturnip.turnipmusic.utils.MediaIDHelper.createMediaID;
 
 /**
  * Simple data provider for music tracks. The actual metadata source is delegated to a
@@ -151,6 +146,14 @@ public class MusicProvider {
 				mCurrentState = State.NON_INITIALIZED;
 			}
 		}
+	}
+
+	public int songCount(){
+		return mSongs.size();
+	}
+
+	public int getSongIndexFromID(String musicId){
+		return mMusicListById.get(musicId);
 	}
 
     /**
@@ -291,44 +294,39 @@ public class MusicProvider {
     }
 
 
-    public List<MediaBrowserCompat.MediaItem> getChildren(String mediaId, Resources resources) {
+    public List<MediaBrowserCompat.MediaItem> getChildren(String musicFilter, Resources resources) {
         List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
-        if (!MediaIDHelper.isBrowseable(mediaId)) {
-            return mediaItems;
-        }
+	    MusicFilter parsedMusicFilter = new MusicFilter(musicFilter);
+        //if (!parsedMusicFilter.isBrowseable()) {
+        //    return mediaItems;
+        //}
 
-        if (MEDIA_ID_ROOT.equals(mediaId)) {
+        if (parsedMusicFilter.isRoot()) {
             mediaItems.add(createBrowsableMediaItemForRoot(resources));
-
-        } else if (MEDIA_ID_MUSICS_BY_GENRE.equals(mediaId)) {
+        } else if (MusicFilter.EMPTY_FILTER_VALUE.equals(parsedMusicFilter.getGenreFilter())) {
             for (String genre : getGenres()) {
                 mediaItems.add(createBrowsableMediaItemForGenre(genre, resources));
             }
-
-        } else if (mediaId.startsWith(MEDIA_ID_MUSICS_BY_GENRE)) {
-        	LogHelper.i(TAG, mediaId);
-	        LogHelper.i(TAG, "Total Genres: ", mMusicListByGenre.size());
-	        LogHelper.i(TAG, "Genre 1: ", mMusicListByGenre.keySet().toArray()[0]);
-
-            String genre = MediaIDHelper.getHierarchy(mediaId)[1];
+        } else if (parsedMusicFilter.getGenreFilter() != null) {
+        	LogHelper.i(TAG, musicFilter);
+            String genre = parsedMusicFilter.getGenreFilter();
             for (int index : getMusicsByGenre(genre)) {
                 mediaItems.add(createMediaItem(mSongs.get(index).getMetadata()));
             }
-
         } else {
-            LogHelper.w(TAG, "Skipping unmatched mediaId: ", mediaId);
+            LogHelper.w(TAG, "Skipping unmatched filter: ", musicFilter);
         }
         return mediaItems;
     }
 
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForRoot(Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(MEDIA_ID_MUSICS_BY_GENRE)
+                .setMediaId(new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_GENRE)).toString())
                 .setTitle(resources.getString(R.string.browse_genres))
                 .setSubtitle(resources.getString(R.string.browse_genre_subtitle))
                 .setIconUri(Uri.parse("android.resource://" +
-                        "com.example.android.uamp/drawable/ic_by_genre"))
+                        "com.turboturnip.turnipmusic/drawable/ic_by_genre"))
                 .build();
         return new MediaBrowserCompat.MediaItem(description,
                 MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
@@ -337,7 +335,7 @@ public class MusicProvider {
     private MediaBrowserCompat.MediaItem createBrowsableMediaItemForGenre(String genre,
                                                                     Resources resources) {
         MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
-                .setMediaId(createMediaID(null, MEDIA_ID_MUSICS_BY_GENRE, genre))
+                .setMediaId(new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_GENRE, genre)).toString())
                 .setTitle(genre)
                 .setSubtitle(resources.getString(
                         R.string.browse_musics_by_genre_subtitle, genre))
@@ -347,17 +345,7 @@ public class MusicProvider {
     }
 
     private MediaBrowserCompat.MediaItem createMediaItem(MediaMetadataCompat metadata) {
-        // Since mediaMetadata fields are immutable, we need to create a copy, so we
-        // can set a hierarchy-aware mediaID. We will need to know the media hierarchy
-        // when we get a onPlayFromMusicID call, so we can create the proper queue based
-        // on where the music was selected from (by artist, by genre, random, etc)
-        String genre = metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE);
-        String hierarchyAwareMediaID = MediaIDHelper.createMediaID(
-                metadata.getDescription().getMediaId(), MEDIA_ID_MUSICS_BY_GENRE, genre);
-        MediaMetadataCompat copy = new MediaMetadataCompat.Builder(metadata)
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, hierarchyAwareMediaID)
-                .build();
-        return new MediaBrowserCompat.MediaItem(copy.getDescription(),
+        return new MediaBrowserCompat.MediaItem(metadata.getDescription(),
                 MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
 
     }
