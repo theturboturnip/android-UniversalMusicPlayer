@@ -16,6 +16,7 @@
 
 package com.turboturnip.turnipmusic.playback;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.media.session.MediaSession;
@@ -26,6 +27,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.turboturnip.turnipmusic.AlbumArtCache;
 import com.turboturnip.turnipmusic.MusicFilter;
@@ -77,36 +79,20 @@ public class QueueManager {
     }
 
 	public boolean next(){
-		if (mCurrentSongIndex >= 0)
-			mHistory.add(mCurrentSongIndex);
-		// If the explicit queue has an item, use that
-		if (mExplicitQueue.size() > 0)
-			mCurrentSongIndex = mExplicitQueue.remove(0);
-		// Otherwise, get a new song from the implicit queue and tell the implicit queue we've used it
-		else {
-			mCurrentSongIndex = mImplicitQueue.nextIndex(mMusicProvider);
-			if (mCurrentSongIndex < 0) return false;
-			mImplicitQueue.onIndexPlayed(mCurrentSongIndex);
-		}
-		updateCompiledQueue();
-		return true;
+		return takeNewSongFromExplicitQueue() || takeNewSongFromImplicitQueue();
 	}
 	public boolean previous(){
-		if (mHistory.size() > 1) {
-			mExplicitQueue.add(mCurrentSongIndex);
-			mCurrentSongIndex = mHistory.remove(mHistory.size() - 1);
-			updateCompiledQueue();
-			return true;
-		}
-		return false;
+		return takeNewSongFromHistory();
 	}
-	public boolean addToExplicitQueue(int songIndex) {
-		// If this is in the explicit queue, promote it to the current song.
+	public boolean addToExplicitQueue(Context context, int songIndex) {
 		if (mCurrentSongIndex < 0){
+			// If we aren't playing anything, just take this one
 			mCurrentSongIndex = songIndex;
+			mImplicitQueue.onIndexPlayed(songIndex);
 			updateCompiledQueue();
 			return true;
 		}else if (mExplicitQueue.contains(songIndex)){
+			// If this is in the explicit queue, promote it to the current song.
 			mHistory.add(mCurrentSongIndex);
 			mCurrentSongIndex = songIndex;
 			// Cast it to object, so the explicit queue knows not to treat it as a removeAt(songIndex).
@@ -114,9 +100,41 @@ public class QueueManager {
 			updateCompiledQueue();
 			return true;
 		}
+		Toast.makeText(context, "Added "+mMusicProvider.getMusic(songIndex).getMetadata().getDescription().getTitle()+" to the queue.", Toast.LENGTH_SHORT).show();
 		mExplicitQueue.add(songIndex);
 		updateCompiledQueue();
 		return false;
+	}
+	private boolean takeNewSongFromExplicitQueue(){
+		if (mExplicitQueue.size() == 0) return false;
+		if (mCurrentSongIndex >= 0)
+			mHistory.add(mCurrentSongIndex);
+		mCurrentSongIndex = mExplicitQueue.remove(0);
+		if (mExplicitQueue.size() == 0)
+			updateCompiledQueue();
+		else
+			mCurrentCompiledQueueIndex++;
+		return true;
+	}
+	private boolean takeNewSongFromHistory(){
+		if (mHistory.size() == 0) return false;
+		if (mCurrentSongIndex >= 0)
+			mExplicitQueue.add(0, mCurrentSongIndex);
+		mCurrentSongIndex = mHistory.remove(mHistory.size() - 1);
+		updateCompiledQueue();
+		return true;
+	}
+	private boolean takeNewSongFromImplicitQueue(){
+		if (mExplicitQueue.size() > 0)
+			LogHelper.e(TAG, "Taking song from implicit queue when the explicit queue is not empty!!!");
+		if (mCurrentSongIndex >= 0)
+			mHistory.add(mCurrentSongIndex);
+		mCurrentSongIndex = mImplicitQueue.nextIndex(mMusicProvider);
+		if (mCurrentSongIndex < 0)
+			return false;
+		mImplicitQueue.onIndexPlayed(mCurrentSongIndex);
+		updateCompiledQueue();
+		return true;
 	}
 	private void updateCompiledQueue(){
 		ArrayList<MediaSessionCompat.QueueItem> newCompiledQueue = new ArrayList<>();
@@ -140,6 +158,11 @@ public class QueueManager {
 			if (mCurrentCompiledQueueIndex == newCompiledQueue.size() - 1)
 				newCompiledQueue.add(queueItemFromSongIndex(mImplicitQueue.nextIndex(mMusicProvider), newCompiledQueue.size()));
 		}
+
+		LogHelper.i(TAG, "updating compiled queue: [");
+		for (MediaSessionCompat.QueueItem item : newCompiledQueue)
+			LogHelper.i(TAG, "\t", (item.getQueueId() == mCurrentCompiledQueueIndex) ? "  > " : "    ", item.getDescription().getMediaId());
+		LogHelper.i(TAG, "]");
 
 		mCompiledQueue = newCompiledQueue;
 		mListener.onQueueUpdated("Now Playing", mCompiledQueue);

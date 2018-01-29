@@ -256,11 +256,11 @@ public final class LocalPlayback implements Playback {
     }
 
     @Override
-    public void seekTo(long position) {
-        LogHelper.d(TAG, "seekTo called with ", position);
+    public void seekTo(long milliseconds) {
+        LogHelper.d(TAG, "seekTo called with ", milliseconds);
         if (mExoPlayer != null) {
             registerAudioNoisyReceiver();
-            mExoPlayer.seekTo(position);
+            mExoPlayer.seekTo(milliseconds);
         }
     }
 

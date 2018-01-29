@@ -198,7 +198,6 @@ public class QueueHelper {
             String currentPlayingMediaId = controller.getMetadata().getDescription()
                     .getMediaId();
             String itemMusicId = queueItem.getDescription().getMediaId();
-            LogHelper.d(TAG, currentPlayingMediaId, "==", itemMusicId);
             if (queueItem.getQueueId() == currentPlayingQueueId
                     && currentPlayingMediaId != null
                     && TextUtils.equals(currentPlayingMediaId, itemMusicId)) {

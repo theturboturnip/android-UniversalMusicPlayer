@@ -40,6 +40,8 @@ public class PlaybackManager implements Playback.Callback {
     // Action to thumbs up a media item
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.example.android.uamp.THUMBS_UP";
 
+    private static final long BACK_SKIP_MAX_TIME = 10 * 1000; // The maximum point in milliseconds a song can be within where pressing the "previous" button will skip it back to the start.
+
     private MusicProvider mMusicProvider;
     private QueueManager mQueueManager;
     private Resources mResources;
@@ -279,16 +281,16 @@ public class PlaybackManager implements Playback.Callback {
         }
 
         @Override
-        public void onSeekTo(long position) {
-            LogHelper.d(TAG, "onSeekTo:", position);
-            mPlayback.seekTo((int) position);
+        public void onSeekTo(long milliseconds) {
+            LogHelper.d(TAG, "onSeekTo:", milliseconds);
+            mPlayback.seekTo((int) milliseconds);
         }
 
         @Override
 	    public void onPlayFromMediaId(String mediaId, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
 	        // TODO: Interpret the command as either a journey start or an explicit queue request, and reroute the function call as required
-            if (mQueueManager.addToExplicitQueue(mMusicProvider.getSongIndexFromID(mediaId)))
+            if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSongIndexFromID(mediaId)))
             	handlePlayRequest();
         }
 
@@ -307,7 +309,6 @@ public class PlaybackManager implements Playback.Callback {
         @Override
         public void onSkipToNext() {
             LogHelper.d(TAG, "skipToNext");
-            // TODO: Again, use queue.next instead of skip(1)
             if (mQueueManager.next()) {
                 handlePlayRequest();
             } else {
@@ -318,11 +319,12 @@ public class PlaybackManager implements Playback.Callback {
 
         @Override
         public void onSkipToPrevious() {
-        	// TODO: Use queue.previous()
-            if (mQueueManager.previous()) {
+            if (mPlayback.getCurrentStreamPosition() > BACK_SKIP_MAX_TIME)
+            	mPlayback.seekTo(0);
+            else if (mQueueManager.previous()) {
                 handlePlayRequest();
             } else {
-                handleStopRequest("Cannot skip");
+                handleStopRequest(null);
             }
             mQueueManager.updateMetadata();
         }

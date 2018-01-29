@@ -199,6 +199,8 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
+	            if (mLastPlaybackState.getState() != PlaybackStateCompat.STATE_PLAYING)
+		            MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getTransportControls().play();
                 MediaControllerCompat.getMediaController(FullScreenPlayerActivity.this).getTransportControls().seekTo(seekBar.getProgress());
                 scheduleSeekbarUpdate();
             }
@@ -386,7 +388,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             default:
                 LogHelper.d(TAG, "Unhandled state ", state.getState());
         }
-
+		updateProgress();
         mSkipNext.setVisibility((state.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) == 0
             ? INVISIBLE : VISIBLE );
         mSkipPrev.setVisibility((state.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) == 0
@@ -406,7 +408,8 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
             long timeDelta = SystemClock.elapsedRealtime() -
                     mLastPlaybackState.getLastPositionUpdateTime();
             currentPosition += (int) timeDelta * mLastPlaybackState.getPlaybackSpeed();
-        }
+        }else if (mLastPlaybackState.getState() == PlaybackStateCompat.STATE_STOPPED)
+        	currentPosition = 0;
         mSeekbar.setProgress((int) currentPosition);
     }
 }

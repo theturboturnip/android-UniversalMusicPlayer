@@ -12,7 +12,6 @@ public class MediaIDHelper {
 		if (controller != null && controller.getMetadata() != null) {
 			String currentPlayingMediaId = controller.getMetadata().getDescription().getMediaId();
 			isPlaying = currentPlayingMediaId.equals(mediaItem.getMediaId());
-			LogHelper.d("MediaIDHelper", currentPlayingMediaId, mediaItem.getMediaId());
 		}
 		return isPlaying;
 	}
