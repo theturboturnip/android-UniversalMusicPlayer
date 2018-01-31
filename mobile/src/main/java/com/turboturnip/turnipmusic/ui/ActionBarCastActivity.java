@@ -156,6 +156,17 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
             throw new IllegalStateException("You must run super.initializeToolbar at " +
                 "the end of your onCreate method");
         }
+
+	    // Whenever the fragment back stack changes, we may need to update the
+	    // action bar toggle: only top level screens show the hamburger-like icon, inner
+	    // screens - either Activities or fragments - show the "Up" icon instead.
+	    getFragmentManager().addOnBackStackChangedListener(mBackStackChangedListener);
+    }
+
+    @Override
+    protected void onStop(){
+    	super.onStop();
+	    getFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
     }
 
     @Override
@@ -173,11 +184,6 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         if (mCastContext != null) {
             mCastContext.addCastStateListener(mCastStateListener);
         }
-
-        // Whenever the fragment back stack changes, we may need to update the
-        // action bar toggle: only top level screens show the hamburger-like icon, inner
-        // screens - either Activities or fragments - show the "Up" icon instead.
-        getFragmentManager().addOnBackStackChangedListener(mBackStackChangedListener);
     }
 
     @Override
@@ -193,9 +199,8 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         super.onPause();
 
         if (mCastContext != null) {
-            mCastContext.removeCastStateListener(mCastStateListener);
+	        mCastContext.removeCastStateListener(mCastStateListener);
         }
-        getFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
     }
 
     @Override
@@ -306,6 +311,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         }
         boolean isRoot = getFragmentManager().getBackStackEntryCount() == 0;
         mDrawerToggle.setDrawerIndicatorEnabled(isRoot);
+        LogHelper.d(TAG, "Is currently root: ", isRoot, " because backStackEntryCount = ", getFragmentManager().getBackStackEntryCount());
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
             getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);

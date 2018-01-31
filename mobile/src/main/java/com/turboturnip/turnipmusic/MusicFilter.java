@@ -1,10 +1,15 @@
 package com.turboturnip.turnipmusic;
 
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.text.TextUtils;
+
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MusicFilter {
@@ -17,11 +22,10 @@ public class MusicFilter {
 	public static final String FILTER_ROOT = "__ROOT__";
 	public static final String FILTER_BY_SEARCH = "__SEARCH__";
 	public static final String FILTER_BY_GENRE = "__GENRE__";
-	public static final String FILTER_BY_ID = "__ID__";
 
 	public static final String EMPTY_FILTER_VALUE = "__NONE__";
 
-	public ArrayList<SubFilter> subFilters;
+	public List<SubFilter> subFilters;
 	private boolean isEmpty, isRoot;
 
 	public static class SubFilter {
@@ -32,9 +36,6 @@ public class MusicFilter {
 			filterValue = EMPTY_FILTER_VALUE;
 		}
 
-		public static SubFilter fromSong(String songID) {
-			return new SubFilter(FILTER_BY_ID, songID);
-		}
 		public SubFilter(String _filterType){
 			filterType = _filterType;
 			filterValue = EMPTY_FILTER_VALUE;
@@ -42,6 +43,25 @@ public class MusicFilter {
 		public SubFilter(String _filterType, String _filterValue) {
 			filterType = _filterType;
 			filterValue = _filterValue;
+		}
+
+		// This returns a weight to use when filtering songs. -ve is doesn't fit, 0 is best, more +ve are worse
+		public int songStrength(Song s){
+			if (TextUtils.equals(filterType, FILTER_BY_SEARCH)){
+				int searchStrength;
+				MediaMetadataCompat metadata = s.getMetadata();
+				String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
+				String album = metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
+				int titleStrength = title.indexOf(filterValue);
+				int albumStrength = album.indexOf(filterValue);
+
+				if (titleStrength == -1 && albumStrength == -1)
+					searchStrength = -1;
+				else
+					searchStrength = ((titleStrength < 0) ? 0 : titleStrength) + ((albumStrength < 0) ? 0 : albumStrength);
+				return searchStrength;
+			}
+			return 0;
 		}
 
 		@Override
@@ -82,19 +102,8 @@ public class MusicFilter {
 		subFilters.add(filter);
 		initialize();
 	}
-	public MusicFilter (ArrayList<SubFilter> filters){
-		subFilters = filters;
-		initialize();
-	}
-	public MusicFilter (MusicFilter base, String songID){
-		subFilters = base.subFilters;
-		for (SubFilter sf : subFilters) {
-			if (sf.filterType.equals(FILTER_BY_ID)){
-				sf.filterValue = songID;
-				return;
-			}
-		}
-		subFilters.add(new SubFilter(FILTER_BY_ID, songID));
+	public MusicFilter (SubFilter... filters){
+		subFilters = Arrays.asList(filters);
 		initialize();
 	}
 	private void initialize(){
@@ -130,9 +139,12 @@ public class MusicFilter {
 		return null;
 	}
 
-	// TODO: Make this actually do something
-	public boolean accepts(Song song){
-		return true;
+	public int songStrength(Song song){
+		if (isRoot) return 0;
+		int songStrength = 0;
+		for (SubFilter sf : subFilters)
+			songStrength += sf.songStrength(song);
+		return songStrength;
 	}
 
 	@Override

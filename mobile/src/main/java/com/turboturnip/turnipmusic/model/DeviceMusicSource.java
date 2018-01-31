@@ -50,8 +50,9 @@ public class DeviceMusicSource implements MusicProviderSource {
 			int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
 			int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
 			int filePathColumn = musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+			int albumFromMusicColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
 			int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-			int albumColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
+			int albumIDColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID);
 			int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
 			int trackNumberColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TRACK);
 
@@ -93,7 +94,7 @@ public class DeviceMusicSource implements MusicProviderSource {
 					genresCursor.close();
 				}
 
-				int albumID = musicCursor.getInt(albumColumn);
+				int albumID = musicCursor.getInt(albumIDColumn);
 				String album = "";
 				String iconUrl = "";
 				Long totalTrackCount = 0L;
@@ -101,6 +102,8 @@ public class DeviceMusicSource implements MusicProviderSource {
 					album = albumCursor.getString(albumNameColumn);
 					iconUrl = albumCursor.getString(albumArtColumn);
 					totalTrackCount = albumCursor.getLong(albumTotalSongsColumn);
+				}else {
+					album = musicCursor.getString(albumFromMusicColumn);
 				}
 
 				tracks.add(new Song(title, id, filePath, album, artist, duration, genre, iconUrl, trackNumber, totalTrackCount));

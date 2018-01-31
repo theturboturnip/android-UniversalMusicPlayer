@@ -21,12 +21,12 @@ public class ImplicitQueue {
 	public int nextIndex(MusicProvider provider){
 		int newIndex = lastPlayedIndex + 1;
 		while (newIndex < provider.songCount()){
-			if (pool.accepts(provider.getMusic(newIndex)))
+			if (pool.songStrength(provider.getMusic(newIndex)) >= 0)
 				return newIndex;
 		}
 		newIndex = 0;
 		while (newIndex <= lastPlayedIndex){
-			if (pool.accepts(provider.getMusic(newIndex)))
+			if (pool.songStrength(provider.getMusic(newIndex)) >= 0)
 				return newIndex;
 		}
 		LogHelper.e(TAG, "No songs found that match the implicit queue!");

@@ -31,6 +31,7 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -302,7 +303,7 @@ public class MusicProvider {
         //    return mediaItems;
         //}
 
-        if (parsedMusicFilter.isRoot()) {
+        /*if (parsedMusicFilter.isRoot()) {
             mediaItems.add(createBrowsableMediaItemForRoot(resources));
         } else if (MusicFilter.EMPTY_FILTER_VALUE.equals(parsedMusicFilter.getGenreFilter())) {
             for (String genre : getGenres()) {
@@ -316,7 +317,27 @@ public class MusicProvider {
             }
         } else {
             LogHelper.w(TAG, "Skipping unmatched filter: ", musicFilter);
+        }*/
+
+        final ArrayList<Integer> scores = new ArrayList<>();
+        ArrayList<Integer> songIndices = new ArrayList<>();
+        for (int i = 0; i < mSongs.size(); i++){
+        	scores.add(parsedMusicFilter.songStrength(mSongs.get(i)));
+        	songIndices.add(i);
         }
+	    Collections.sort(songIndices, new Comparator<Integer>() {
+	        @Override
+	        public int compare(Integer index1, Integer index2) {
+		        return scores.get(index1).compareTo(scores.get(index2));
+	        }
+        });
+
+	    for (int i = 0; i < mSongs.size(); i++){
+	    	int songIndex = songIndices.get(i);
+	    	if (scores.get(songIndex) < 0) continue;
+	    	mediaItems.add(createMediaItem(mSongs.get(songIndex).getMetadata()));
+	    }
+
         return mediaItems;
     }
 
