@@ -12,8 +12,7 @@ public class HubActivity extends BrowserActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_hub);
-
+		setContentView(R.layout.fragment_hub);
 		findViewById(R.id.hub_album_button).setOnClickListener(new HubButtonOnClickListener(MusicFilter.FILTER_BY_ALBUM));
 		findViewById(R.id.hub_artist_button).setOnClickListener(new HubButtonOnClickListener(MusicFilter.FILTER_BY_ALBUM));
 		findViewById(R.id.hub_tags_button).setOnClickListener(new HubButtonOnClickListener(MusicFilter.FILTER_BY_ALBUM));

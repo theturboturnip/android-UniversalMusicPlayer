@@ -53,18 +53,15 @@ import java.util.List;
  * Once connected, the fragment subscribes to get all the children.
  * All {@link MediaBrowserCompat.MediaItem}'s that can be browsed are shown in a ListView.
  */
-public class MediaBrowserFragment extends Fragment {
+public class MediaBrowserFragment extends CommandFragment {
 
     private static final String TAG = LogHelper.makeLogTag(MediaBrowserFragment.class);
 
-    private static final String ARG_MEDIA_ID = "media_id";
-
     private BrowseAdapter mBrowserAdapter;
     private String mMediaId;
-    private MediaFragmentListener mMediaFragmentListener;
     private View mErrorView;
     private TextView mErrorMessage;
-    private final BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
+    protected BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -82,6 +79,23 @@ public class MediaBrowserFragment extends Fragment {
             }
         }
     };
+    @Override
+    public void onStart(){
+    	super.onStart();
+
+	    // Registers BroadcastReceiver to track network connection changes.
+	    this.getActivity().registerReceiver(mConnectivityChangeReceiver,
+			    new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+    }
+    @Override
+    public void onStop(){
+    	super.onStop();
+	    MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
+	    if (controller != null) {
+		    controller.unregisterCallback(mMediaControllerCallback);
+	    }
+	    this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
+    }
 
     // Receive callbacks from the MediaController. Here we update our state such as which queue
     // is being shown, the current title and description and the PlaybackState.
@@ -135,14 +149,6 @@ public class MediaBrowserFragment extends Fragment {
         };
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        // If used on an activity that doesn't implement MediaFragmentListener, it
-        // will throw an exception as expected:
-        mMediaFragmentListener = (MediaFragmentListener) activity;
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         LogHelper.d(TAG, "fragment.onCreateView");
@@ -155,105 +161,34 @@ public class MediaBrowserFragment extends Fragment {
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
         listView.setAdapter(mBrowserAdapter);
-        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                checkForUserVisibleErrors(false);
-                MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
-                mMediaFragmentListener.onMediaItemSelected(item);
-            }
-        });*/
 
         return rootView;
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
+	@Override
+	public void onConnected(){
+    	super.onConnected();
 
-        // fetch browsing information to fill the listview:
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
+		// Unsubscribing before subscribing is required if this mediaId already has a subscriber
+		// on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
+		// the callback, but won't trigger the initial callback.onChildrenLoaded.
+		//
+		// This is temporary: A bug is being fixed that will make subscribe
+		// consistently call onChildrenLoaded initially, no matter if it is replacing an existing
+		// subscriber or not. Currently this only happens if the mediaID has no previous
+		// subscriber or if the media content changes on the service side, so we need to
+		// unsubscribe first.
+		mCommandListener.getMediaBrowser().unsubscribe(mMusicFilter.toString());
 
-        LogHelper.d(TAG, "fragment.onStart, mediaId=", mMediaId,
-                "  onConnected=" + mediaBrowser.isConnected());
+		// This sends the request to get children.
+		mCommandListener.getMediaBrowser().subscribe(mMusicFilter.toString(), mSubscriptionCallback);
 
-        if (mediaBrowser.isConnected()) {
-            onConnected();
-        }
-
-        // Registers BroadcastReceiver to track network connection changes.
-        this.getActivity().registerReceiver(mConnectivityChangeReceiver,
-            new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-        if (mediaBrowser != null && mediaBrowser.isConnected() && mMediaId != null) {
-            mediaBrowser.unsubscribe(mMediaId);
-        }
-        MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
-        if (controller != null) {
-            controller.unregisterCallback(mMediaControllerCallback);
-        }
-        this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mMediaFragmentListener = null;
-    }
-
-    public String getFilter() {
-        Bundle args = getArguments();
-        if (args != null) {
-            return args.getString(ARG_MEDIA_ID);
-        }
-        return null;
-    }
-
-    public void setMediaId(String mediaId) {
-        Bundle args = new Bundle(1);
-        args.putString(MediaBrowserFragment.ARG_MEDIA_ID, mediaId);
-        setArguments(args);
-    }
-
-    // Called when the MediaBrowser is connected. This method is either called by the
-    // fragment.onStart() or explicitly by the activity in the case where the connection
-    // completes after the onStart()
-    public void onConnected() {
-        if (isDetached()) {
-            return;
-        }
-        mMediaId = getFilter();
-        if (mMediaId == null) {
-            mMediaId = mMediaFragmentListener.getMediaBrowser().getRoot();
-	        //LogHelper.d(TAG,"media ID was null, now ", mMediaId);
-        }
-        updateTitle();
-
-        // Unsubscribing before subscribing is required if this mediaId already has a subscriber
-        // on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
-        // the callback, but won't trigger the initial callback.onChildrenLoaded.
-        //
-        // This is temporary: A bug is being fixed that will make subscribe
-        // consistently call onChildrenLoaded initially, no matter if it is replacing an existing
-        // subscriber or not. Currently this only happens if the mediaID has no previous
-        // subscriber or if the media content changes on the service side, so we need to
-        // unsubscribe first.
-        mMediaFragmentListener.getMediaBrowser().unsubscribe(mMediaId);
-
-        // This sends the request to get children.
-        mMediaFragmentListener.getMediaBrowser().subscribe(mMediaId, mSubscriptionCallback);
-
-        // Add MediaController callback so we can redraw the list when metadata changes:
-        MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
-        if (controller != null) {
-            controller.registerCallback(mMediaControllerCallback);
-        }
-    }
+		// Add MediaController callback so we can redraw the list when metadata changes:
+		MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
+		if (controller != null) {
+			controller.registerCallback(mMediaControllerCallback);
+		}
+	}
 
     private void checkForUserVisibleErrors(boolean forceError) {
         boolean showError = forceError;
@@ -283,18 +218,19 @@ public class MediaBrowserFragment extends Fragment {
             " isOnline=", NetworkHelper.isOnline(getActivity()));
     }
 
-    private void updateTitle() {
+    @Override
+    protected void updateTitle() {
     	// TODO: Inefficient as fuck, please change
-        if (new MusicFilter(mMediaId).isRoot()) {
-            mMediaFragmentListener.setToolbarTitle(null);
+        if (mMusicFilter.isRoot() || !mMusicFilter.isValid()) {
+            mCommandListener.setToolbarTitle(null);
             return;
         }
 
-        MediaBrowserCompat mediaBrowser = mMediaFragmentListener.getMediaBrowser();
-        mediaBrowser.getItem(mMediaId, new MediaBrowserCompat.ItemCallback() {
+        MediaBrowserCompat mediaBrowser = mCommandListener.getMediaBrowser();
+        mediaBrowser.getItem(mMusicFilter.toString(), new MediaBrowserCompat.ItemCallback() {
             @Override
             public void onItemLoaded(MediaBrowserCompat.MediaItem item) {
-                mMediaFragmentListener.setToolbarTitle(
+                mCommandListener.setToolbarTitle(
                         item.getDescription().getTitle());
             }
         });
@@ -320,23 +256,16 @@ public class MediaBrowserFragment extends Fragment {
                         @Override
                         public void onClick(View view) {
                             checkForUserVisibleErrors(false);
-                            mMediaFragmentListener.onMediaItemSelected(item);
+                            mCommandListener.onMediaItemSelected(item);
                         }
                     },
                     new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             checkForUserVisibleErrors(false);
-                            mMediaFragmentListener.onMediaItemPlayed(item);
+                            mCommandListener.onMediaItemPlayed(item);
                         }
                     });
         }
     }
-
-    public interface MediaFragmentListener extends MediaBrowserProvider {
-        void onMediaItemSelected(MediaBrowserCompat.MediaItem item);
-        void onMediaItemPlayed(MediaBrowserCompat.MediaItem item);
-        void setToolbarTitle(CharSequence title);
-    }
-
 }

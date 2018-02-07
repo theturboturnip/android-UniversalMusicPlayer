@@ -89,7 +89,7 @@ public class PermissionsActivity extends Activity {
 
 	void onReceivePermissions(){
 		Intent intent = new Intent();
-		intent.setClass(this, HubActivity.class);
+		intent.setClass(this, MusicBrowserActivity.class);
 		startActivity(intent);
 		finish();
 	}

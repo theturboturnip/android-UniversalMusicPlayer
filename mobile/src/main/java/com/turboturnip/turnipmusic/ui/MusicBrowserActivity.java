@@ -36,7 +36,7 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
  * connected while this activity is running.
  */
 public class MusicBrowserActivity extends BrowserActivity
-        implements MediaBrowserFragment.MediaFragmentListener{
+        implements CommandFragment.CommandFragmentListener{
 
 	private static final String TAG = LogHelper.makeLogTag(MusicBrowserActivity.class);
 	private static final String SAVED_MEDIA_ID = "com.turboturnip.turnipmusic.MEDIA_ID";
@@ -155,39 +155,48 @@ public class MusicBrowserActivity extends BrowserActivity
 		navigateToBrowser(mediaFilterString);
 	}
 
-	private void navigateToBrowser(String mediaFilter) {
-		LogHelper.d(TAG, "navigateToBrowser, mediaFilter=" + mediaFilter);
-		MediaBrowserFragment fragment = getBrowseFragment();
-		String oldFilter = null;
-		if (fragment != null) oldFilter = fragment.getFilter();
+	public void navigateToNewFragment(Class fragmentClass, Bundle data){
+		CommandFragment fragment = getCurrentFragment();
 
-		if (fragment == null || !TextUtils.equals(oldFilter, mediaFilter)) {
-			fragment = new MediaBrowserFragment();
-			fragment.setMediaId(mediaFilter);
+		if (fragment == null || !fragment.getArguments().equals(data) || !fragmentClass.isInstance(fragment)){
+			try {
+				fragment = (CommandFragment)fragmentClass.newInstance();
+			}catch (InstantiationException e){
+				e.printStackTrace();
+				return;
+			}catch (IllegalAccessException e){
+				e.printStackTrace();
+				return;
+			}
+			fragment.setArguments(data);
+
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
 			transaction.setCustomAnimations(
 					R.animator.slide_in_from_right, R.animator.slide_out_to_left,
 					R.animator.slide_in_from_left, R.animator.slide_out_to_right);
 			transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-			// If this is not the top level media (root), and we aren't at the root, we add it to the fragment back stack,
-			// so that actionbar toggle and Back will work appropriately:
-			if (mediaFilter != null && !(oldFilter == null || new MusicFilter(oldFilter).isRoot())) {
-				transaction.addToBackStack(null);
-			}
+			transaction.addToBackStack(null);
 			transaction.commit();
 		}
 	}
+	private void navigateToBrowser(String mediaFilter) {
+		LogHelper.d(TAG, "navigateToBrowser, mediaFilter=" + mediaFilter);
+
+		Bundle args = new Bundle(1);
+		args.putString(MediaBrowserFragment.ARG_MUSIC_FILTER, mediaFilter);
+		navigateToNewFragment(MediaBrowserFragment.class, args);
+	}
 
 	public String getFilter() {
-		MediaBrowserFragment fragment = getBrowseFragment();
+		CommandFragment fragment = getCurrentFragment();
 		if (fragment == null) {
 			return null;
 		}
-		return fragment.getFilter();
+		return fragment.getFilter().toString();
 	}
 
-	private MediaBrowserFragment getBrowseFragment() {
-		return (MediaBrowserFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+	private CommandFragment getCurrentFragment() {
+		return (CommandFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
 	}
 
 	@Override
@@ -201,7 +210,7 @@ public class MusicBrowserActivity extends BrowserActivity
 					.playFromSearch(query, mVoiceSearchParams);
 			mVoiceSearchParams = null;
 		}
-		getBrowseFragment().onConnected();
+		getCurrentFragment().onConnected();
 	}
 
 	@Override

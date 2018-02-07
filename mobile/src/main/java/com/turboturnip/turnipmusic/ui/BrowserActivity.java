@@ -81,7 +81,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
 
         hidePlaybackControls();
 
-        //mMediaBrowser.connect();
+        mMediaBrowser.connect();
     }
 
     @Override
