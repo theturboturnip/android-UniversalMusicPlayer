@@ -17,6 +17,6 @@ package com.turboturnip.turnipmusic.ui;
 
 import android.support.v4.media.MediaBrowserCompat;
 
-public interface MediaBrowserProvider {
+public interface MusicBrowserProvider {
     MediaBrowserCompat getMediaBrowser();
 }

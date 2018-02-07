@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.text.TextUtils;
 import android.view.MenuItem;
 
 import com.turboturnip.turnipmusic.MusicFilter;
@@ -39,13 +38,13 @@ public class MusicBrowserActivity extends BrowserActivity
         implements CommandFragment.CommandFragmentListener{
 
 	private static final String TAG = LogHelper.makeLogTag(MusicBrowserActivity.class);
-	private static final String SAVED_MEDIA_ID = "com.turboturnip.turnipmusic.MEDIA_ID";
-	private static final String FRAGMENT_TAG = "uamp_list_container";
+	private static final String SAVED_MUSIC_FILTER = "com.turboturnip.turnipmusic.MEDIA_ID";
+	private static final String FRAGMENT_TAG = "turnipmusic_fragment_container";
 
 	public static final String NEW_FILTER_EXTRA = "com.turboturnip.turnipmusic.NEW_FILTER_EXTRA";
 
 	public static final String EXTRA_START_FULLSCREEN =
-			"com.example.android.uamp.EXTRA_START_FULLSCREEN";
+			"com.turboturnip.turnipmusic.EXTRA_START_FULLSCREEN";
 
 	/**
 	 * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
@@ -53,7 +52,7 @@ public class MusicBrowserActivity extends BrowserActivity
 	 * while the {@link android.support.v4.media.session.MediaControllerCompat} is connecting.
 	 */
 	public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
-			"com.example.android.uamp.CURRENT_MEDIA_DESCRIPTION";
+			"com.turboturnip.turnipmusic.CURRENT_MEDIA_DESCRIPTION";
 
 	private Bundle mVoiceSearchParams;
 
@@ -75,16 +74,16 @@ public class MusicBrowserActivity extends BrowserActivity
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		String mediaId = getFilter();
-		if (mediaId != null) {
-			outState.putString(SAVED_MEDIA_ID, mediaId);
+		String musicFilter = getFilter();
+		if (musicFilter != null) {
+			outState.putString(SAVED_MUSIC_FILTER, musicFilter);
 		}
 		super.onSaveInstanceState(outState);
 	}
 
 	@Override
 	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
-		LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
+		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + item.getMediaId());
 		if (item.isPlayable()) {
 			MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls()
 					.playFromMediaId(item.getMediaId(), null);
@@ -92,12 +91,12 @@ public class MusicBrowserActivity extends BrowserActivity
 			navigateToBrowser(item.getMediaId());
 		} else {
 			LogHelper.w(TAG, "Ignoring MediaItem that is neither browsable nor playable: ",
-					"mediaId=", item.getMediaId());
+					"musicFilter=", item.getMediaId());
 		}
 	}
 	@Override
 	public void onMediaItemPlayed(MediaBrowserCompat.MediaItem item) {
-		LogHelper.d(TAG, "onMediaItemPlayed, mediaId=" + item.getMediaId());
+		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + item.getMediaId());
 
 		MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls()
 					.playFromMediaId(item.getMediaId(), null);
@@ -149,7 +148,7 @@ public class MusicBrowserActivity extends BrowserActivity
 		} else {
 			if (savedInstanceState != null) {
 				// If there is a saved media ID, use it
-				mediaFilterString = savedInstanceState.getString(SAVED_MEDIA_ID);
+				mediaFilterString = savedInstanceState.getString(SAVED_MUSIC_FILTER);
 			}
 		}
 		if (mediaFilterString != null)
@@ -187,8 +186,8 @@ public class MusicBrowserActivity extends BrowserActivity
 		LogHelper.d(TAG, "navigateToBrowser, mediaFilter=" + mediaFilter);
 
 		Bundle args = new Bundle(1);
-		args.putString(MediaBrowserFragment.ARG_MUSIC_FILTER, mediaFilter);
-		navigateToNewFragment(MediaBrowserFragment.class, args);
+		args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, mediaFilter);
+		navigateToNewFragment(MusicBrowserFragment.class, args);
 	}
 
 	public String getFilter() {
@@ -196,7 +195,10 @@ public class MusicBrowserActivity extends BrowserActivity
 		if (fragment == null) {
 			return null;
 		}
-		return fragment.getFilter().toString();
+		MusicFilter filter = fragment.getFilter();
+		if (filter == null)
+			return new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_ROOT)).toString();
+		return filter.toString();
 	}
 
 	private CommandFragment getCurrentFragment() {

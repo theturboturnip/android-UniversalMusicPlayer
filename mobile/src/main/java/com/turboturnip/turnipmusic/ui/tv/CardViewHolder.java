@@ -35,7 +35,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.view.View;
 
 import com.turboturnip.turnipmusic.AlbumArtCache;
-import com.turboturnip.turnipmusic.ui.MediaItemViewHolder;
+import com.turboturnip.turnipmusic.ui.SongViewHolder;
 
 public class CardViewHolder extends Presenter.ViewHolder {
 
@@ -48,7 +48,7 @@ public class CardViewHolder extends Presenter.ViewHolder {
     public CardViewHolder(View view) {
         super(view);
         mCardView = (ImageCardView) view;
-        mItemState = MediaItemViewHolder.STATE_NONE;
+        mItemState = SongViewHolder.STATE_NONE;
     }
 
     public void setState(int state) {
@@ -56,7 +56,7 @@ public class CardViewHolder extends Presenter.ViewHolder {
     }
 
     public void attachView() {
-        if (mItemState == MediaItemViewHolder.STATE_PLAYING) {
+        if (mItemState == SongViewHolder.STATE_PLAYING) {
             AnimationDrawable badgeDrawable = (AnimationDrawable) mCardView.getBadgeImage();
             if (badgeDrawable != null) {
                 badgeDrawable.start();
@@ -65,7 +65,7 @@ public class CardViewHolder extends Presenter.ViewHolder {
     }
 
     public void detachView() {
-        if (mItemState == MediaItemViewHolder.STATE_PLAYING) {
+        if (mItemState == SongViewHolder.STATE_PLAYING) {
             AnimationDrawable badgeDrawable = (AnimationDrawable) mCardView.getBadgeImage();
             if (badgeDrawable != null) {
                 badgeDrawable.stop();
@@ -87,7 +87,7 @@ public class CardViewHolder extends Presenter.ViewHolder {
         mCardView.setMainImageDimensions(CARD_WIDTH, CARD_HEIGHT);
 
         // Based on state of item, set or unset badge
-        Drawable drawable = MediaItemViewHolder.getDrawableByState(context, mItemState);
+        Drawable drawable = SongViewHolder.getDrawableByState(context, mItemState);
         mCardView.setBadgeImage(drawable);
 
         Uri artUri = description.getIconUri();

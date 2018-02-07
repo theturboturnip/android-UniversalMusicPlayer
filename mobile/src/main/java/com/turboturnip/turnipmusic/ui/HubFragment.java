@@ -1,14 +1,9 @@
 package com.turboturnip.turnipmusic.ui;
 
-import android.app.Activity;
-import android.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
-import android.widget.TextView;
 
 import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
@@ -49,8 +44,8 @@ public class HubFragment extends CommandFragment {
 
 		public void onClick(View button){
 			Bundle args = new Bundle(1);
-			args.putString(MediaBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
-			mCommandListener.navigateToNewFragment(MediaBrowserFragment.class, args);
+			args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
+			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);
 		}
 	}
 }

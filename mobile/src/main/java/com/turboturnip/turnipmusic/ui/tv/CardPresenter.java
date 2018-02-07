@@ -24,7 +24,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.view.ViewGroup;
 
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.ui.MediaItemViewHolder;
+import com.turboturnip.turnipmusic.ui.SongViewHolder;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.QueueHelper;
 
@@ -54,18 +54,18 @@ public class CardPresenter extends Presenter {
         final CardViewHolder cardViewHolder = (CardViewHolder) viewHolder;
 
         // Determine description and playing state of item based on instance type
-        cardViewHolder.setState(MediaItemViewHolder.STATE_NONE);
+        cardViewHolder.setState(SongViewHolder.STATE_NONE);
         if (item instanceof  MediaBrowserCompat.MediaItem) {
             MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
             LogHelper.d(TAG, "onBindViewHolder MediaItem: ", mediaItem.toString());
             description = mediaItem.getDescription();
-            cardViewHolder.setState(MediaItemViewHolder.getMediaItemState(mContext, mediaItem));
+            cardViewHolder.setState(SongViewHolder.getMediaItemState(mContext, mediaItem));
         } else if (item instanceof MediaSessionCompat.QueueItem) {
             MediaSessionCompat.QueueItem queueItem = (MediaSessionCompat.QueueItem) item;
             LogHelper.d(TAG, "onBindViewHolder QueueItem: ", queueItem.toString());
             description = queueItem.getDescription();
             if (QueueHelper.isQueueItemPlaying(mContext, queueItem)) {
-                cardViewHolder.setState(MediaItemViewHolder.getStateFromController(mContext));
+                cardViewHolder.setState(SongViewHolder.getStateFromController(mContext));
             }
         } else {
             throw new IllegalArgumentException("Object must be MediaItem or QueueItem, not "
@@ -79,7 +79,7 @@ public class CardPresenter extends Presenter {
     public void onUnbindViewHolder(Presenter.ViewHolder viewHolder) {
         LogHelper.d(TAG, "onUnbindViewHolder");
         final CardViewHolder cardViewHolder = (CardViewHolder) viewHolder;
-        cardViewHolder.setState(MediaItemViewHolder.STATE_NONE);
+        cardViewHolder.setState(SongViewHolder.STATE_NONE);
         cardViewHolder.setBadgeImage(null);
     }
 

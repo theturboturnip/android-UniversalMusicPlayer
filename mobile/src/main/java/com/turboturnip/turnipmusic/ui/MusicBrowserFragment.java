@@ -16,7 +16,6 @@
 package com.turboturnip.turnipmusic.ui;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -31,13 +30,11 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
@@ -53,12 +50,11 @@ import java.util.List;
  * Once connected, the fragment subscribes to get all the children.
  * All {@link MediaBrowserCompat.MediaItem}'s that can be browsed are shown in a ListView.
  */
-public class MediaBrowserFragment extends CommandFragment {
+public class MusicBrowserFragment extends CommandFragment {
 
-    private static final String TAG = LogHelper.makeLogTag(MediaBrowserFragment.class);
+    private static final String TAG = LogHelper.makeLogTag(MusicBrowserFragment.class);
 
     private BrowseAdapter mBrowserAdapter;
-    private String mMediaId;
     private View mErrorView;
     private TextView mErrorMessage;
     protected BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
@@ -67,7 +63,7 @@ public class MediaBrowserFragment extends CommandFragment {
         public void onReceive(Context context, Intent intent) {
             // We don't care about network changes while this fragment is not associated
             // with a media ID (for example, while it is being initialized)
-            if (mMediaId != null) {
+            if (mMusicFilter != null || !mMusicFilter.isValid()) {
                 boolean isOnline = NetworkHelper.isOnline(context);
                 if (isOnline != oldOnline) {
                     oldOnline = isOnline;
@@ -169,13 +165,13 @@ public class MediaBrowserFragment extends CommandFragment {
 	public void onConnected(){
     	super.onConnected();
 
-		// Unsubscribing before subscribing is required if this mediaId already has a subscriber
-		// on this MediaBrowser instance. Subscribing to an already subscribed mediaId will replace
+		// Unsubscribing before subscribing is required if this filter already has a subscriber
+		// on this MediaBrowser instance. Subscribing to an already subscribed filter will replace
 		// the callback, but won't trigger the initial callback.onChildrenLoaded.
 		//
 		// This is temporary: A bug is being fixed that will make subscribe
 		// consistently call onChildrenLoaded initially, no matter if it is replacing an existing
-		// subscriber or not. Currently this only happens if the mediaID has no previous
+		// subscriber or not. Currently this only happens if the filter has no previous
 		// subscriber or if the media content changes on the service side, so we need to
 		// unsubscribe first.
 		mCommandListener.getMediaBrowser().unsubscribe(mMusicFilter.toString());
@@ -247,7 +243,7 @@ public class MediaBrowserFragment extends CommandFragment {
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             final MediaBrowserCompat.MediaItem item = getItem(position);
-            return MediaItemViewHolder.setupListView(
+            return SongViewHolder.setupListView(
                     (Activity) getContext(),
                     convertView,
                     parent,

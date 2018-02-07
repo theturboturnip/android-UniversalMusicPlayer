@@ -2,12 +2,8 @@ package com.turboturnip.turnipmusic.ui;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.BroadcastReceiver;
-import android.content.IntentFilter;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 
 import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.utils.LogHelper;
@@ -89,7 +85,7 @@ public class CommandFragment extends Fragment {
 		mCommandListener.setToolbarTitle("Default Title");
 	}
 
-	public interface CommandFragmentListener extends MediaBrowserProvider{
+	public interface CommandFragmentListener extends MusicBrowserProvider {
 		void setToolbarTitle(CharSequence title);
 		void navigateToNewFragment(Class newFragmentClass, Bundle initData);
 		void onMediaItemSelected(MediaBrowserCompat.MediaItem filter);

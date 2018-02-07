@@ -36,7 +36,7 @@ import android.widget.TextView;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 
-public class MediaItemViewHolder {
+public class SongViewHolder {
 
     public static final int STATE_INVALID = -1;
     public static final int STATE_NONE = 0;
@@ -58,20 +58,20 @@ public class MediaItemViewHolder {
             initializeColorStateLists(activity);
         }
 
-        MediaItemViewHolder holder;
+        SongViewHolder holder;
 
         Integer cachedState = STATE_INVALID;
 
         if (convertView == null) {
             convertView = LayoutInflater.from(activity)
                     .inflate(R.layout.media_list_item, parent, false);
-            holder = new MediaItemViewHolder();
+            holder = new SongViewHolder();
             holder.mImageView = (ImageView) convertView.findViewById(R.id.play_eq);
             holder.mTitleView = (TextView) convertView.findViewById(R.id.title);
             holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description);
             convertView.setTag(holder);
         } else {
-            holder = (MediaItemViewHolder) convertView.getTag();
+            holder = (SongViewHolder) convertView.getTag();
             cachedState = (Integer) convertView.getTag(R.id.tag_mediaitem_state_cache);
         }
 
@@ -152,11 +152,11 @@ public class MediaItemViewHolder {
         PlaybackStateCompat pbState = controller.getPlaybackState();
         if (pbState == null ||
                 pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
-            return MediaItemViewHolder.STATE_NONE;
+            return SongViewHolder.STATE_NONE;
         } else if (pbState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-            return  MediaItemViewHolder.STATE_PLAYING;
+            return  SongViewHolder.STATE_PLAYING;
         } else {
-            return MediaItemViewHolder.STATE_PAUSED;
+            return SongViewHolder.STATE_PAUSED;
         }
     }
 }
