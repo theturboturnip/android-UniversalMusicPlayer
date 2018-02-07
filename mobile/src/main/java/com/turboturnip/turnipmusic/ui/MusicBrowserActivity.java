@@ -152,7 +152,10 @@ public class MusicBrowserActivity extends BrowserActivity
 				mediaFilterString = savedInstanceState.getString(SAVED_MEDIA_ID);
 			}
 		}
-		navigateToBrowser(mediaFilterString);
+		if (mediaFilterString != null)
+			navigateToBrowser(mediaFilterString);
+		else
+			navigateToNewFragment(HubFragment.class, new Bundle());
 	}
 
 	public void navigateToNewFragment(Class fragmentClass, Bundle data){
@@ -175,7 +178,8 @@ public class MusicBrowserActivity extends BrowserActivity
 					R.animator.slide_in_from_right, R.animator.slide_out_to_left,
 					R.animator.slide_in_from_left, R.animator.slide_out_to_right);
 			transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-			transaction.addToBackStack(null);
+			if (!fragment.isRoot())
+				transaction.addToBackStack(null);
 			transaction.commit();
 		}
 	}

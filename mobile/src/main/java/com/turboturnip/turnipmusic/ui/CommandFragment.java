@@ -20,6 +20,10 @@ public class CommandFragment extends Fragment {
 	CommandFragmentListener mCommandListener = null;
 	MusicFilter mMusicFilter;
 
+	public boolean isRoot(){
+		return false;
+	}
+
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);

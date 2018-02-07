@@ -55,9 +55,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.HubActivity">
-        </activity>
-
         <!-- Main activity for music browsing on phone -->
         <activity
             android:name=".ui.MusicBrowserActivity"
