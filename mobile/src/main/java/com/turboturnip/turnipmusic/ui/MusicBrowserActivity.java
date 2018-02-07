@@ -18,7 +18,6 @@ package com.turboturnip.turnipmusic.ui;
 import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.media.MediaBrowserCompat;
@@ -30,21 +29,20 @@ import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-
 /**
  * Main activity for the music player.
  * This class hold the MediaBrowser and the MediaController instances. It will create a MediaBrowser
  * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowser will be always
  * connected while this activity is running.
  */
-public class MusicPlayerActivity extends BaseActivity
+public class MusicBrowserActivity extends BrowserActivity
         implements MediaBrowserFragment.MediaFragmentListener{
 
-	private static final String TAG = LogHelper.makeLogTag(MusicPlayerActivity.class);
-	private static final String SAVED_MEDIA_ID = "com.example.android.uamp.MEDIA_ID";
+	private static final String TAG = LogHelper.makeLogTag(MusicBrowserActivity.class);
+	private static final String SAVED_MEDIA_ID = "com.turboturnip.turnipmusic.MEDIA_ID";
 	private static final String FRAGMENT_TAG = "uamp_list_container";
+
+	public static final String NEW_FILTER_EXTRA = "com.turboturnip.turnipmusic.NEW_FILTER_EXTRA";
 
 	public static final String EXTRA_START_FULLSCREEN =
 			"com.example.android.uamp.EXTRA_START_FULLSCREEN";
@@ -77,7 +75,7 @@ public class MusicPlayerActivity extends BaseActivity
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		String mediaId = getMediaId();
+		String mediaId = getFilter();
 		if (mediaId != null) {
 			outState.putString(SAVED_MEDIA_ID, mediaId);
 		}
@@ -88,7 +86,7 @@ public class MusicPlayerActivity extends BaseActivity
 	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
 		LogHelper.d(TAG, "onMediaItemSelected, mediaId=" + item.getMediaId());
 		if (item.isPlayable()) {
-			MediaControllerCompat.getMediaController(MusicPlayerActivity.this).getTransportControls()
+			MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls()
 					.playFromMediaId(item.getMediaId(), null);
 		} else if (item.isBrowsable()) {
 			navigateToBrowser(item.getMediaId());
@@ -96,6 +94,13 @@ public class MusicPlayerActivity extends BaseActivity
 			LogHelper.w(TAG, "Ignoring MediaItem that is neither browsable nor playable: ",
 					"mediaId=", item.getMediaId());
 		}
+	}
+	@Override
+	public void onMediaItemPlayed(MediaBrowserCompat.MediaItem item) {
+		LogHelper.d(TAG, "onMediaItemPlayed, mediaId=" + item.getMediaId());
+
+		MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls()
+					.playFromMediaId(item.getMediaId(), null);
 	}
 
 	@Override
@@ -126,7 +131,7 @@ public class MusicPlayerActivity extends BaseActivity
 	}
 
 	protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
-		String mediaId = null;
+		String mediaFilterString = null;
 		// check if we were started from a "Play XYZ" voice search. If so, we save the extras
 		// (which contain the query details) in a parameter, so we can reuse it later, when the
 		// MediaSession is connected.
@@ -138,48 +143,47 @@ public class MusicPlayerActivity extends BaseActivity
 					mVoiceSearchParams.getString(SearchManager.QUERY));
 		} else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
-			try {
-				mediaId = new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_SEARCH, URLEncoder.encode(query, "UTF-8"))).toString();
-				//MediaControllerCompat.getMediaController(this).
-			}catch (UnsupportedEncodingException e){
-				LogHelper.e("What the fuck? UTF-8 not supported as a URL encoding.");
-			}
+			mediaFilterString = new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_SEARCH, query)).toString();
+		} else if (intent.hasExtra(NEW_FILTER_EXTRA)){
+			mediaFilterString = intent.getStringExtra(NEW_FILTER_EXTRA);
 		} else {
 			if (savedInstanceState != null) {
 				// If there is a saved media ID, use it
-				mediaId = savedInstanceState.getString(SAVED_MEDIA_ID);
+				mediaFilterString = savedInstanceState.getString(SAVED_MEDIA_ID);
 			}
 		}
-		navigateToBrowser(mediaId);
+		navigateToBrowser(mediaFilterString);
 	}
 
-	private void navigateToBrowser(String mediaId) {
-		LogHelper.d(TAG, "navigateToBrowser, mediaId=" + mediaId);
+	private void navigateToBrowser(String mediaFilter) {
+		LogHelper.d(TAG, "navigateToBrowser, mediaFilter=" + mediaFilter);
 		MediaBrowserFragment fragment = getBrowseFragment();
+		String oldFilter = null;
+		if (fragment != null) oldFilter = fragment.getFilter();
 
-		if (fragment == null || !TextUtils.equals(fragment.getMediaId(), mediaId)) {
+		if (fragment == null || !TextUtils.equals(oldFilter, mediaFilter)) {
 			fragment = new MediaBrowserFragment();
-			fragment.setMediaId(mediaId);
+			fragment.setMediaId(mediaFilter);
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
 			transaction.setCustomAnimations(
 					R.animator.slide_in_from_right, R.animator.slide_out_to_left,
 					R.animator.slide_in_from_left, R.animator.slide_out_to_right);
 			transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-			// If this is not the top level media (root), we add it to the fragment back stack,
+			// If this is not the top level media (root), and we aren't at the root, we add it to the fragment back stack,
 			// so that actionbar toggle and Back will work appropriately:
-			if (mediaId != null) {
+			if (mediaFilter != null && !(oldFilter == null || new MusicFilter(oldFilter).isRoot())) {
 				transaction.addToBackStack(null);
 			}
 			transaction.commit();
 		}
 	}
 
-	public String getMediaId() {
+	public String getFilter() {
 		MediaBrowserFragment fragment = getBrowseFragment();
 		if (fragment == null) {
 			return null;
 		}
-		return fragment.getMediaId();
+		return fragment.getFilter();
 	}
 
 	private MediaBrowserFragment getBrowseFragment() {
@@ -193,7 +197,7 @@ public class MusicPlayerActivity extends BaseActivity
 			// send it to the media session and set it to null, so it won't play again
 			// when the activity is stopped/started or recreated:
 			String query = mVoiceSearchParams.getString(SearchManager.QUERY);
-			MediaControllerCompat.getMediaController(MusicPlayerActivity.this).getTransportControls()
+			MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls()
 					.playFromSearch(query, mVoiceSearchParams);
 			mVoiceSearchParams = null;
 		}

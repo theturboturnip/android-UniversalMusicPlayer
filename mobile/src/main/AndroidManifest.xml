@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   Copyright (C) 2014 The Android Open Source Project
 
   Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,19 +12,21 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-  -->
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.turboturnip.turnipmusic" >
+    package="com.turboturnip.turnipmusic">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- Set android.software.leanback to false, so the APK will be available to both
-    TV and regular devices. -->
+    <!--
+    Set android.software.leanback to false, so the APK will be available to both
+    TV and regular devices.
+    -->
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
@@ -35,11 +36,10 @@
 
     <application
         android:allowBackup="true"
+        android:banner="@drawable/banner_tv"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/TurnipMusicAppTheme"
-        android:banner="@drawable/banner_tv">
-
+        android:theme="@style/TurnipMusicAppTheme">
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
@@ -47,63 +47,73 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <!-- Main activity for music browsing on phone -->
-        <activity
-            android:name="com.turboturnip.turnipmusic.ui.MusicPlayerActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTop">
+        <activity android:name=".ui.PermissionsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity android:name=".ui.HubActivity">
+        </activity>
+
+        <!-- Main activity for music browsing on phone -->
+        <activity
+            android:name=".ui.MusicBrowserActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTop">
+
 
             <!-- Use this intent filter to get voice searches, like "Play The Beatles" -->
             <intent-filter>
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
-            <meta-data android:name="android.app.searchable"
-                android:resource="@xml/searchable"/>
+
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
 
         <!-- Placeholder activity for phone UI -->
         <activity
-            android:name="com.turboturnip.turnipmusic.ui.PlaceholderActivity"
-            android:label="@string/app_name">
-        </activity>
+            android:name=".ui.PlaceholderActivity"
+            android:label="@string/app_name"></activity>
 
-        <!-- Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
-        the current environment -->
+        <!--
+        Proxy activity that opens either the NowPlaying TV or the mobile UI, depending on
+        the current environment
+        -->
         <activity
-            android:name="com.turboturnip.turnipmusic.ui.NowPlayingActivity"
-            android:icon="@drawable/ic_launcher">
-        </activity>
+            android:name=".ui.NowPlayingActivity"
+            android:icon="@drawable/ic_launcher"></activity>
 
         <!-- Main activity for Android TV user interface -->
         <activity
-            android:name="com.turboturnip.turnipmusic.ui.tv.TvBrowseActivity"
+            android:name=".ui.tv.TvBrowseActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.TurnipMusic.TVLeanback" >
+            android:theme="@style/Theme.TurnipMusic.TVLeanback">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name="com.turboturnip.turnipmusic.ui.tv.TvVerticalGridActivity"
-            android:theme="@style/Theme.TurnipMusic.TVLeanback"
-            android:parentActivityName="com.turboturnip.turnipmusic.ui.tv.TvBrowseActivity" />
+            android:name=".ui.tv.TvVerticalGridActivity"
+            android:parentActivityName=".ui.tv.TvBrowseActivity"
+            android:theme="@style/Theme.TurnipMusic.TVLeanback" />
 
         <!-- Android TV UI when playing a song -->
         <activity
-            android:name="com.turboturnip.turnipmusic.ui.tv.TvPlaybackActivity"
-            android:theme="@style/Theme.TurnipMusic.TVLeanback"
-            android:parentActivityName="com.turboturnip.turnipmusic.ui.tv.TvBrowseActivity" />
+            android:name=".ui.tv.TvPlaybackActivity"
+            android:parentActivityName=".ui.tv.TvBrowseActivity"
+            android:theme="@style/Theme.TurnipMusic.TVLeanback" />
 
         <!--
              (OPTIONAL) use this meta data to indicate which icon should be
@@ -133,11 +143,13 @@
             android:name="com.google.android.wearable.media.theme"
             android:resource="@style/WearTheme" />
 
-        <!-- Main music service, provides media browsing and media playback services to
+        <!--
+         Main music service, provides media browsing and media playback services to
          consumers through MediaBrowserService and MediaSession. Consumers connect to it through
-         MediaBrowser (for browsing) and MediaController (for play session control) -->
+         MediaBrowser (for browsing) and MediaController (for play session control)
+        -->
         <service
-            android:name="com.turboturnip.turnipmusic.MusicService"
+            android:name=".MusicService"
             android:exported="true"
             tools:ignore="ExportedService">
             <intent-filter>
@@ -145,35 +157,36 @@
             </intent-filter>
         </service>
 
-        <!--
-             (REQUIRED) use this meta data to to declare the app OptionsProvider.
-        -->
+        <!--              (REQUIRED) use this meta data to to declare the app OptionsProvider. -->
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.turboturnip.turnipmusic.CastOptionsProvider" />
 
-        <!-- A full screen activity showing controls and a seek bar for
-             the current playing music -->
+        <!--
+             A full screen activity showing controls and a seek bar for
+             the current playing music
+        -->
         <activity
-            android:name="com.turboturnip.turnipmusic.ui.FullScreenPlayerActivity"
+            android:name=".ui.FullScreenPlayerActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:parentActivityName="com.turboturnip.turnipmusic.ui.MusicPlayerActivity">
+            android:parentActivityName=".ui.MusicBrowserActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.turboturnip.turnipmusic.ui.MusicPlayerActivity"/>
+                android:value="com.turboturnip.turnipmusic.ui.MusicBrowserActivity" />
         </activity>
 
-        <!-- A receiver that will receive media buttons and send as
+        <!--
+             A receiver that will receive media buttons and send as
             intents to your MediaBrowserServiceCompat implementation.
             Required on pre-Lollipop. More information at
-            http://developer.android.com/reference/android/support/v4/media/session/MediaButtonReceiver.html -->
-        <receiver android:name="android.support.v4.media.session.MediaButtonReceiver" >
+            http://developer.android.com/reference/android/support/v4/media/session/MediaButtonReceiver.html
+        -->
+        <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
-
     </application>
 
 </manifest>

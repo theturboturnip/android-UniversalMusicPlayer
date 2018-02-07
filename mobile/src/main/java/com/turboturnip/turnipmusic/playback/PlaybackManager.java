@@ -25,6 +25,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
@@ -43,7 +44,7 @@ public class PlaybackManager implements Playback.Callback {
     private static final long BACK_SKIP_MAX_TIME = 10 * 1000; // The maximum point in milliseconds a song can be within where pressing the "previous" button will skip it back to the start.
 
     private MusicProvider mMusicProvider;
-    private QueueManager mQueueManager;
+    public QueueManager mQueueManager;
     private Resources mResources;
     private Playback mPlayback;
     private PlaybackServiceCallback mServiceCallback;
@@ -290,7 +291,11 @@ public class PlaybackManager implements Playback.Callback {
 	    public void onPlayFromMediaId(String mediaId, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
 	        // TODO: Interpret the command as either a journey start or an explicit queue request, and reroute the function call as required
-            if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSongIndexFromID(mediaId)))
+            MusicFilter idAsFilter = new MusicFilter(mediaId);
+            if (idAsFilter.isValid()){
+            	mQueueManager.setNewImplicitQueueFilter(idAsFilter);
+            	onSkipToNext();
+            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSongIndexFromID(mediaId)))
             	handlePlayRequest();
         }
 
@@ -314,7 +319,6 @@ public class PlaybackManager implements Playback.Callback {
             } else {
                 handleStopRequest("Cannot skip");
             }
-            mQueueManager.updateMetadata();
         }
 
         @Override
@@ -326,7 +330,6 @@ public class PlaybackManager implements Playback.Callback {
             } else {
                 handleStopRequest(null);
             }
-            mQueueManager.updateMetadata();
         }
 
         @Override

@@ -93,7 +93,7 @@ public class PlaybackControlsFragment extends Fragment {
                 MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
                 MediaMetadataCompat metadata = controller.getMetadata();
                 if (metadata != null) {
-                    intent.putExtra(MusicPlayerActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION,
+                    intent.putExtra(MusicBrowserActivity.EXTRA_CURRENT_MEDIA_DESCRIPTION,
                         metadata.getDescription());
                 }
                 startActivity(intent);

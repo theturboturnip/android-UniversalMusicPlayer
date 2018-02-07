@@ -15,10 +15,17 @@
   limitations under the License.
   -->
 <resources>
-    <color name="tv_branding">#ffff5722</color>
-    <color name="tv_branding_dark">#ffbf360c</color>
-    <color name="tv_branding_accent">#00B8D4</color>
-    <color name="bt_accent">#00B8D4</color>
+    <color name="turnip_purple">#ff00ff</color>
+    <color name="turnip_purple_dark">#c700cb</color>
+    <color name="turnip_purple_light">#ff63ff</color>
+    <color name="turnip_green">#34d63e</color>
+    <color name="turnip_green_light">#76ff70</color>
+    <color name="turnip_green_dark">#00a300</color>
+
+    <color name="tv_branding">@color/turnip_purple</color>
+    <color name="tv_branding_dark">@color/turnip_purple_dark</color>
+    <color name="tv_branding_accent">@color/turnip_green</color>
+    <color name="bt_accent">#aaaaaa</color>
     <color name="media_item_icon_playing">@color/bt_accent</color>
     <color name="media_item_icon_not_playing">#ccc</color>
     <color name="drawer_header_background">@color/bt_accent</color>

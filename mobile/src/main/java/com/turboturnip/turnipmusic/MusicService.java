@@ -163,7 +163,13 @@ public class MusicService extends MediaBrowserServiceCompat implements
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
         // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
-        mMusicProvider.retrieveMediaAsync(this, null);
+        mMusicProvider.retrieveMediaAsync(this, new MusicProvider.Callback() {
+            @Override
+            public void onMusicCatalogReady(boolean success) {
+                if (success)
+                    mPlaybackManager.mQueueManager.initImplicitQueue();
+            }
+        });
 
         mPackageValidator = new PackageValidator(this);
 

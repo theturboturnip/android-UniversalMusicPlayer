@@ -23,7 +23,7 @@ import com.turboturnip.turnipmusic.R;
  * Placeholder activity for features that are not implemented in this sample, but
  * are in the navigation drawer.
  */
-public class PlaceholderActivity extends BaseActivity {
+public class PlaceholderActivity extends BrowserActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

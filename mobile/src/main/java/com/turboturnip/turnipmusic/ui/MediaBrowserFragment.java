@@ -155,14 +155,14 @@ public class MediaBrowserFragment extends Fragment {
 
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
         listView.setAdapter(mBrowserAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        /*listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 checkForUserVisibleErrors(false);
                 MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
                 mMediaFragmentListener.onMediaItemSelected(item);
             }
-        });
+        });*/
 
         return rootView;
     }
@@ -206,7 +206,7 @@ public class MediaBrowserFragment extends Fragment {
         mMediaFragmentListener = null;
     }
 
-    public String getMediaId() {
+    public String getFilter() {
         Bundle args = getArguments();
         if (args != null) {
             return args.getString(ARG_MEDIA_ID);
@@ -227,7 +227,7 @@ public class MediaBrowserFragment extends Fragment {
         if (isDetached()) {
             return;
         }
-        mMediaId = getMediaId();
+        mMediaId = getFilter();
         if (mMediaId == null) {
             mMediaId = mMediaFragmentListener.getMediaBrowser().getRoot();
 	        //LogHelper.d(TAG,"media ID was null, now ", mMediaId);
@@ -301,7 +301,7 @@ public class MediaBrowserFragment extends Fragment {
     }
 
     // An adapter for showing the list of browsed MediaItem's
-    private static class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem> {
+    private class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem> {
 
         public BrowseAdapter(Activity context) {
             super(context, R.layout.media_list_item, new ArrayList<MediaBrowserCompat.MediaItem>());
@@ -310,14 +310,32 @@ public class MediaBrowserFragment extends Fragment {
         @NonNull
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            MediaBrowserCompat.MediaItem item = getItem(position);
-            return MediaItemViewHolder.setupListView((Activity) getContext(), convertView, parent,
-                    item);
+            final MediaBrowserCompat.MediaItem item = getItem(position);
+            return MediaItemViewHolder.setupListView(
+                    (Activity) getContext(),
+                    convertView,
+                    parent,
+                    item,
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            checkForUserVisibleErrors(false);
+                            mMediaFragmentListener.onMediaItemSelected(item);
+                        }
+                    },
+                    new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            checkForUserVisibleErrors(false);
+                            mMediaFragmentListener.onMediaItemPlayed(item);
+                        }
+                    });
         }
     }
 
     public interface MediaFragmentListener extends MediaBrowserProvider {
         void onMediaItemSelected(MediaBrowserCompat.MediaItem item);
+        void onMediaItemPlayed(MediaBrowserCompat.MediaItem item);
         void setToolbarTitle(CharSequence title);
     }
 

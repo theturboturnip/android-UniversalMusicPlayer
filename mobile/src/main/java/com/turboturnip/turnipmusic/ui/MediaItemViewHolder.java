@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
@@ -52,7 +53,7 @@ public class MediaItemViewHolder {
 
     // Returns a view for use in media item list.
     static View setupListView(Activity activity, View convertView, ViewGroup parent,
-                              MediaBrowserCompat.MediaItem item) {
+                              MediaBrowserCompat.MediaItem item, @NonNull View.OnClickListener itemClickListener, @NonNull View.OnClickListener playButtonClickListener) {
         if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
             initializeColorStateLists(activity);
         }
@@ -92,6 +93,9 @@ public class MediaItemViewHolder {
             convertView.setTag(R.id.tag_mediaitem_state_cache, state);
         }
 
+        convertView.setOnClickListener(itemClickListener);
+        holder.mImageView.setOnClickListener(playButtonClickListener);
+
         return convertView;
     }
 
@@ -130,7 +134,7 @@ public class MediaItemViewHolder {
     }
 
     public static int getMediaItemState(Activity context, MediaBrowserCompat.MediaItem mediaItem) {
-        int state = STATE_NONE;
+        int state = STATE_PLAYABLE;
         // Set state to playable first, then override to playing or paused state if needed
         if (mediaItem.isPlayable()) {
             state = STATE_PLAYABLE;

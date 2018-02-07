@@ -37,9 +37,9 @@ import com.turboturnip.turnipmusic.utils.ResourceHelper;
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends ActionBarCastActivity implements MediaBrowserProvider {
+public abstract class BrowserActivity extends ActionBarCastActivity implements MediaBrowserProvider {
 
-    private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
+    private static final String TAG = LogHelper.makeLogTag(BrowserActivity.class);
 
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
@@ -81,7 +81,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
         hidePlaybackControls();
 
-        mMediaBrowser.connect();
+        //mMediaBrowser.connect();
     }
 
     @Override

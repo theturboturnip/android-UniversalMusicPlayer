@@ -4,35 +4,34 @@ import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class ImplicitQueue {
 	public static final String TAG = LogHelper.makeLogTag(ImplicitQueue.class);
 
-	private MusicFilter pool;
-	private int lastPlayedIndex = -1;
+	private List<Integer> mOrderedPool;
+	private MusicProvider mMusicProvider;
+	private int lastPlayedIndexInPool = -1;
 
-	public ImplicitQueue(MusicFilter initialPool){
-		changePool(initialPool);
+	public ImplicitQueue(MusicProvider provider){
+		mMusicProvider = provider;
 	}
 
 	// This is called whenever a song is played.
 	public void onIndexPlayed(int explicitIndex){
-		lastPlayedIndex = explicitIndex;
+		lastPlayedIndexInPool = mOrderedPool.indexOf(explicitIndex);
 	}
 	public int nextIndex(MusicProvider provider){
-		int newIndex = lastPlayedIndex + 1;
-		while (newIndex < provider.songCount()){
-			if (pool.songStrength(provider.getMusic(newIndex)) >= 0)
-				return newIndex;
-		}
-		newIndex = 0;
-		while (newIndex <= lastPlayedIndex){
-			if (pool.songStrength(provider.getMusic(newIndex)) >= 0)
-				return newIndex;
-		}
-		LogHelper.e(TAG, "No songs found that match the implicit queue!");
-		return -1;
+		if (lastPlayedIndexInPool + 1 >= mOrderedPool.size())
+			return mOrderedPool.get(0);
+		return mOrderedPool.get(lastPlayedIndexInPool + 1);
 	}
-	public void changePool(MusicFilter newPool){
-		pool = newPool;
+	public void changePool(MusicFilter newFilter){
+		mOrderedPool = mMusicProvider.getFilteredSongIndices(newFilter);
+		lastPlayedIndexInPool = -1;
+		if (mOrderedPool.size() == 0)
+			throw new RuntimeException("MusicFilter " + newFilter.toString() + " doesn't have any songs in the pool!");
 	}
 }

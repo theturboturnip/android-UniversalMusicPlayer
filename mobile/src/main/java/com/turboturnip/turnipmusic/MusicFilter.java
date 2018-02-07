@@ -8,6 +8,9 @@ import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,24 +24,27 @@ public class MusicFilter {
 	public static final String FILTER_EMPTY = "__EMPTY__";
 	public static final String FILTER_ROOT = "__ROOT__";
 	public static final String FILTER_BY_SEARCH = "__SEARCH__";
+
+	public static final String EXPLORE_FILTER = "__EXPLORE__";
+	public static final String FILTER_BY_ALBUM = "__ALBUM__";
+	public static final String FILTER_BY_ARTIST = "__ARTIST__";
+	public static final String FILTER_BY_TAG = "__TAG__";
 	public static final String FILTER_BY_GENRE = "__GENRE__";
 
-	public static final String EMPTY_FILTER_VALUE = "__NONE__";
-
 	public List<SubFilter> subFilters;
-	private boolean isEmpty, isRoot;
+	private boolean isEmpty, isRoot, isValid;
 
 	public static class SubFilter {
 		public String filterType, filterValue;
 
 		public SubFilter() {
 			filterType = FILTER_EMPTY;
-			filterValue = EMPTY_FILTER_VALUE;
+			filterValue = "";
 		}
 
 		public SubFilter(String _filterType){
-			filterType = _filterType;
-			filterValue = EMPTY_FILTER_VALUE;
+			filterType = EXPLORE_FILTER;
+			filterValue = _filterType;
 		}
 		public SubFilter(String _filterType, String _filterValue) {
 			filterType = _filterType;
@@ -47,7 +53,8 @@ public class MusicFilter {
 
 		// This returns a weight to use when filtering songs. -ve is doesn't fit, 0 is best, more +ve are worse
 		public int songStrength(Song s){
-			if (TextUtils.equals(filterType, FILTER_BY_SEARCH)){
+			if (filterType == null) return -1;
+			if (filterType.equals(FILTER_BY_SEARCH)){
 				int searchStrength;
 				MediaMetadataCompat metadata = s.getMetadata();
 				String title = metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE);
@@ -60,13 +67,50 @@ public class MusicFilter {
 				else
 					searchStrength = ((titleStrength < 0) ? 0 : titleStrength) + ((albumStrength < 0) ? 0 : albumStrength);
 				return searchStrength;
+			}else if (filterType.equals(FILTER_BY_ALBUM)){
+				MediaMetadataCompat metadata = s.getMetadata();
+				return filterValue.equals(metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)) ? (int)metadata.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER) : -1;
 			}
 			return 0;
 		}
 
+		public boolean isValid(){
+			if (filterType == null) return false;
+			/*
+			public static final String FILTER_EMPTY = "__EMPTY__";
+			public static final String FILTER_ROOT = "__ROOT__";
+			public static final String FILTER_BY_SEARCH = "__SEARCH__";
+
+			public static final String EXPLORE_FILTER = "__EXPLORE__";
+			public static final String FILTER_BY_ALBUM = "__ALBUM__";
+			public static final String FILTER_BY_ARTIST = "__ARTIST__";
+			public static final String FILTER_BY_TAG = "__TAG__";
+			public static final String FILTER_BY_GENRE = "__GENRE__";
+			*/
+
+			if (filterType.equals(FILTER_EMPTY)) return true;
+			if (filterType.equals(FILTER_ROOT)) return true;
+			if (filterType.equals(FILTER_BY_SEARCH)) return true;
+
+			if (filterType.equals(EXPLORE_FILTER)) return true;
+			if (filterType.equals(FILTER_BY_ALBUM)) return true;
+			if (filterType.equals(FILTER_BY_ARTIST)) return true;
+			if (filterType.equals(FILTER_BY_TAG)) return true;
+			if (filterType.equals(FILTER_BY_GENRE)) return true;
+
+			return false;
+		}
+
 		@Override
 		public String toString(){
-			return filterType + TYPE_VALUE_SEPARATOR + filterValue + FILTER_END;
+			String encodedFilterValue;
+			try {
+				encodedFilterValue = URLEncoder.encode(filterValue, "UTF-8");
+			}catch (UnsupportedEncodingException e){
+				LogHelper.e("What the fuck? UTF-8 not supported as a URL encoding.");
+				encodedFilterValue = filterValue;
+			}
+			return filterType + TYPE_VALUE_SEPARATOR + encodedFilterValue + FILTER_END;
 		}
 
 		@Override
@@ -82,8 +126,8 @@ public class MusicFilter {
 	public MusicFilter (String source){
 		String[] filterStrings = source.split(FILTER_END);
 		subFilters = new ArrayList<>();
-		for (int i = 0; i < filterStrings.length; i++){
-			String[] filterParts = filterStrings[i].split(TYPE_VALUE_SEPARATOR);
+		for (String filterString : filterStrings){
+			String[] filterParts = filterString.split(TYPE_VALUE_SEPARATOR);
 			if (filterParts.length > 2){
 				StringBuilder sb = new StringBuilder().append("[");
 				for (String s : filterParts){
@@ -92,8 +136,16 @@ public class MusicFilter {
 				LogHelper.e(TAG, "Invalid Filter [Parts > 2]: ", sb.append("]").toString());
 			}else if (filterParts.length == 1)
 				subFilters.add(new SubFilter(filterParts[0], ""));
-			else
-				subFilters.add(new SubFilter(filterParts[0], filterParts[1]));
+			else {
+				String filterValue;
+				try {
+					filterValue = URLDecoder.decode(filterParts[1], "UTF-8");
+				}catch (UnsupportedEncodingException e){
+					LogHelper.e("What the fuck? UTF-8 not supported as a URL encoding.");
+					filterValue = filterParts[1];
+				}
+				subFilters.add(new SubFilter(filterParts[0], filterValue));
+			}
 		}
 		initialize();
 	}
@@ -109,6 +161,14 @@ public class MusicFilter {
 	private void initialize(){
 		isEmpty = subFilters.size() == 0 || subFilters.get(0).filterType.equals(FILTER_EMPTY);
 		isRoot = subFilters.size() == 1 && subFilters.get(0).filterType.equals(FILTER_ROOT);
+
+		isValid = subFilters.size() > 0;
+		for (SubFilter sf : subFilters){
+			if (sf.filterType == null || !sf.isValid()){
+				isValid = false;
+				break;
+			}
+		}
 	}
 
 	public boolean isEmpty(){
@@ -123,6 +183,7 @@ public class MusicFilter {
 	public static MusicFilter rootFilter(){
 		return new MusicFilter(new SubFilter(FILTER_ROOT, ""));
 	}
+	public boolean isValid() { return isValid; }
 
 	public String getGenreFilter(){
 		for (SubFilter sf : subFilters){
@@ -138,12 +199,23 @@ public class MusicFilter {
 		}
 		return null;
 	}
+	public String getExploreFilter(){
+		for (SubFilter sf : subFilters){
+			if (sf.filterType.equals(EXPLORE_FILTER))
+				return sf.filterValue;
+		}
+		return null;
+	}
 
 	public int songStrength(Song song){
 		if (isRoot) return 0;
+		if (isEmpty) return 0;
 		int songStrength = 0;
-		for (SubFilter sf : subFilters)
-			songStrength += sf.songStrength(song);
+		for (SubFilter sf : subFilters) {
+			int subFilterStrength = sf.songStrength(song);
+			if (subFilterStrength == -1) return -1;
+			songStrength += subFilterStrength;
+		}
 		return songStrength;
 	}
 

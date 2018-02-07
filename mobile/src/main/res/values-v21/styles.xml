@@ -17,9 +17,9 @@
         </style>
 
         <style name="TurnipMusicAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-                <item name="colorPrimary">#ffff5722</item>
-                <item name="colorPrimaryDark">#ffbf360c</item>
-                <item name="colorAccent">#ffff5722</item>
+                <item name="colorPrimary">@color/turnip_purple</item>
+                <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
+                <item name="colorAccent">@color/turnip_green</item>
                 <item name="alertDialogTheme">@style/Theme.AppCompat.Dialog.Alert</item>
                 <item name="android:statusBarColor">@android:color/transparent</item>
                 <item name="android:windowDrawsSystemBarBackgrounds">true</item>

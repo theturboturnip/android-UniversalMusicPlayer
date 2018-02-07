@@ -50,7 +50,8 @@ public class MusicProvider {
     private MusicProviderSource mSource;
 
     // Categorized caches for music track data:
-    private ConcurrentMap<String, List<Integer>> mMusicListByGenre;
+    private ConcurrentMap<String, List<Integer>> mMusicListByAlbum;
+	private ConcurrentMap<String, List<Integer>> mMusicListByGenre;
     private ConcurrentMap<String, Integer> mMusicListById;
     private ArrayList<Song> mSongs;
 
@@ -71,7 +72,8 @@ public class MusicProvider {
     }
     public MusicProvider(MusicProviderSource source) {
         mSource = source;
-        mMusicListByGenre = new ConcurrentHashMap<>();
+	    mMusicListByAlbum = new ConcurrentHashMap<>();
+	    mMusicListByGenre = new ConcurrentHashMap<>();
         mMusicListById = new ConcurrentHashMap<>();
         mSongs = new ArrayList<>();
         mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
@@ -108,24 +110,35 @@ public class MusicProvider {
 		}.execute();
 	}
 
-	private synchronized void buildListsByGenre() {
+	private synchronized void buildCacheLists() {
 		ConcurrentMap<String, List<Integer>> newMusicListByGenre = new ConcurrentHashMap<>();
+		ConcurrentMap<String, List<Integer>> newMusicListByAlbum = new ConcurrentHashMap<>();
 
 		for (int index : mMusicListById.values()) {
 			Song song = mSongs.get(index);
-			String genre = song.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_GENRE);
-			List<Integer> list = newMusicListByGenre.get(genre);
-			if (list == null) {
-				list = new ArrayList<>();
-				newMusicListByGenre.put(genre, list);
+			String album = song.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_ALBUM);
+			List<Integer> albumList = newMusicListByAlbum.get(album);
+			if (albumList == null) {
+				albumList = new ArrayList<>();
+				newMusicListByAlbum.put(album, albumList);
 			}
-			list.add(index);
+			albumList.add(index);
+
+			String genre = song.getMetadata().getString(MediaMetadataCompat.METADATA_KEY_GENRE);
+			List<Integer> genreList = newMusicListByGenre.get(genre);
+			if (genreList == null) {
+				genreList = new ArrayList<>();
+				newMusicListByGenre.put(genre, genreList);
+			}
+			genreList.add(index);
 		}
+
 		mMusicListByGenre = newMusicListByGenre;
+		mMusicListByAlbum = newMusicListByAlbum;
 	}
 
 	// TODO: This could grab the ArrayList used by the DeviceMusicSource internally, instead of constructing a new one
-	private synchronized void retrieveMedia(Context context) {
+	public synchronized void retrieveMedia(Context context) {
 		try {
 			if (mCurrentState == State.NON_INITIALIZED) {
 				mCurrentState = State.INITIALIZING;
@@ -137,7 +150,7 @@ public class MusicProvider {
 					mMusicListById.put(songID, mSongs.size());
 					mSongs.add(item);
 				}
-				buildListsByGenre();
+				buildCacheLists();
 				mCurrentState = State.INITIALIZED;
 			}
 		} finally {
@@ -294,11 +307,55 @@ public class MusicProvider {
         return mFavoriteTracks.contains(musicId);
     }
 
+    public List<Integer> getFilteredSongIndices(MusicFilter filter){
+	    final ArrayList<Integer> scores = new ArrayList<>();
+	    ArrayList<Integer> songIndices = new ArrayList<>();
+	    for (int i = 0; i < mSongs.size(); i++){
+		    scores.add(filter.songStrength(mSongs.get(i)));
+		    songIndices.add(i);
+	    }
+	    Collections.sort(songIndices, new Comparator<Integer>() {
+		    @Override
+		    public int compare(Integer index1, Integer index2) {
+			    return scores.get(index1).compareTo(scores.get(index2));
+		    }
+	    });
+
+	    int firstValidSong;
+	    for (firstValidSong = 0; firstValidSong < mSongs.size(); firstValidSong++){
+	    	if (scores.get(songIndices.get(firstValidSong)) >= 0) break;
+	    }
+
+	    return songIndices.subList(firstValidSong, songIndices.size());
+    }
 
     public List<MediaBrowserCompat.MediaItem> getChildren(String musicFilter, Resources resources) {
         List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
 	    MusicFilter parsedMusicFilter = new MusicFilter(musicFilter);
+
+	    String exploredFilter = parsedMusicFilter.getExploreFilter();
+	    if (exploredFilter != null){
+	    	List<String> possibleValues = new ArrayList<>();
+			if (exploredFilter.equals(MusicFilter.FILTER_BY_ALBUM)){
+				LogHelper.e(TAG, "Exploring albums. Total albums: ", mMusicListByAlbum.keySet().size());
+				possibleValues.addAll(mMusicListByAlbum.keySet());
+			}else if (exploredFilter.equals(MusicFilter.FILTER_BY_GENRE)){
+				possibleValues.addAll(mMusicListByGenre.keySet());
+			}
+
+			for (String possibleValue : possibleValues){
+				mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(exploredFilter, possibleValue, resources));
+			}
+	    }else{
+	    	// We are filtering the songs, not showing what filter values exist
+			List<Integer> songIndices = getFilteredSongIndices(parsedMusicFilter);
+
+		    for (int i = 0; i < songIndices.size(); i++){
+			    int songIndex = songIndices.get(i);
+			    mediaItems.add(createMediaItem(mSongs.get(songIndex).getMetadata()));
+		    }
+	    }
         //if (!parsedMusicFilter.isBrowseable()) {
         //    return mediaItems;
         //}
@@ -318,25 +375,6 @@ public class MusicProvider {
         } else {
             LogHelper.w(TAG, "Skipping unmatched filter: ", musicFilter);
         }*/
-
-        final ArrayList<Integer> scores = new ArrayList<>();
-        ArrayList<Integer> songIndices = new ArrayList<>();
-        for (int i = 0; i < mSongs.size(); i++){
-        	scores.add(parsedMusicFilter.songStrength(mSongs.get(i)));
-        	songIndices.add(i);
-        }
-	    Collections.sort(songIndices, new Comparator<Integer>() {
-	        @Override
-	        public int compare(Integer index1, Integer index2) {
-		        return scores.get(index1).compareTo(scores.get(index2));
-	        }
-        });
-
-	    for (int i = 0; i < mSongs.size(); i++){
-	    	int songIndex = songIndices.get(i);
-	    	if (scores.get(songIndex) < 0) continue;
-	    	mediaItems.add(createMediaItem(mSongs.get(songIndex).getMetadata()));
-	    }
 
         return mediaItems;
     }
@@ -363,6 +401,16 @@ public class MusicProvider {
                 .build();
         return new MediaBrowserCompat.MediaItem(description,
                 MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+    }
+
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(String filterType, String filterValue, Resources resources){
+	    MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
+			    .setMediaId(new MusicFilter(new MusicFilter.SubFilter(filterType, filterValue)).toString())
+			    .setTitle(filterValue)
+			    .setSubtitle("")
+			    .build();
+	    return new MediaBrowserCompat.MediaItem(description,
+			    MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
     }
 
     private MediaBrowserCompat.MediaItem createMediaItem(MediaMetadataCompat metadata) {

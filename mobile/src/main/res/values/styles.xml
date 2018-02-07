@@ -17,12 +17,11 @@
 <resources>
 
     <style name="TurnipMusicAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#ffff5722</item>
-        <item name="colorPrimaryDark">#ffbf360c</item>
-        <item name="colorAccent">#ffff5722</item>
+        <item name="colorPrimary">@color/turnip_purple</item>
+        <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
+        <item name="colorAccent">@color/turnip_green</item>
         <item name="alertDialogTheme">@style/Theme.AppCompat.Dialog.Alert</item>
     </style>
-
 
     <style name="CarTheme" parent="TurnipMusicAppTheme">
         <!-- colorPrimaryDark is currently used in Android Auto for:
@@ -31,14 +30,14 @@
              - Notification icon badge tinting
              - Overview “now playing” icon tinting
          -->
-        <item name="colorPrimaryDark">#ffbf360c</item>
+        <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
 
         <!-- colorAccent is used in Android Auto for:
              - Spinner
              - progress bar
              - floating action button background (Play/Pause in media apps)
          -->
-        <item name="colorAccent">@color/bt_accent</item>
+        <item name="colorAccent">@color/turnip_green</item>
     </style>
 
     <style name="WearTheme" parent="TurnipMusicAppTheme">
@@ -46,7 +45,7 @@
              - Card background on media browse
              - Card background on 4-way media controls
          -->
-        <item name="colorPrimaryDark">#ffbf360c</item>
+        <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
     </style>
 
 

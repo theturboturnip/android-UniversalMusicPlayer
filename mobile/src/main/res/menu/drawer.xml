@@ -17,13 +17,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/navigation_hub"
+            android:checked="true"
+            android:icon="@drawable/ic_playlist_music_black_24dp"
+            android:title="@string/drawer_hub_title"/>
+        <item
             android:id="@+id/navigation_allmusic"
             android:checked="true"
             android:icon="@drawable/ic_allmusic_black_24dp"
             android:title="@string/drawer_allmusic_title"/>
         <item
-            android:id="@+id/navigation_playlists"
+            android:id="@+id/navigation_journeys"
             android:icon="@drawable/ic_playlist_music_black_24dp"
-            android:title="@string/drawer_playlists_title"/>
+            android:title="@string/drawer_journeys_title"/>
+        <item
+            android:id="@+id/navigation_queue"
+            android:icon="@drawable/ic_playlist_music_black_24dp"
+            android:title="@string/drawer_queue_title"/>
     </group>
 </menu>

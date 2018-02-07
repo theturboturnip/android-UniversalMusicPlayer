@@ -120,7 +120,7 @@ public class QueueHelper {
              String mediaId) {
         int index = 0;
         for (MediaSessionCompat.QueueItem item : queue.explicitQueue) {
-            if (mediaId.equals(item.getDescription().getMediaId())) {
+            if (mediaId.equals(item.getDescription().getFilter())) {
                 return index;
             }
             index++;

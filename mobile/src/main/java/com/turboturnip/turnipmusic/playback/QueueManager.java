@@ -66,14 +66,14 @@ public class QueueManager {
 	public QueueManager(@NonNull MusicProvider musicProvider,
                         @NonNull Resources resources,
                         @NonNull MetadataUpdateListener listener) {
-        this.mMusicProvider = musicProvider;
-        this.mListener = listener;
-        this.mResources = resources;
+        mMusicProvider = musicProvider;
+        mListener = listener;
+        mResources = resources;
 
         mCompiledQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
         mExplicitQueue = Collections.synchronizedList(new ArrayList<Integer>());
         mHistory = Collections.synchronizedList(new ArrayList<Integer>());
-        mImplicitQueue = new ImplicitQueue(new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_GENRE, "")));
+        mImplicitQueue = new ImplicitQueue(mMusicProvider);
 	    mCurrentCompiledQueueIndex = -1;
 	    mCurrentSongIndex = -1;
     }
@@ -176,7 +176,7 @@ public class QueueManager {
 		return mMusicProvider.getMusic(mCurrentSongIndex);
 	}
 	public MediaSessionCompat.QueueItem getCurrentCompiledQueueItem(){
-		if (mCurrentCompiledQueueIndex < 0) return null;
+		if (mCurrentCompiledQueueIndex < 0 || mCompiledQueue.size() == 0) return null;
 		return mCompiledQueue.get(mCurrentCompiledQueueIndex);
 	}
     // TODO: startJourney()
@@ -223,6 +223,14 @@ public class QueueManager {
 				return;
 			}
 		}
+	}
+
+	public void setNewImplicitQueueFilter(MusicFilter filter){
+		mImplicitQueue.changePool(filter);
+		updateCompiledQueue();
+	}
+	public void initImplicitQueue(){
+		setNewImplicitQueueFilter(new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_EMPTY, "")));
 	}
 
 	/*private void moveOn(int newSong) {
