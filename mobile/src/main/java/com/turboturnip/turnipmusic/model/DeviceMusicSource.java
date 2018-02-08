@@ -4,14 +4,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 
+import com.turboturnip.turnipmusic.model.db.SongTagDao;
+import com.turboturnip.turnipmusic.model.db.SongTags;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,7 +26,7 @@ public class DeviceMusicSource implements MusicProviderSource {
 	private static String[] albumProjection = null;
 
 	@Override
-	public Iterator<Song> iterator(Context context) {
+	public Iterator<Song> iterator(Context context, SongTagDao songTagDao) {
 		try {
 			ArrayList<Song> tracks = new ArrayList<>();
 			Cursor musicCursor = context.getContentResolver().query(
@@ -106,7 +102,16 @@ public class DeviceMusicSource implements MusicProviderSource {
 					album = musicCursor.getString(albumFromMusicColumn);
 				}
 
-				tracks.add(new Song(title, id, filePath, album, artist, duration, genre, iconUrl, trackNumber, totalTrackCount));
+				SongTags tags = songTagDao.getTags(id);
+				if (tags == null){
+					tags = new SongTags(id);
+					songTagDao.insertTags(tags);
+					LogHelper.i(TAG, "Song ", id, " wasn't in the database, adding an entry");
+				}else{
+					LogHelper.i(TAG, "Song ", id, " was in the database!");
+				}
+
+				tracks.add(new Song(title, id, filePath, album, artist, duration, genre, iconUrl, trackNumber, totalTrackCount, tags));
 			} while (musicCursor.moveToNext());
 
 			albumCursor.close();

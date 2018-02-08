@@ -3,6 +3,8 @@ package com.turboturnip.turnipmusic.model;
 import android.support.v4.media.MediaMetadataCompat;
 import android.text.TextUtils;
 
+import com.turboturnip.turnipmusic.model.db.SongTags;
+
 import java.util.ArrayList;
 
 /**
@@ -14,7 +16,7 @@ public class Song {
 	private String filePath, songID;
 	private ArrayList<Integer> tags;
 
-	public Song(String title, String id, String filePath, String album, String artist, Long duration, String genre, String iconUrl, Long trackNumber, Long totalTrackCount){
+	public Song(String title, String id, String filePath, String album, String artist, Long duration, String genre, String iconUrl, Long trackNumber, Long totalTrackCount, SongTags tags){
 		this.metadata = new MediaMetadataCompat.Builder()
 				.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
 				.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
