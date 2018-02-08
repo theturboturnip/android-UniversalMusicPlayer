@@ -4,14 +4,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 
+import com.turboturnip.turnipmusic.model.db.SongEntity;
+import com.turboturnip.turnipmusic.model.db.SongTagDatabase;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,7 +26,7 @@ public class DeviceMusicSource implements MusicProviderSource {
 	private static String[] albumProjection = null;
 
 	@Override
-	public Iterator<Song> iterator(Context context) {
+	public Iterator<Song> iterator(Context context, SongTagDatabase db) {
 		try {
 			ArrayList<Song> tracks = new ArrayList<>();
 			Cursor musicCursor = context.getContentResolver().query(
@@ -106,7 +102,10 @@ public class DeviceMusicSource implements MusicProviderSource {
 					album = musicCursor.getString(albumFromMusicColumn);
 				}
 
-				tracks.add(new Song(title, id, filePath, album, artist, duration, genre, iconUrl, trackNumber, totalTrackCount));
+				SongEntity songEntity = new SongEntity(id, title);
+				db.songDao().insertSong(songEntity);
+
+				tracks.add(new Song(songEntity, filePath, album, artist, duration, genre, iconUrl, trackNumber, totalTrackCount));
 			} while (musicCursor.moveToNext());
 
 			albumCursor.close();
