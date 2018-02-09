@@ -21,7 +21,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
-import com.turboturnip.turnipmusic.ui.tv.TvPlaybackActivity;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 /**
@@ -40,13 +39,7 @@ public class NowPlayingActivity extends Activity {
         LogHelper.d(TAG, "onCreate");
         Intent newIntent;
         UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-        if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
-            LogHelper.d(TAG, "Running on a TV Device");
-            newIntent = new Intent(this, TvPlaybackActivity.class);
-        } else {
-            LogHelper.d(TAG, "Running on a non-TV Device");
-            newIntent = new Intent(this, MusicBrowserActivity.class);
-        }
+        newIntent = new Intent(this, MusicBrowserActivity.class);
         startActivity(newIntent);
         finish();
     }

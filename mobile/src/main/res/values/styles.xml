@@ -47,8 +47,4 @@
          -->
         <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
     </style>
-
-
-    <style name="Theme.UAmp.TVLeanback" parent="Theme.Leanback">
-    </style>
 </resources>

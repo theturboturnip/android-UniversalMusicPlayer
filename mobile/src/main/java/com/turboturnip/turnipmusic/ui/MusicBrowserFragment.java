@@ -16,14 +16,21 @@
 package com.turboturnip.turnipmusic.ui;
 
 import android.app.Activity;
+import android.app.LauncherActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.ColorStateList;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -37,6 +44,7 @@ import android.widget.Toast;
 
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
+import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
 
 import java.util.ArrayList;
@@ -50,13 +58,18 @@ import java.util.List;
  * Once connected, the fragment subscribes to get all the children.
  * All {@link MediaBrowserCompat.MediaItem}'s that can be browsed are shown in a ListView.
  */
-public class MusicBrowserFragment extends CommandFragment {
+public class MusicBrowserFragment extends ItemListCommandFragment {
 
     private static final String TAG = LogHelper.makeLogTag(MusicBrowserFragment.class);
 
-    private BrowseAdapter mBrowserAdapter;
-    private View mErrorView;
-    private TextView mErrorMessage;
+    // Extra states for the list items to have
+	public static final int STATE_PLAYABLE = 1;
+	public static final int STATE_PAUSED = 2;
+	public static final int STATE_PLAYING = 3;
+
+	private static ColorStateList sColorStatePlaying;
+	private static ColorStateList sColorStateNotPlaying;
+
     protected BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
         @Override
@@ -128,7 +141,7 @@ public class MusicBrowserFragment extends CommandFragment {
                     checkForUserVisibleErrors(children.isEmpty());
                     mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
-                        mBrowserAdapter.add(item);
+                        mBrowserAdapter.add(getDataForListItem(item));
                     }
                     mBrowserAdapter.notifyDataSetChanged();
                 } catch (Throwable t) {
@@ -144,24 +157,87 @@ public class MusicBrowserFragment extends CommandFragment {
             }
         };
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        LogHelper.d(TAG, "fragment.onCreateView");
-        View rootView = inflater.inflate(R.layout.fragment_list, container, false);
+    ListItemData getDataForListItem(final MediaBrowserCompat.MediaItem item){
+    	ListItemData itemData = new ListItemData();
+	    MediaDescriptionCompat description = item.getDescription();
+	    itemData.title = description.getTitle();
+	    itemData.subtitle = description.getSubtitle();
+	    itemData.internalData = item;
+	    itemData.onItemClick = new View.OnClickListener() {
+		    @Override
+		    public void onClick(View view) {
+			    checkForUserVisibleErrors(false);
+			    mCommandListener.onMediaItemSelected(item);
+		    }
+	    };
+	    itemData.onDrawableClick = new View.OnClickListener() {
+		    @Override
+		    public void onClick(View view) {
+			    checkForUserVisibleErrors(false);
+			    mCommandListener.onMediaItemPlayed(item);
+		    }
+	    };
 
-        mErrorView = rootView.findViewById(R.id.playback_error);
-        mErrorMessage = (TextView) mErrorView.findViewById(R.id.error_message);
-
-        mBrowserAdapter = new BrowseAdapter(getActivity());
-
-        ListView listView = (ListView) rootView.findViewById(R.id.list_view);
-        listView.setAdapter(mBrowserAdapter);
-
-        return rootView;
+	    return itemData;
     }
 
-	@Override
+    @Override
+	int getNewListItemState(ListItemData data){
+		int state = STATE_PLAYABLE;
+		MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) data.internalData;
+		// Set state to playable first, then override to playing or paused state if needed
+		if (mediaItem.isPlayable() && MediaIDHelper.isMediaItemPlaying(getActivity(), mediaItem)) {
+			MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
+			PlaybackStateCompat pbState = controller.getPlaybackState();
+			if (pbState == null ||
+					pbState.getState() == PlaybackStateCompat.STATE_ERROR) {
+				state = STATE_NONE;
+			} else if (pbState.getState() == PlaybackStateCompat.STATE_PLAYING) {
+				state = STATE_PLAYING;
+			} else {
+				state = STATE_PAUSED;
+			}
+		}
+
+		return state;
+	}
+
+    @Override
+    Drawable getDrawableFromListItemState(int state) {
+	    if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
+		    initializeColorStateLists(getActivity());
+	    }
+
+	    switch (state) {
+		    case STATE_PLAYABLE:
+			    Drawable pauseDrawable = ContextCompat.getDrawable(getActivity(),
+					    R.drawable.ic_play_arrow_black_36dp);
+			    DrawableCompat.setTintList(pauseDrawable, sColorStateNotPlaying);
+			    return pauseDrawable;
+		    case STATE_PLAYING:
+			    AnimationDrawable animation = (AnimationDrawable)
+					    ContextCompat.getDrawable(getActivity(), R.drawable.ic_equalizer_white_36dp);
+			    DrawableCompat.setTintList(animation, sColorStatePlaying);
+			    animation.start();
+			    return animation;
+		    case STATE_PAUSED:
+			    Drawable playDrawable = ContextCompat.getDrawable(getActivity(),
+					    R.drawable.ic_equalizer1_white_36dp);
+			    DrawableCompat.setTintList(playDrawable, sColorStatePlaying);
+			    return playDrawable;
+		    default:
+			    return null;
+	    }
+    }
+
+	private static void initializeColorStateLists(Context ctx) {
+		sColorStateNotPlaying = ColorStateList.valueOf(ctx.getResources().getColor(
+				R.color.media_item_icon_not_playing));
+		sColorStatePlaying = ColorStateList.valueOf(ctx.getResources().getColor(
+				R.color.media_item_icon_playing));
+	}
+
+    @Override
 	public void onConnected(){
     	super.onConnected();
 
@@ -186,34 +262,6 @@ public class MusicBrowserFragment extends CommandFragment {
 		}
 	}
 
-    private void checkForUserVisibleErrors(boolean forceError) {
-        boolean showError = forceError;
-        // If offline, message is about the lack of connectivity:
-        if (!NetworkHelper.isOnline(getActivity())) {
-            mErrorMessage.setText(R.string.error_no_connection);
-            showError = true;
-        } else {
-            // otherwise, if state is ERROR and metadata!=null, use playback state error message:
-            MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
-            if (controller != null
-                && controller.getMetadata() != null
-                && controller.getPlaybackState() != null
-                && controller.getPlaybackState().getState() == PlaybackStateCompat.STATE_ERROR
-                && controller.getPlaybackState().getErrorMessage() != null) {
-                mErrorMessage.setText(controller.getPlaybackState().getErrorMessage());
-                showError = true;
-            } else if (forceError) {
-                // Finally, if the caller requested to show error, show a generic message:
-                mErrorMessage.setText(R.string.error_loading_media);
-                showError = true;
-            }
-        }
-        mErrorView.setVisibility(showError ? View.VISIBLE : View.GONE);
-        LogHelper.d(TAG, "checkForUserVisibleErrors. forceError=", forceError,
-            " showError=", showError,
-            " isOnline=", NetworkHelper.isOnline(getActivity()));
-    }
-
     @Override
     protected void updateTitle() {
     	// TODO: Inefficient as fuck, please change
@@ -230,38 +278,5 @@ public class MusicBrowserFragment extends CommandFragment {
                         item.getDescription().getTitle());
             }
         });
-    }
-
-    // An adapter for showing the list of browsed MediaItem's
-    private class BrowseAdapter extends ArrayAdapter<MediaBrowserCompat.MediaItem> {
-
-        public BrowseAdapter(Activity context) {
-            super(context, R.layout.media_list_item, new ArrayList<MediaBrowserCompat.MediaItem>());
-        }
-
-        @NonNull
-        @Override
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-            final MediaBrowserCompat.MediaItem item = getItem(position);
-            return SongViewHolder.setupListView(
-                    (Activity) getContext(),
-                    convertView,
-                    parent,
-                    item,
-                    new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            checkForUserVisibleErrors(false);
-                            mCommandListener.onMediaItemSelected(item);
-                        }
-                    },
-                    new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            checkForUserVisibleErrors(false);
-                            mCommandListener.onMediaItemPlayed(item);
-                        }
-                    });
-        }
     }
 }

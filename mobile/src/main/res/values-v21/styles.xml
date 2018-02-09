@@ -1,21 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-        <style name="Theme.TurnipMusic.TVLeanback" parent="Theme.Leanback">
-                <item name="android:windowEnterTransition">@android:transition/fade</item>
-                <item name="android:windowExitTransition">@android:transition/fade</item>
-                <item name="android:windowSharedElementExitTransition">@android:transition/move
-                </item>
-                <item name="android:windowSharedElementEnterTransition">@android:transition/move
-                </item>
-                <item name="android:windowAllowReturnTransitionOverlap">true</item>
-                <item name="android:windowAllowEnterTransitionOverlap">false</item>
-                <item name="android:windowContentTransitions">true</item>
-                <item name="android:colorPrimary">@color/tv_branding_dark</item>
-                <item name="android:colorPrimaryDark">@color/tv_branding_dark</item>
-                <item name="android:colorAccent">@color/tv_branding_accent</item>
-        </style>
-
         <style name="TurnipMusicAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
                 <item name="colorPrimary">@color/turnip_purple</item>
                 <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
