@@ -27,7 +27,7 @@ import android.support.v4.media.MediaMetadataCompat;
 
 import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.model.db.SongTagDatabase;
+import com.turboturnip.turnipmusic.model.db.SongDatabase;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import java.util.ArrayList;
@@ -156,7 +156,7 @@ public class MusicProvider {
 			if (mCurrentState == State.NON_INITIALIZED) {
 				mCurrentState = State.INITIALIZING;
 
-				SongTagDatabase db = SongTagDatabase.getInstance(context);
+				SongDatabase db = SongDatabase.getInstance(context);
 
 				Iterator<Song> tracks = mSource.iterator(context, db);
 				while (tracks.hasNext()) {

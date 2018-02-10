@@ -2,9 +2,8 @@ package com.turboturnip.turnipmusic.model;
 
 import android.support.v4.media.MediaMetadataCompat;
 
+import com.turboturnip.turnipmusic.model.db.AlbumEntity;
 import com.turboturnip.turnipmusic.model.db.SongEntity;
-
-import com.turboturnip.turnipmusic.model.db.SongTags;
 
 import java.util.ArrayList;
 
@@ -18,18 +17,20 @@ public class Song {
 	private String filePath;
 	private ArrayList<Integer> tags;
 
-	public Song(SongEntity dbEntity, String filePath, String album, String artist, Long duration, String genre, String iconUrl, Long trackNumber, Long totalTrackCount){
+	public Song(SongEntity dbEntity, AlbumEntity albumDBEntity, String filePath, String artist, Long duration, String genre){
 		this.dbEntity = dbEntity;
+		if (albumDBEntity != null &&  dbEntity.albumId != albumDBEntity.id)
+			throw new RuntimeException("Trying to create a Song with mismatching SongEntity and AlbumEntities");
 		this.metadata = new MediaMetadataCompat.Builder()
 				.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, dbEntity.mediaId)
-				.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+				.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, albumDBEntity == null ? "" : albumDBEntity.name)
 				.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
 				.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
 				.putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-				.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+				.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumDBEntity == null ? "" : albumDBEntity.artPath)
 				.putString(MediaMetadataCompat.METADATA_KEY_TITLE, dbEntity.name)
-				.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, trackNumber)
-				.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+				.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, dbEntity.albumIndex)
+				.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, albumDBEntity == null ? 0 : albumDBEntity.trackCount)
 				.build();
 		this.filePath = filePath;
 		// TODO: Put tags in the constructor

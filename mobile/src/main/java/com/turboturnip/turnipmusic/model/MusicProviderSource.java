@@ -18,10 +18,10 @@ package com.turboturnip.turnipmusic.model;
 
 import android.content.Context;
 
-import com.turboturnip.turnipmusic.model.db.SongTagDatabase;
+import com.turboturnip.turnipmusic.model.db.SongDatabase;
 
 import java.util.Iterator;
 
 public interface MusicProviderSource {
-    Iterator<Song> iterator(Context context, SongTagDatabase db);
+    Iterator<Song> iterator(Context context, SongDatabase db);
 }

@@ -5,22 +5,23 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-@Database(entities = { SongEntity.class, TagEntity.class, SongTagJoinEntity.class },
+@Database(entities = { SongEntity.class, TagEntity.class, SongTagJoinEntity.class, AlbumEntity.class },
 		version = 1)
-public abstract class SongTagDatabase extends RoomDatabase {
+public abstract class SongDatabase extends RoomDatabase {
 
-	private static volatile SongTagDatabase INSTANCE;
+	private static volatile SongDatabase INSTANCE;
 
 	public abstract SongEntityDao songDao();
 	public abstract TagEntityDao tagDao();
 	public abstract SongTagJoinEntityDao songTagJoinDao();
+	public abstract AlbumEntityDao albumDao();
 
-	public static SongTagDatabase getInstance(Context context) {
+	public static SongDatabase getInstance(Context context) {
 		if (INSTANCE == null) {
-			synchronized (SongTagDatabase.class) {
+			synchronized (SongDatabase.class) {
 				if (INSTANCE == null) {
 					INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-							SongTagDatabase.class, "Songs.db")
+							SongDatabase.class, "Songs.db")
 							.build();
 				}
 			}
