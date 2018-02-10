@@ -50,6 +50,8 @@ public class MusicProvider {
 
     private MusicProviderSource mSource;
 
+    private static MusicProvider instance;
+
     // Categorized caches for music track data:
     private ConcurrentMap<String, List<Integer>> mMusicListByAlbum;
 	private ConcurrentMap<String, List<Integer>> mMusicListByGenre;
@@ -78,6 +80,16 @@ public class MusicProvider {
         mMusicListById = new ConcurrentHashMap<>();
         mSongs = new ArrayList<>();
         mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+
+        if (instance != null)
+        	throw new RuntimeException("Tried to create a new MusicProvider when one already existed!");
+        instance = this;
+    }
+
+    public static MusicProvider getInstance(){
+    	if (instance == null)
+    		new MusicProvider();
+    	return instance;
     }
 
 	/**
@@ -165,6 +177,7 @@ public class MusicProvider {
 		}
 	}
 
+	public int albumCount() { return mMusicListByAlbum.keySet().size(); }
 	public int songCount(){
 		return mSongs.size();
 	}
@@ -341,7 +354,6 @@ public class MusicProvider {
 	    if (exploredFilter != null){
 	    	List<String> possibleValues = new ArrayList<>();
 			if (exploredFilter.equals(MusicFilter.FILTER_BY_ALBUM)){
-				LogHelper.e(TAG, "Exploring albums. Total albums: ", mMusicListByAlbum.keySet().size());
 				possibleValues.addAll(mMusicListByAlbum.keySet());
 			}else if (exploredFilter.equals(MusicFilter.FILTER_BY_GENRE)){
 				possibleValues.addAll(mMusicListByGenre.keySet());

@@ -7,9 +7,10 @@ import android.view.ViewGroup;
 
 import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
-public class HubFragment extends CommandFragment {
+public class HubFragment extends ItemListCommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(HubFragment.class);
 
 	@Override
@@ -20,14 +21,15 @@ public class HubFragment extends CommandFragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 	                         Bundle savedInstanceState) {
-		LogHelper.d(TAG, "fragment.onCreateView");
-		View rootView = inflater.inflate(R.layout.fragment_hub, container, false);
+		View resultView = super.onCreateView(inflater, container, savedInstanceState);
 
-		rootView.findViewById(R.id.hub_album_button).setOnClickListener(new HubButtonOnClickListener(MusicFilter.FILTER_BY_ALBUM));
-		rootView.findViewById(R.id.hub_artist_button).setOnClickListener(new HubButtonOnClickListener(MusicFilter.FILTER_BY_ARTIST));
-		rootView.findViewById(R.id.hub_tags_button).setOnClickListener(new HubButtonOnClickListener(MusicFilter.FILTER_BY_TAG));
+		mBrowserAdapter.clear();
+		mBrowserAdapter.add(new ListItemData("Filter by Album", "", new HubButtonOnClickListener(MusicFilter.FILTER_BY_ALBUM), null));
+		mBrowserAdapter.add(new ListItemData("Filter by Artist", "", new HubButtonOnClickListener(MusicFilter.FILTER_BY_ARTIST), null));
+		mBrowserAdapter.add(new ListItemData("Filter by Tag", "", new HubButtonOnClickListener(MusicFilter.FILTER_BY_TAG), null));
+		mBrowserAdapter.notifyDataSetChanged();
 
-		return rootView;
+		return resultView;
 	}
 
 	@Override

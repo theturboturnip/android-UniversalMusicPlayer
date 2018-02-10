@@ -135,6 +135,14 @@ public class ItemListCommandFragment extends CommandFragment {
 
 		Object internalData;
 
+		ListItemData(){}
+		ListItemData(CharSequence title, CharSequence subtitle, View.OnClickListener onItemClick, View.OnClickListener onDrawableClick){
+			this.title = title;
+			this.subtitle = subtitle;
+			this.onItemClick = onItemClick;
+			this.onDrawableClick = onDrawableClick;
+		}
+
 		void applyToViews(ListItemCachedViews views){
 			views.titleView.setText(title);
 			views.subtitleView.setText(subtitle);
