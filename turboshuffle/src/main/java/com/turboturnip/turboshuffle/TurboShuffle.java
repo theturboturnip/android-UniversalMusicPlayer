@@ -12,7 +12,7 @@ import java.util.Random;
 public class TurboShuffle {
 	public static class Config {
 
-		// clumpType = float [0.0, 1.0] (0 = clumped, 0.5 = no effect, 1 = unclumped)
+		// clumpType = float [0.0, 1.0] (0 = unclumped, 0.5 = no effect, 1 = clumped)
 		public final float clumpType;
 		// clumpSeverity = float [0,] (0 = clumping ignored, inf = clumping used to max. Practical limit = 10)
 		public final float clumpSeverity;
@@ -34,15 +34,39 @@ public class TurboShuffle {
 		public final float[] poolWeights;
 		public final float[] sumToOnePoolWeights;
 
-		public Config(float clumpType, float clumpSeverity, float clumpWeight, float clumpLengthSeverity, float historySeverity, ProbabilityMode probabilityMode, int maximumMemory, float... poolWeights) {
+		public Config(float clumpType, float clumpSeverity, float clumpWeight, float clumpLengthSeverity, float historySeverity, ProbabilityMode probabilityMode, int maximumMemory, float[] poolWeights) {
+			if (clumpType < 0.0f || clumpType > 1.0f)
+				throw new IllegalArgumentException(
+						"Tried to create a shuffle config with clumpType " + clumpType + " outside of the range [0, 1]!"
+				);
 			this.clumpType = clumpType;
+			if (clumpSeverity < 0.0f)
+				throw new IllegalArgumentException(
+						"Tried to create a shuffle config with clumpSeverity " + clumpSeverity + " smaller than 0!"
+				);
 			this.clumpSeverity = clumpSeverity;
+			if (clumpWeight < 0.0f || clumpWeight > 1.0f)
+				throw new IllegalArgumentException(
+						"Tried to create a shuffle config with clumpWeight " + clumpWeight + " outside of the range [0, 1]!"
+				);
 			this.clumpWeight = clumpWeight;
+			if (clumpLengthSeverity < 0.0f)
+				throw new IllegalArgumentException(
+						"Tried to create a shuffle config with clumpLengthSeverity " + clumpLengthSeverity + " smaller than 0!"
+				);
 			this.clumpLengthSeverity = clumpLengthSeverity;
+			if (historySeverity < 0.0f)
+				throw new IllegalArgumentException(
+						"Tried to create a shuffle config with historySeverity " + historySeverity + " smaller than 0!"
+				);
 			this.historySeverity = historySeverity;
 
 			this.probabilityMode = probabilityMode;
 
+			if (maximumMemory < 0)
+				throw new IllegalArgumentException(
+						"Tried to create a shuffle config with maximumMemory " + maximumMemory + " smaller than 0!"
+				);
 			this.maximumMemory = maximumMemory;
 
 			if (poolWeights.length == 0)
@@ -112,24 +136,24 @@ public class TurboShuffle {
 		Map<SongPoolKey, Integer> songOccurrences; // number of occurences for each song
 		int[] poolOccurrences; // number of occurences for each pool
 
-		public State(int poolCount){
+		public State(){
 			songHistory = new ArrayList<>();
 			poolHistory = new ArrayList<>();
 			songOccurrences = new HashMap<>();
-			poolOccurrences = new int[poolCount];
+			poolOccurrences = new int[TurboShuffle.this.songPools.length];
 		}
 
-		void IncrementHistory(SongPoolKey song, int lengthInSeconds){
+		void IncrementHistory(SongPoolKey song){
 			switch(TurboShuffle.this.config.probabilityMode) {
 				case BySong:
 					songHistory.add(song);
 					songOccurrences.put(song, songOccurrences.getOrDefault(song, 0) + 1);
-					if (poolHistory.size() == 0 || (poolHistory.get(poolHistory.size()) != song.poolIndex))
+					if (poolHistory.size() == 0 || (poolHistory.get(poolHistory.size() - 1) != song.poolIndex))
 						poolHistory.add(song.poolIndex);
 					poolOccurrences[song.poolIndex]++;
 					break;
 				case ByLength:
-					int minutes = secondsToMinutes(lengthInSeconds);
+					int minutes = secondsToMinutes(TurboShuffle.this.GetSongFromKey(song).getLengthInSeconds());
 					songOccurrences.put(song, songOccurrences.getOrDefault(song, 0) + minutes);
 					poolOccurrences[song.poolIndex] += minutes;
 					boolean newPool = poolHistory.size() == 0 || (poolHistory.get(poolHistory.size()) != song.poolIndex);
@@ -170,8 +194,8 @@ public class TurboShuffle {
 		}
 	}
 
-	private final Config config;
-	private final SongPool[] songPools;
+	public final Config config;
+	public  final SongPool[] songPools;
 
 	public TurboShuffle(Config config, SongPool... songPools){
 		if (songPools.length == 0)
@@ -249,19 +273,27 @@ public class TurboShuffle {
 		int nextPoolIndex = -1;
 		int nextSongIndexInPool = -1;
 
-		// Clump variables
-		int historyEndIndex = shuffleState.poolHistory.size() - 1;
-		int currentPoolIndex = shuffleState.poolHistory.get(historyEndIndex);
-		int currentClumpLength = 0;
-		for (int i = historyEndIndex; i >= 0; i--){
-			if (currentPoolIndex != shuffleState.poolHistory.get(i))
-				continue;
-			currentClumpLength++;
+		int historyEndIndex = -1, currentPoolIndex = -1, currentClumpLength = -1;
+		if (shuffleState.songHistory.size() > 0) {
+			// Clump variables
+			historyEndIndex = shuffleState.poolHistory.size() - 1;
+			currentPoolIndex = shuffleState.poolHistory.get(historyEndIndex);
+			currentClumpLength = 0;
+			for (int i = historyEndIndex; i >= 0; i--){
+				if (currentPoolIndex != shuffleState.poolHistory.get(i))
+					continue;
+				currentClumpLength++;
+			}
 		}
+
+		boolean allowPrint = false;
+		//allowPrint = (shuffleState.songHistory.size() < 5);
 
 		// Step 1: Determine the weights for each pool based on history, clumping and the desired ratios
 		float poolWeights[] = new float[songPools.length];
 		System.arraycopy(config.poolWeights, 0, poolWeights, 0, songPools.length);
+		//if (shuffleState.songHistory.size() == 0)
+		//	System.out.println(config.poolWeights[0] + " = " + poolWeights[0]);
 		{
 			// History part
 			for (int i = 0; i < songPools.length; i++) {
@@ -276,7 +308,8 @@ public class TurboShuffle {
 					float chiSquared = (float) Math.pow(1 - actual / expected, 2);
 					totalChiSquared += chiSquared;
 				}
-
+				//if (allowPrint)
+				//	System.out.println(totalChiSquared);
 				poolWeights[i] = historyDistribution(poolWeights[i], totalChiSquared);
 			}
 			// Clump part
@@ -289,17 +322,29 @@ public class TurboShuffle {
 				float continueWithCurrentPoolProbability = clumpProbability(currentClumpLength, config.poolWeights[currentPoolIndex]);
 				float changePoolProbability = 1 - continueWithCurrentPoolProbability;
 
+				if (allowPrint)
+					System.out.println(continueWithCurrentPoolProbability);
+
 				poolWeights[currentPoolIndex] = clumpDistribution(poolWeights[currentPoolIndex], continueWithCurrentPoolProbability);
 				for (int i = 0; i < songPools.length; i++){
 					if (i == currentPoolIndex) continue;
 
-					poolWeights[i] = clumpDistribution(poolWeights[currentPoolIndex], changePoolProbability);
+					poolWeights[i] = clumpDistribution(poolWeights[i], changePoolProbability);
 				}
 			}
 		}
 
 		// Step 2: Select a pool to take the song from using these weights
+
+
 		nextPoolIndex = randomIndexUsingWeights(rng, poolWeights);
+		/*if (allowPrint){
+			System.out.print("[ ");
+			for(float w : poolWeights)
+				System.out.print(w + " ");
+			System.out.println("]");
+			System.out.println(nextPoolIndex);
+		}*/
 
 		// Step 3: Determine the weights for each song in the pool based on history, clumping+length (NEW)
 		float songWeights[] = new float[songPools[nextPoolIndex].songs.size()];
@@ -318,7 +363,7 @@ public class TurboShuffle {
 				float totalChiSquared = 0;
 				for (int j = 0; j < songWeights.length; j++) {
 					float expected = (shuffleState.poolOccurrences[nextPoolIndex] + 1) / (float)(songWeights.length);
-					float actual = shuffleState.songOccurrences.get(new SongPoolKey(nextPoolIndex, j))
+					float actual = shuffleState.songOccurrences.getOrDefault(new SongPoolKey(nextPoolIndex, j), 0)
 							+ (j == i ? (config.probabilityMode == Config.ProbabilityMode.BySong ? 1 : currentSongLengthInMinutes) : 0);
 					float chiSquared = (float) Math.pow(1 - actual / expected, 2);
 					totalChiSquared += chiSquared;
@@ -328,7 +373,7 @@ public class TurboShuffle {
 			}
 			// Clumping part
 			// If we're clumping, try to select a song that fits within the current clump
-			if (config.clumpType < 0.5f && shuffleState.songHistory.size() > 0){
+			if (config.clumpType < 0.5f && shuffleState.songHistory.size() > 0 && config.probabilityMode == Config.ProbabilityMode.ByLength){
 				songWeights[i] = clumpLengthDistribution(songWeights[i], targetClumpLength - currentClumpLength, currentSongLengthInMinutes);
 			}
 		}
