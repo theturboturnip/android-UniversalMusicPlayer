@@ -93,42 +93,6 @@ public class TurboShuffle {
 		}
 	}
 
-	public class SongPoolKey {
-		public int poolIndex;
-		public int songIndexInPool;
-
-		public SongPoolKey(int poolIndex, int songIndexInPool){
-			this.poolIndex = poolIndex;
-			this.songIndexInPool = songIndexInPool;
-		}
-
-		@Override
-		public boolean equals(Object obj){
-			if (obj == null) {
-				return false;
-			}
-			if (!SongPoolKey.class.isAssignableFrom(obj.getClass())) {
-				return false;
-			}
-			final SongPoolKey other = (SongPoolKey) obj;
-			if (this.poolIndex != other.poolIndex) {
-				return false;
-			}
-			if (this.songIndexInPool != other.songIndexInPool) {
-				return false;
-			}
-			return true;
-		}
-		@Override
-		public int hashCode(){
-			return Objects.hash(poolIndex, songIndexInPool);
-		}
-	}
-
-	static int secondsToMinutes(int seconds){
-		return (seconds / 60) + ((seconds % 60 > 0) ? 1 : 0);
-	}
-
 	public class State {
 		List<SongPoolKey> songHistory;
 		List<Integer> poolHistory;
@@ -153,7 +117,7 @@ public class TurboShuffle {
 					poolOccurrences[song.poolIndex]++;
 					break;
 				case ByLength:
-					int minutes = secondsToMinutes(TurboShuffle.this.GetSongFromKey(song).getLengthInSeconds());
+					int minutes = Common.secondsToMinutes(TurboShuffle.this.GetSongFromKey(song).getLengthInSeconds());
 					songOccurrences.put(song, songOccurrences.getOrDefault(song, 0) + minutes);
 					poolOccurrences[song.poolIndex] += minutes;
 					boolean newPool = poolHistory.size() == 0 || (poolHistory.get(poolHistory.size()) != song.poolIndex);
@@ -175,22 +139,6 @@ public class TurboShuffle {
 				songOccurrences.put(songToRemove, songOccurrences.getOrDefault(songToRemove, 1) - 1);
 				poolOccurrences[songToRemove.poolIndex]--;
 			}
-		}
-	}
-
-	public static class SongPool {
-		public final List<TurboShuffleSong> songs;
-		public final int averageLengthInSeconds;
-		public final int averageLengthInMinutes;
-
-		public SongPool(TurboShuffleSong... songs){
-			this.songs = Arrays.asList(songs);
-			int totalLengthInSeconds = 0;
-			for (TurboShuffleSong song : songs) {
-				totalLengthInSeconds += song.getLengthInSeconds();
-			}
-			averageLengthInSeconds = totalLengthInSeconds / songs.length;
-			averageLengthInMinutes = secondsToMinutes(averageLengthInSeconds);
 		}
 	}
 
@@ -352,7 +300,7 @@ public class TurboShuffle {
 
 		float targetClumpLength = config.poolWeights[nextPoolIndex];
 		for (int i = 0; i < songWeights.length; i++) {
-			int currentSongLengthInMinutes = secondsToMinutes(songPools[nextPoolIndex].songs.get(i).getLengthInSeconds());
+			int currentSongLengthInMinutes = Common.secondsToMinutes(songPools[nextPoolIndex].songs.get(i).getLengthInSeconds());
 
 			// History part
 			{

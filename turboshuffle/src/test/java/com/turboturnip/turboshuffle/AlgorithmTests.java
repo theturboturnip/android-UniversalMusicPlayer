@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class AlgorithmTests {
+
 	private static class TestResults {
 		private static class SingleResult {
 			Map<TurboShuffle.SongPoolKey, Integer> songOccurrences;
@@ -119,56 +120,15 @@ public class AlgorithmTests {
 		}
 	}
 
-	private float[] EvenWeights(int poolCount){
-		float[] weights = new float[poolCount];
-		while(poolCount > 0){
-			weights[poolCount - 1] = 1.0f;
-			poolCount--;
-		}
-		return weights;
-	}
-	private float[] UnevenWeights(int poolCount){
-		float[] weights = new float[poolCount];
-		while(poolCount > 0){
-			weights[poolCount - 1] = poolCount;
-			poolCount--;
-		}
-		return weights;
-	}
-	private TurboShuffle.SongPool[] CreateTestCasePools(int pools, int songsPerPool, int songLength){
-		TurboShuffle.SongPool[] toReturn = new TurboShuffle.SongPool[pools];
-		int songId = 0;
-		for (int i = 0; i < pools; i++){
-			TurboShuffleSong[] songs = new TurboShuffleSong[songsPerPool];
-			for (int j = 0; j < songsPerPool; j++) {
-				songs[j] = new TestShuffleSong(songId, songLength);
-				songId++;
-			}
-			toReturn[i] = new TurboShuffle.SongPool(songs);
-		}
 
-		return toReturn;
-	}
-	private TurboShuffle CreateTestCaseShuffler(TurboShuffle.Config config, int pools, int songsPerPool, int songLength){
-		return new TurboShuffle(config, CreateTestCasePools(pools, songsPerPool, songLength));
-	}
-	private TestResults.SingleResult RunShufflerNTimes(TurboShuffle shuffler, int N){
-		TurboShuffle.State state = shuffler.new State();
-		Random rng = new Random();
-		for (int i = 0; i < N; i++){
-			TurboShuffle.SongPoolKey nextKey = shuffler.NextKey(state, rng);
-			state.IncrementHistory(nextKey);
-		}
-		return new TestResults.SingleResult(shuffler.config, state);
-	}
 	private TestResults RunShufflerXTimesWithYReps(TurboShuffle shuffler, int X, int reps){
 		TestResults.SingleResult[] results = new TestResults.SingleResult[reps];
 		for (int i = 0; i < reps; i++){
-			results[i] = RunShufflerNTimes(shuffler, X);
+			results[i] = new TestResults.SingleResult(shuffler.config, TestCommon.RunShufflerNTimes(shuffler, X));
 		}
 		return new TestResults(results);
 	}
-	private TestResults[] TestConfigVariable(String varName, float[] values, TurboShuffle.Config base, int poolCount, int songsPerPool, int songLength, int totalSongsToPlay, int reps){
+	private TestResults[] TestConfigVariable(String varName, float[] values, TurboShuffle.Config base, int poolCount, int songsPerPool, int songLength){
 		Field varField;
 		try {
 			varField = TurboShuffle.Config.class.getField(varName);
@@ -185,8 +145,8 @@ public class AlgorithmTests {
 			}catch(IllegalAccessException e){
 				System.out.println("IllegalAccessException for "+varName);
 			}
-			TurboShuffle shuffler = CreateTestCaseShuffler(base, poolCount, songsPerPool, songLength);
-			results[i] = RunShufflerXTimesWithYReps(shuffler, totalSongsToPlay, reps);
+			TurboShuffle shuffler = TestCommon.CreateTestCaseShuffler(base, poolCount, songsPerPool, songLength);
+			results[i] = RunShufflerXTimesWithYReps(shuffler, TestCommon.CONFIG_TEST_SONGS, TestCommon.CONFIG_TEST_REPS);
 		}
 		return results;
 	}
@@ -195,20 +155,20 @@ public class AlgorithmTests {
 	public void shuffle_Run1000Times10Reps(){
 		TurboShuffle.Config config = new TurboShuffle.Config(
 				0.5f, 0f, 0f, 0f, 50f,
-				TurboShuffle.Config.ProbabilityMode.BySong, 1000, UnevenWeights(3)
+				TurboShuffle.Config.ProbabilityMode.BySong, 1000, TestCommon.UnevenWeights(3)
 		);
-		TurboShuffle shuffler = CreateTestCaseShuffler(config, 3, 3, 120);
+		TurboShuffle shuffler = TestCommon.CreateTestCaseShuffler(config, 3, 3, 120);
 		System.out.println(RunShufflerXTimesWithYReps(shuffler, 1000, 10));
 	}
 	@Test
 	public void shuffle_TestClumpType(){
-		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120, reps = 10;
+		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
 		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
 				0.0f,
-				1f, 0.8f, 0f, 10f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, UnevenWeights(poolCount)
+				1f, 0.8f, 0f, 10f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
-		TestResults[] results = TestConfigVariable("clumpType", new float[]{0.0f, 0.5f, 1.0f}, baseConfig, poolCount, songsPerPool, songLength, 1000, reps);
+		TestResults[] results = TestConfigVariable("clumpType", new float[]{0.0f, 0.5f, 1.0f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);
 		Assert.assertTrue(results.length == 3);
 
@@ -225,50 +185,75 @@ public class AlgorithmTests {
 	}
 	@Test
 	public void shuffle_TestClumpWeight(){
-		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120, reps = 10;
+		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
 		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
-				0.0f, 0f,
+				1.0f, 1.0f,
 				0f,
-				0f, 0f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, UnevenWeights(poolCount)
+				0f, 0f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
-		TestResults[] results = TestConfigVariable("clumpWeight", new float[]{0.75f, 0.9f, 0.99f}, baseConfig, poolCount, songsPerPool, songLength, 1000, reps);
+		TestResults[] results = TestConfigVariable("clumpWeight", new float[]{0.0f, 0.5f, 0.99f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);
 
 		int i;
-		for(i = 0; i < results.length - 1; i++){
-			System.out.print(i);
-			System.out.print(" ");
-			System.out.println(results[i].toString(false));
-
-			Assert.assertTrue(results[i + 1].unclumpinessStats.getStandardDeviation() < results[i].unclumpinessStats.getStandardDeviation());
-		}
-		System.out.print(i);
+		System.out.print(0);
 		System.out.print(" ");
-		System.out.println(results[i].toString(false));
+		System.out.println(results[0].toString(false));
+		for(i = 0; i < results.length - 1; i++){
+			System.out.print(i + 1);
+			System.out.print(" ");
+			System.out.println(results[i + 1].toString(false));
+
+			Assert.assertTrue(results[i + 1].unclumpinessStats.getMean() < results[i].unclumpinessStats.getMean());
+		}
 	}
 	@Test
 	public void shuffle_TestHistorySeverity(){
-		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120, reps = 10;
+		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
 		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
-				0.0f, 0f, 0f, 0f,
+				0.5f, 0f, 0f, 0f,
 				10f,
-				TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, UnevenWeights(poolCount)
+				TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
-		TestResults[] results = TestConfigVariable("historySeverity", new float[]{0.0f, 10.0f}, baseConfig, poolCount, songsPerPool, songLength, 1000, reps);
+		TestResults[] results = TestConfigVariable("historySeverity", new float[]{0.0f, 10.0f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);
 
 		int i;
-		for(i = 0; i < results.length - 1; i++){
-			System.out.print(i);
+		System.out.print(0);
+		System.out.print(" ");
+		System.out.println(results[0].toString(false));
+		for(i = 0; i < results.length - 1; i++) {
+			System.out.print(i + 1);
 			System.out.print(" ");
-			System.out.println(results[i].toString(false));
+			System.out.println(results[i + 1].toString(false));
 
 			Assert.assertTrue(results[i + 1].poolRatioDifferenceStats.getStandardDeviation() < results[i].poolRatioDifferenceStats.getStandardDeviation());
 		}
-		System.out.print(i);
+	}
+	@Test
+	public void shuffle_TestClumpSeverity() {
+		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
+
+		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
+				1.0f,
+				0f,
+				0.99f, 0f, 0f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
+		);
+		TestResults[] results = TestConfigVariable("clumpSeverity", new float[]{0.0f, 1.0f, 10.0f}, baseConfig, poolCount, songsPerPool, songLength);
+		Assert.assertTrue(results != null);
+
+		int i;
+		System.out.print(0);
 		System.out.print(" ");
-		System.out.println(results[i].toString(false));
+		System.out.println(results[0].toString(false));
+		for(i = 0; i < results.length - 1; i++){
+			System.out.print(i + 1);
+			System.out.print(" ");
+			System.out.println(results[i + 1].toString(false));
+
+			Assert.assertTrue(results[i + 1].unclumpinessStats.getMean() < results[i].unclumpinessStats.getMean());
+		}
+
 	}
 }
