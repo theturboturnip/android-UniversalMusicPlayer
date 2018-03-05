@@ -158,7 +158,7 @@ public class PlaybackManager implements Playback.Callback {
         // Set appropriate "Favorite" icon on Custom action:
 	    Song currentSong = mQueueManager.getCurrentSong();
 	    if (currentSong == null) return;
-        String songID = currentSong.getSongID();
+        String songID = currentSong.getId();
         int favoriteIcon = mMusicProvider.isFavorite(songID) ?
                 R.drawable.ic_star_on : R.drawable.ic_star_off;
         LogHelper.d(TAG, "updatePlaybackState, setting Favorite custom action of music ",
@@ -295,7 +295,7 @@ public class PlaybackManager implements Playback.Callback {
             if (idAsFilter.isValid()){
             	mQueueManager.setNewImplicitQueueFilter(idAsFilter);
             	onSkipToNext();
-            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSongIndexFromID(mediaId)))
+            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getMusic(mediaId)))
             	handlePlayRequest();
         }
 
@@ -338,7 +338,7 @@ public class PlaybackManager implements Playback.Callback {
                 LogHelper.i(TAG, "onCustomAction: favorite for current track");
                 Song currentSong = mQueueManager.getCurrentSong();
                 if (currentSong != null) {
-					String songID = currentSong.getSongID();
+					String songID = currentSong.getId();
 	                mMusicProvider.setFavorite(songID, !mMusicProvider.isFavorite(songID));
                 }
                 // playback state needs to be updated because the "Favorite" icon on the

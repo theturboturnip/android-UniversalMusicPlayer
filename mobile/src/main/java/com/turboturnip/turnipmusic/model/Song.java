@@ -2,6 +2,7 @@ package com.turboturnip.turnipmusic.model;
 
 import android.support.v4.media.MediaMetadataCompat;
 
+import com.turboturnip.turboshuffle.TurboShuffleSong;
 import com.turboturnip.turnipmusic.model.db.AlbumEntity;
 import com.turboturnip.turnipmusic.model.db.SongEntity;
 
@@ -11,7 +12,7 @@ import java.util.ArrayList;
  * Convenience class that packages the MediaMetadata
  */
 
-public class Song {
+public class Song implements TurboShuffleSong<String>{
 	private SongEntity dbEntity;
 	private MediaMetadataCompat metadata;
 	private String filePath;
@@ -40,7 +41,8 @@ public class Song {
 	public final MediaMetadataCompat getMetadata(){ return metadata; }
 	public void setMetadata(MediaMetadataCompat metadata) { this.metadata = metadata; }
 	public final String getFilePath(){ return filePath; }
-	public final String getSongID(){ return dbEntity.mediaId; }
+	public final String getId(){ return dbEntity.mediaId; }
+	public final int getLengthInSeconds(){ return (int)this.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION); }
 	public final ArrayList<Integer> getTags(){ return tags; }
 
 	@Override

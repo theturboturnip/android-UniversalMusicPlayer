@@ -161,7 +161,7 @@ public class MusicProvider {
 				Iterator<Song> tracks = mSource.iterator(context, db);
 				while (tracks.hasNext()) {
 					Song item = tracks.next();
-					String songID = item.getSongID();
+					String songID = item.getId();
 					mMusicListById.put(songID, mSongs.size());
 					mSongs.add(item);
 				}
@@ -343,6 +343,13 @@ public class MusicProvider {
 	    }
 
 	    return songIndices.subList(firstValidSong, songIndices.size());
+    }
+    public List<Song> getFilteredSongs(MusicFilter filter){
+    	final List<Integer> indices = getFilteredSongIndices(filter);
+    	List<Song> songs = new ArrayList<>();
+    	for(Integer index : indices)
+    		songs.add(mSongs.get(index));
+    	return songs;
     }
 
     public List<MediaBrowserCompat.MediaItem> getChildren(String musicFilter, Resources resources) {
