@@ -25,6 +25,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.view.MenuItem;
 
 import com.turboturnip.turnipmusic.MusicFilter;
+import com.turboturnip.turnipmusic.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
@@ -142,7 +143,7 @@ public class MusicBrowserActivity extends BrowserActivity
 					mVoiceSearchParams.getString(SearchManager.QUERY));
 		} else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			String query = intent.getStringExtra(SearchManager.QUERY);
-			mediaFilterString = new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_BY_SEARCH, query)).toString();
+			mediaFilterString = new MusicFilter(MusicFilterType.Search, query).toString();
 		} else if (intent.hasExtra(NEW_FILTER_EXTRA)){
 			mediaFilterString = intent.getStringExtra(NEW_FILTER_EXTRA);
 		} else {
@@ -197,7 +198,7 @@ public class MusicBrowserActivity extends BrowserActivity
 		}
 		MusicFilter filter = fragment.getFilter();
 		if (filter == null)
-			return new MusicFilter(new MusicFilter.SubFilter(MusicFilter.FILTER_ROOT)).toString();
+			return MusicFilter.rootFilter().toString();
 		return filter.toString();
 	}
 

@@ -147,7 +147,7 @@ public class QueueHelper {
         ArrayList<MediaSessionCompat.QueueItem> explicitQueue = new ArrayList<>();
         int count = 0;
         for (int index : tracks) {
-            Song song = musicProvider.getMusic(index);
+            Song song = musicProvider.getSong(index);
             MediaMetadataCompat metadata = song.getMetadata();
 
             MediaMetadataCompat.Builder b = new MediaMetadataCompat.Builder(metadata).putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, )

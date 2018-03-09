@@ -26,6 +26,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -163,7 +164,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
         // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
-        mMusicProvider.retrieveMediaAsync(this, new MusicProvider.Callback() {
+        mMusicProvider.retrieveMediaAsync(this, new MusicProvider.MusicCatalogCallback() {
             @Override
             public void onMusicCatalogReady(boolean success) {
                 if (success)
@@ -343,26 +344,26 @@ public class MusicService extends MediaBrowserServiceCompat implements
                                @NonNull final Result<List<MediaItem>> result) {
         LogHelper.d(TAG, "OnLoadChildren: parentFilter=", parentFilter);
 
-        MusicFilter parsedParentFiler = new MusicFilter(parentFilter);
-        if (parsedParentFiler.isEmpty()) {
+        final MusicFilter parsedParentFiler = new MusicFilter(parentFilter);
+        if (parsedParentFiler.filterType == MusicFilterType.Empty) {
             result.sendResult(new ArrayList<MediaItem>());
         } else if (mMusicProvider.isInitialized()) {
-            // if music library is ready, return immediately
-            result.sendResult(mMusicProvider.getChildren(parentFilter, getResources()));
+	        result.detach();
+	        new MusicProvider.GetChildrenAsyncTask(parsedParentFiler, result).execute();
         } else {
             // otherwise, only return results when the music library is retrieved
             result.detach();
-            mMusicProvider.retrieveMediaAsync(this, new MusicProvider.Callback() {
+            mMusicProvider.retrieveMediaAsync(this, new MusicProvider.MusicCatalogCallback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
-                    result.sendResult(mMusicProvider.getChildren(parentFilter, getResources()));
+	                new MusicProvider.GetChildrenAsyncTask(parsedParentFiler, result).execute();
                 }
             });
         }
     }
 
     /**
-     * Callback method called from PlaybackManager whenever the music is about to play.
+     * MusicCatalogCallback method called from PlaybackManager whenever the music is about to play.
      */
     @Override
     public void onPlaybackStart() {
@@ -378,7 +379,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
 
     /**
-     * Callback method called from PlaybackManager whenever the music stops playing.
+     * MusicCatalogCallback method called from PlaybackManager whenever the music stops playing.
      */
     @Override
     public void onPlaybackStop() {

@@ -18,12 +18,12 @@ public interface SongTagJoinEntityDao {
 	)
 	List<TagEntity> getTagsForSong(int songId);
 	@SuppressWarnings(RoomWarnings.CURSOR_MISMATCH)
-	@Query("SELECT * FROM " + DBConstants.SONG_TABLE + " INNER JOIN "+
+	@Query("SELECT id FROM " + DBConstants.SONG_TABLE + " INNER JOIN "+
 			DBConstants.SONG_TAG_JOIN_TABLE+" ON "+
 			DBConstants.SONG_TABLE+".id="+DBConstants.SONG_TAG_JOIN_TABLE+".songId WHERE "+
 			DBConstants.SONG_TAG_JOIN_TABLE+".tagId=:tagId"
 	)
-	List<SongEntity> getSongsForTag(int tagId);
+	List<Integer> getSongIdsForTag(int tagId);
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	void insertTags(TagEntity tags);

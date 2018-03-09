@@ -2,6 +2,7 @@ package com.turboturnip.turnipmusic.ui;
 
 import android.app.Activity;
 import android.app.LauncherActivity;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -21,6 +23,9 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 
 public class ItemListCommandFragment extends CommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(ItemListCommandFragment.class);
@@ -115,6 +120,23 @@ public class ItemListCommandFragment extends CommandFragment {
 
 		return itemView;
 	}
+	private View getListSeparatorItemView(ListItemData item, View itemView, @NonNull ViewGroup parent){
+		ListSeparatorItemCachedViews cachedViews;
+
+		if (itemView == null) {
+			itemView = LayoutInflater.from(this.getActivity())
+					.inflate(R.layout.media_list_header, parent, false);
+			cachedViews = new ListSeparatorItemCachedViews(itemView);
+			itemView.setTag(cachedViews);
+		}else {
+			// If it isn't null, it has itemData already
+			cachedViews = (ListSeparatorItemCachedViews) itemView.getTag();
+		}
+
+		item.applyToHeaderViews(cachedViews);
+
+		return itemView;
+	}
 
 	private class ListItemCachedViews {
 		final View itemView;
@@ -129,6 +151,15 @@ public class ItemListCommandFragment extends CommandFragment {
 			subtitleView = itemView.findViewById(R.id.description);
 		}
 	}
+	private class ListSeparatorItemCachedViews {
+		final View itemView;
+		final TextView textView;
+
+		ListSeparatorItemCachedViews(View itemView){
+			this.itemView = itemView;
+			textView = itemView.findViewById(R.id.header_text);
+		}
+	}
 	class ListItemData {
 		CharSequence title = null, subtitle = null;
 		View.OnClickListener onDrawableClick = null, onItemClick = null;
@@ -136,6 +167,9 @@ public class ItemListCommandFragment extends CommandFragment {
 		Object internalData;
 
 		ListItemData(){}
+		ListItemData(CharSequence title){
+			this.title = title;
+		}
 		ListItemData(CharSequence title, CharSequence subtitle, View.OnClickListener onItemClick, View.OnClickListener onDrawableClick){
 			this.title = title;
 			this.subtitle = subtitle;
@@ -143,6 +177,9 @@ public class ItemListCommandFragment extends CommandFragment {
 			this.onDrawableClick = onDrawableClick;
 		}
 
+		void applyToHeaderViews(ListSeparatorItemCachedViews views){
+			views.textView.setText(title);
+		}
 		void applyToViews(ListItemCachedViews views){
 			views.titleView.setText(title);
 			views.subtitleView.setText(subtitle);
@@ -152,17 +189,66 @@ public class ItemListCommandFragment extends CommandFragment {
 	}
 
 	// An adapter for showing the list of browsed MediaItem's
-	protected class BrowseAdapter extends ArrayAdapter<ListItemData> {
+	protected class BrowseAdapter extends BaseAdapter {
+
+		private static final int TYPE_ITEM = 0;
+		private static final int TYPE_SEPARATOR = 1;
+
+		private ArrayList<ListItemData> mData = new ArrayList<>();
+		private List<Integer> headers = new ArrayList<>();
 
 		BrowseAdapter(Activity context) {
-			super(context, R.layout.media_list_item, new ArrayList<ListItemData>());
+		}
+
+		public void clear(){
+			mData.clear();
+			headers.clear();
+		}
+
+		public void addItem(final ListItemData item) {
+			mData.add(item);
+			notifyDataSetChanged();
+		}
+
+		public void addHeader(final ListItemData item) {
+			headers.add(mData.size());
+			mData.add(item);
+			notifyDataSetChanged();
+		}
+
+		@Override
+		public int getItemViewType(int position) {
+			return headers.contains(position) ? TYPE_SEPARATOR : TYPE_ITEM;
+		}
+
+		@Override
+		public int getViewTypeCount() {
+			return 2;
+		}
+
+		@Override
+		public int getCount() {
+			return mData.size();
+		}
+
+		@Override
+		public ListItemData getItem(int position) {
+			return mData.get(position);
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return position;
 		}
 
 		@NonNull
 		@Override
-		public View getView(int position, View itemView, @NonNull ViewGroup parent) {
+		public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+			int rowType = getItemViewType(position);
 			final ListItemData item = getItem(position);
-			return getListItemView(item, itemView, parent);
+
+			if (rowType == TYPE_SEPARATOR) return getListSeparatorItemView(item, convertView, parent);
+			else return getListItemView(item, convertView, parent);
 		}
 	}
 }

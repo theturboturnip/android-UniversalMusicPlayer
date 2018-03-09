@@ -107,18 +107,18 @@ public class TurboShuffle {
 			poolOccurrences = new int[TurboShuffle.this.songPools.length];
 		}
 
-		void IncrementHistory(SongPoolKey song){
+		public void IncrementHistory(SongPoolKey song){
 			switch(TurboShuffle.this.config.probabilityMode) {
 				case BySong:
 					songHistory.add(song);
-					songOccurrences.put(song, songOccurrences.getOrDefault(song, 0) + 1);
+					songOccurrences.put(song, getSongOccurrences(song) + 1);
 					if (poolHistory.size() == 0 || (poolHistory.get(poolHistory.size() - 1) != song.poolIndex))
 						poolHistory.add(song.poolIndex);
 					poolOccurrences[song.poolIndex]++;
 					break;
 				case ByLength:
 					int minutes = Common.secondsToMinutes(TurboShuffle.this.GetSongFromKey(song).getLengthInSeconds());
-					songOccurrences.put(song, songOccurrences.getOrDefault(song, 0) + minutes);
+					songOccurrences.put(song, getSongOccurrences(song) + minutes);
 					poolOccurrences[song.poolIndex] += minutes;
 					boolean newPool = poolHistory.size() == 0 || (poolHistory.get(poolHistory.size()) != song.poolIndex);
 					while (minutes > 0) {
@@ -136,9 +136,17 @@ public class TurboShuffle {
 				if (songHistory.get(0).poolIndex != poolHistory.get(0))
 					poolHistory.remove(0);
 				// Decrement the occurrences for the song and the pool
-				songOccurrences.put(songToRemove, songOccurrences.getOrDefault(songToRemove, 1) - 1);
+				songOccurrences.put(songToRemove, getSongOccurrences(song, 1) - 1);
 				poolOccurrences[songToRemove.poolIndex]--;
 			}
+		}
+
+		int getSongOccurrences(SongPoolKey song){
+			return getSongOccurrences(song, 0);
+		}
+		int getSongOccurrences(SongPoolKey song, int defaultVal){
+			if (!songOccurrences.containsKey(song)) return 0;
+			return songOccurrences.get(song);
 		}
 	}
 
@@ -311,7 +319,7 @@ public class TurboShuffle {
 				float totalChiSquared = 0;
 				for (int j = 0; j < songWeights.length; j++) {
 					float expected = (shuffleState.poolOccurrences[nextPoolIndex] + 1) / (float)(songWeights.length);
-					float actual = shuffleState.songOccurrences.getOrDefault(new SongPoolKey(nextPoolIndex, j), 0)
+					float actual = shuffleState.getSongOccurrences(new SongPoolKey(nextPoolIndex, j))
 							+ (j == i ? (config.probabilityMode == Config.ProbabilityMode.BySong ? 1 : currentSongLengthInMinutes) : 0);
 					float chiSquared = (float) Math.pow(1 - actual / expected, 2);
 					totalChiSquared += chiSquared;

@@ -42,6 +42,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.turboturnip.turnipmusic.MusicFilter;
+import com.turboturnip.turnipmusic.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.MediaIDHelper;
@@ -141,7 +143,7 @@ public class MusicBrowserFragment extends ItemListCommandFragment {
                     checkForUserVisibleErrors(children.isEmpty());
                     mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
-                        mBrowserAdapter.add(getDataForListItem(item));
+                        mBrowserAdapter.addItem(getDataForListItem(item));
                     }
                     mBrowserAdapter.notifyDataSetChanged();
                 } catch (Throwable t) {
@@ -264,19 +266,21 @@ public class MusicBrowserFragment extends ItemListCommandFragment {
 
     @Override
     protected void updateTitle() {
-    	// TODO: Inefficient as fuck, please change
-        if (mMusicFilter.isRoot() || !mMusicFilter.isValid()) {
+        if (mMusicFilter.filterType == MusicFilterType.Root || !mMusicFilter.isValid()) {
             mCommandListener.setToolbarTitle(null);
-            return;
-        }
+        }else
+        	mCommandListener.setToolbarTitle(mMusicFilter.toString());
 
-        MediaBrowserCompat mediaBrowser = mCommandListener.getMediaBrowser();
+
+        /*MediaBrowserCompat mediaBrowser = mCommandListener.getMediaBrowser();
+        LogHelper.e(TAG, "getItem("+mMusicFilter.toString()+")");
         mediaBrowser.getItem(mMusicFilter.toString(), new MediaBrowserCompat.ItemCallback() {
             @Override
             public void onItemLoaded(MediaBrowserCompat.MediaItem item) {
+            	LogHelper.e(TAG, item.getDescription().getTitle());
                 mCommandListener.setToolbarTitle(
                         item.getDescription().getTitle());
             }
-        });
+        });*/
     }
 }

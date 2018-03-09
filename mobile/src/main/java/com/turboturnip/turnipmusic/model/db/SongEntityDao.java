@@ -13,10 +13,15 @@ public interface SongEntityDao {
 	SongEntity getSong(int id);
 	@Query("SELECT * FROM " + DBConstants.SONG_TABLE + " WHERE mediaId=:mediaId")
 	SongEntity getSongByMediaId(String mediaId);
-	@Query("SELECT * FROM " + DBConstants.SONG_TABLE + " WHERE name=:name")
-	SongEntity getSongByName(String name);
+	@Query("SELECT id FROM " + DBConstants.SONG_TABLE + " WHERE name LIKE :name")
+	Integer getSongIdByName(String name);
 	@Query("SELECT * FROM " + DBConstants.SONG_TABLE + " WHERE albumId=:albumId ORDER BY albumIndex")
 	List<SongEntity> getSongsInAlbum(int albumId);
+	@Query("SELECT id FROM " + DBConstants.SONG_TABLE + " WHERE albumId=:albumId ORDER BY albumIndex")
+	List<Integer> getSongIdsInAlbum(int albumId);
+	//@Query("SELECT mediaId FROM " + DBConstants.SONG_TABLE + " WHERE artist LIKE :artist")
+	@Query("SELECT id FROM " + DBConstants.SONG_TABLE + " WHERE name LIKE '%' || :query || '%' ORDER BY INSTR(name, :query)")
+	List<Integer> orderedSearchForIds(String query);
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	void insertSong(SongEntity song);

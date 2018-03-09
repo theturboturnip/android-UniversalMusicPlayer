@@ -22,6 +22,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
@@ -31,6 +32,8 @@ import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.WearHelper;
+
+import java.util.List;
 
 /**
  * Manage the interactions among the container service, the queue manager and the actual playback.
@@ -72,9 +75,6 @@ public class PlaybackManager implements Playback.Callback {
         return mMediaSessionCallback;
     }
 
-    /**
-     * Handle a request to play music
-     */
     public void handlePlayRequest() {
         LogHelper.d(TAG, "handlePlayRequest: mState=" + mPlayback.getState());
         MediaSessionCompat.QueueItem currentMusic = mQueueManager.getCurrentCompiledQueueItem();
@@ -85,9 +85,6 @@ public class PlaybackManager implements Playback.Callback {
         }
     }
 
-    /**
-     * Handle a request to pause music
-     */
     public void handlePauseRequest() {
         LogHelper.d(TAG, "handlePauseRequest: mState=" + mPlayback.getState());
         if (mPlayback.isPlaying()) {
@@ -96,13 +93,6 @@ public class PlaybackManager implements Playback.Callback {
         }
     }
 
-    /**
-     * Handle a request to stop music
-     *
-     * @param withError Error message in case the stop has an unexpected cause. The error
-     *                  message will be set in the PlaybackState and will be visible to
-     *                  MediaController clients.
-     */
     public void handleStopRequest(String withError) {
         LogHelper.d(TAG, "handleStopRequest: mState=" + mPlayback.getState() + " error=", withError);
         mPlayback.stop(true);
@@ -111,11 +101,6 @@ public class PlaybackManager implements Playback.Callback {
     }
 
 
-    /**
-     * Update the current media player state, optionally showing an error message.
-     *
-     * @param error if not null, error message to present to the user.
-     */
     public void updatePlaybackState(String error) {
         LogHelper.d(TAG, "updatePlaybackState, playback state=" + mPlayback.getState());
         long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
@@ -127,7 +112,7 @@ public class PlaybackManager implements Playback.Callback {
         PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(getAvailableActions());
 
-        setCustomAction(stateBuilder);
+        //setCustomAction(stateBuilder);
         int state = mPlayback.getState();
 
         // If there is an error message, send it to the playback state:
@@ -154,11 +139,11 @@ public class PlaybackManager implements Playback.Callback {
         }
     }
 
-    private void setCustomAction(PlaybackStateCompat.Builder stateBuilder) {
+    /*private void setCustomAction(PlaybackStateCompat.Builder stateBuilder) {
         // Set appropriate "Favorite" icon on Custom action:
 	    Song currentSong = mQueueManager.getCurrentSong();
 	    if (currentSong == null) return;
-        String songID = currentSong.getId();
+        int songID = currentSong.getId();
         int favoriteIcon = mMusicProvider.isFavorite(songID) ?
                 R.drawable.ic_star_on : R.drawable.ic_star_off;
         LogHelper.d(TAG, "updatePlaybackState, setting Favorite custom action of music ",
@@ -169,7 +154,7 @@ public class PlaybackManager implements Playback.Callback {
                 CUSTOM_ACTION_THUMBS_UP, mResources.getString(R.string.favorite), favoriteIcon)
                 .setExtras(customActionExtras)
                 .build());
-    }
+    }*/
 
     private long getAvailableActions() {
         long actions =
@@ -187,7 +172,7 @@ public class PlaybackManager implements Playback.Callback {
     }
 
     /**
-     * Implementation of the Playback.Callback interface
+     * Implementation of the Playback.MusicCatalogCallback interface
      */
     @Override
     public void onCompletion() {
@@ -263,6 +248,21 @@ public class PlaybackManager implements Playback.Callback {
     }
 
 
+    private static class PlayNewJourneyAsyncTask extends AsyncTask<MusicFilter, Void, Void>{
+        private PlaybackManager playbackManager;
+
+        PlayNewJourneyAsyncTask(PlaybackManager playbackManager){
+            this.playbackManager = playbackManager;
+        }
+
+        @Override
+        protected Void doInBackground(MusicFilter... params){
+            if (params.length == 0) throw new RuntimeException("Tried to set the Queue Manager to have no filter!");
+            playbackManager.mQueueManager.setNewImplicitQueueFilter(params[0]);
+            playbackManager.mMediaSessionCallback.onSkipToNext();
+            return null;
+        }
+    }
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
@@ -291,11 +291,10 @@ public class PlaybackManager implements Playback.Callback {
 	    public void onPlayFromMediaId(String mediaId, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
 	        // TODO: Interpret the command as either a journey start or an explicit queue request, and reroute the function call as required
-            MusicFilter idAsFilter = new MusicFilter(mediaId);
-            if (idAsFilter.isValid()){
-            	mQueueManager.setNewImplicitQueueFilter(idAsFilter);
-            	onSkipToNext();
-            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getMusic(mediaId)))
+            MusicFilter filter = new MusicFilter(mediaId);
+            if (filter.isValid()){
+            	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(filter);
+            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(mediaId)))
             	handlePlayRequest();
         }
 
@@ -332,13 +331,13 @@ public class PlaybackManager implements Playback.Callback {
             }
         }
 
-        @Override
+        /*@Override
         public void onCustomAction(@NonNull String action, Bundle extras) {
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 LogHelper.i(TAG, "onCustomAction: favorite for current track");
                 Song currentSong = mQueueManager.getCurrentSong();
                 if (currentSong != null) {
-					String songID = currentSong.getId();
+					int songID = currentSong.getId();
 	                mMusicProvider.setFavorite(songID, !mMusicProvider.isFavorite(songID));
                 }
                 // playback state needs to be updated because the "Favorite" icon on the
@@ -347,7 +346,7 @@ public class PlaybackManager implements Playback.Callback {
             } else {
                 LogHelper.e(TAG, "Unsupported action: ", action);
             }
-        }
+        }*/
 
         /**
          * Handle free and contextual searches.
@@ -368,7 +367,7 @@ public class PlaybackManager implements Playback.Callback {
             LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
             mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);
-            /*mMusicProvider.retrieveMediaAsync(mContext, new MusicProvider.Callback() {
+            /*mMusicProvider.retrieveMediaAsync(mContext, new MusicProvider.MusicCatalogCallback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
                     if (!success) {
@@ -390,11 +389,14 @@ public class PlaybackManager implements Playback.Callback {
 
     public interface PlaybackServiceCallback {
         void onPlaybackStart();
-
         void onNotificationRequired();
-
         void onPlaybackStop();
-
         void onPlaybackStateUpdated(PlaybackStateCompat newState);
+    }
+    public interface MetadataUpdateListener {
+        void onMetadataChanged(MediaMetadataCompat metadata);
+        void onMetadataRetrieveError();
+        void onCurrentQueueIndexUpdated(int queueIndex);
+        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newCompiledQueue);
     }
 }

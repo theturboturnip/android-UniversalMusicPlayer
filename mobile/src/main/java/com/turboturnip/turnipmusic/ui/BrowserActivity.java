@@ -166,7 +166,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
         onMediaControllerConnected();
     }
 
-    // Callback that ensures that we are showing the controls
+    // MusicCatalogCallback that ensures that we are showing the controls
     private final MediaControllerCompat.Callback mMediaControllerCallback =
         new MediaControllerCompat.Callback() {
             @Override

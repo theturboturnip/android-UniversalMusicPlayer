@@ -5,6 +5,8 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
+import java.util.List;
+
 @Database(entities = { SongEntity.class, TagEntity.class, SongTagJoinEntity.class, AlbumEntity.class },
 		version = 1)
 public abstract class SongDatabase extends RoomDatabase {

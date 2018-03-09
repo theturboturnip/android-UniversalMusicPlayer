@@ -57,7 +57,7 @@ public class CastPlayback implements Playback {
     /** Playback interface Callbacks */
     private Callback mCallback;
     private long mCurrentPosition;
-    private String mCurrentMediaId;
+    private int mCurrentMusicId;
 
     public CastPlayback(MusicProvider musicProvider, Context context) {
         mMusicProvider = musicProvider;
@@ -104,7 +104,7 @@ public class CastPlayback implements Playback {
     @Override
     public void play(QueueItem item) {
         try {
-            loadMedia(item.getDescription().getMediaId(), true);
+            loadMedia(Integer.decode(item.getDescription().getMediaId()), true);
             mPlaybackState = PlaybackStateCompat.STATE_BUFFERING;
             if (mCallback != null) {
                 mCallback.onPlaybackStatusChanged(mPlaybackState);
@@ -124,7 +124,7 @@ public class CastPlayback implements Playback {
                 mRemoteMediaClient.pause();
                 mCurrentPosition = (int) mRemoteMediaClient.getApproximateStreamPosition();
             } else {
-                loadMedia(mCurrentMediaId, false);
+                loadMedia(mCurrentMusicId, false);
             }
         } catch (JSONException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
@@ -136,17 +136,13 @@ public class CastPlayback implements Playback {
 
     @Override
     public void seekTo(long position) {
-        if (mCurrentMediaId == null) {
-            mCurrentPosition = position;
-            return;
-        }
         try {
             if (mRemoteMediaClient.hasMediaSession()) {
                 mRemoteMediaClient.seek(position);
                 mCurrentPosition = position;
             } else {
                 mCurrentPosition = position;
-                loadMedia(mCurrentMediaId, false);
+                loadMedia(mCurrentMusicId, false);
             }
         } catch (JSONException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
@@ -158,12 +154,12 @@ public class CastPlayback implements Playback {
 
     @Override
     public void setCurrentMediaId(String mediaId) {
-        this.mCurrentMediaId = mediaId;
+        this.mCurrentMusicId = Integer.decode(mediaId);
     }
 
     @Override
     public String getCurrentMediaId() {
-        return mCurrentMediaId;
+        return mCurrentMusicId+"";
     }
 
     @Override
@@ -189,17 +185,17 @@ public class CastPlayback implements Playback {
     }
 
     // TODO: This assumes the mediaId is the musicID. Is that right?
-    private void loadMedia(String mediaId, boolean autoPlay) throws JSONException {
-        Song song = mMusicProvider.getMusic(mediaId);
+    private void loadMedia(int musicId, boolean autoPlay) throws JSONException {
+        Song song = mMusicProvider.getSong(musicId);
         if (song == null) {
-            throw new IllegalArgumentException("Invalid mediaId " + mediaId);
+            throw new IllegalArgumentException("Invalid mediaId " + musicId);
         }
-        if (!TextUtils.equals(mediaId, mCurrentMediaId)) {
-            mCurrentMediaId = mediaId;
+        if (musicId == mCurrentMusicId) {
+            mCurrentMusicId = musicId;
             mCurrentPosition = 0;
         }
         JSONObject customData = new JSONObject();
-        customData.put(ITEM_ID, mediaId);
+        customData.put(ITEM_ID, musicId);
         MediaInfo media = toCastMediaMetadata(song, customData);
         mRemoteMediaClient.load(media, autoPlay, mCurrentPosition, customData);
     }
@@ -259,11 +255,11 @@ public class CastPlayback implements Playback {
             JSONObject customData = mediaInfo.getCustomData();
 
             if (customData != null && customData.has(ITEM_ID)) {
-                String remoteMediaId = customData.getString(ITEM_ID);
-                if (!TextUtils.equals(mCurrentMediaId, remoteMediaId)) {
-                    mCurrentMediaId = remoteMediaId;
+                int remoteMediaId = Integer.decode(customData.getString(ITEM_ID));
+                if (mCurrentMusicId != remoteMediaId) {
+                    mCurrentMusicId = remoteMediaId;
                     if (mCallback != null) {
-                        mCallback.setCurrentMediaId(remoteMediaId);
+                        mCallback.setCurrentMediaId(""+remoteMediaId);
                     }
                     updateLastKnownStreamPosition();
                 }

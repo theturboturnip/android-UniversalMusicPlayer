@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * Convenience class that packages the MediaMetadata
  */
 
-public class Song implements TurboShuffleSong<String>{
+public class Song implements TurboShuffleSong<Integer>{
 	private SongEntity dbEntity;
 	private MediaMetadataCompat metadata;
 	private String filePath;
@@ -23,7 +23,7 @@ public class Song implements TurboShuffleSong<String>{
 		if (albumDBEntity != null &&  dbEntity.albumId != albumDBEntity.id)
 			throw new RuntimeException("Trying to create a Song with mismatching SongEntity and AlbumEntities");
 		this.metadata = new MediaMetadataCompat.Builder()
-				.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, dbEntity.mediaId)
+				.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, dbEntity.id+"")
 				.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, albumDBEntity == null ? "" : albumDBEntity.name)
 				.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
 				.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
@@ -41,7 +41,7 @@ public class Song implements TurboShuffleSong<String>{
 	public final MediaMetadataCompat getMetadata(){ return metadata; }
 	public void setMetadata(MediaMetadataCompat metadata) { this.metadata = metadata; }
 	public final String getFilePath(){ return filePath; }
-	public final String getId(){ return dbEntity.mediaId; }
+	public final Integer getId(){ return dbEntity.id; }
 	public final int getLengthInSeconds(){ return (int)this.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION); }
 	public final ArrayList<Integer> getTags(){ return tags; }
 

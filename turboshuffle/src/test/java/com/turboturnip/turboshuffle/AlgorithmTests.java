@@ -16,7 +16,7 @@ public class AlgorithmTests {
 
 	private static class TestResults {
 		private static class SingleResult {
-			Map<TurboShuffle.SongPoolKey, Integer> songOccurrences;
+			Map<SongPoolKey, Integer> songOccurrences;
 			int[] poolOccurences;
 			float unclumpiness;
 			float poolRatioDifference;
@@ -43,7 +43,7 @@ public class AlgorithmTests {
 		}
 
 		List<SingleResult> results;
-		Map<TurboShuffle.SongPoolKey, Double> songOccurrenceMeans, songOccurrenceStdDevs;
+		Map<SongPoolKey, Double> songOccurrenceMeans, songOccurrenceStdDevs;
 		double[] poolOccurenceMeans, poolOccurenceStdDevs;
 		SummaryStatistics unclumpinessStats;
 		SummaryStatistics poolRatioDifferenceStats;
@@ -63,7 +63,7 @@ public class AlgorithmTests {
 
 			songOccurrenceMeans = new HashMap<>();
 			songOccurrenceStdDevs = new HashMap<>();
-			for(TurboShuffle.SongPoolKey key : results[0].songOccurrences.keySet()){
+			for(SongPoolKey key : results[0].songOccurrences.keySet()){
 				SummaryStatistics stats = new SummaryStatistics();
 				for (SingleResult result : results){
 					stats.addValue(result.songOccurrences.getOrDefault(key, 0));
@@ -103,7 +103,7 @@ public class AlgorithmTests {
 			resultBuilder.append(poolRatioDifferenceStats.getStandardDeviation());
 			if (printSongOccurrences) {
 				resultBuilder.append("\n\tSong Occurrences:");
-				for (TurboShuffle.SongPoolKey key : songOccurrenceMeans.keySet()) {
+				for (SongPoolKey key : songOccurrenceMeans.keySet()) {
 					resultBuilder.append("\n\t\tMean: ");
 					resultBuilder.append(songOccurrenceMeans.get(key));
 					resultBuilder.append("\n\t\tStd-Dev: ");
