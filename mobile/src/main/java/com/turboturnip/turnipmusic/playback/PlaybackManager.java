@@ -26,12 +26,15 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
+import com.turboturnip.turnipmusic.Journey;
 import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.WearHelper;
+
+import org.json.JSONException;
 
 import java.util.List;
 
@@ -248,7 +251,7 @@ public class PlaybackManager implements Playback.Callback {
     }
 
 
-    private static class PlayNewJourneyAsyncTask extends AsyncTask<MusicFilter, Void, Void>{
+    private static class PlayNewJourneyAsyncTask extends AsyncTask<Journey, Void, Void>{
         private PlaybackManager playbackManager;
 
         PlayNewJourneyAsyncTask(PlaybackManager playbackManager){
@@ -256,11 +259,15 @@ public class PlaybackManager implements Playback.Callback {
         }
 
         @Override
-        protected Void doInBackground(MusicFilter... params){
-            if (params.length == 0) throw new RuntimeException("Tried to set the Queue Manager to have no filter!");
-            playbackManager.mQueueManager.setNewImplicitQueueFilter(params[0]);
-            playbackManager.mMediaSessionCallback.onSkipToNext();
+        protected Void doInBackground(Journey... params){
+            if (params.length == 0) throw new RuntimeException("Tried to set the Queue Manager to have no journey!");
+            playbackManager.mQueueManager.startJourney(params[0]);
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void status){
+	        playbackManager.mMediaSessionCallback.onSkipToNext();
         }
     }
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
@@ -288,13 +295,20 @@ public class PlaybackManager implements Playback.Callback {
         }
 
         @Override
-	    public void onPlayFromMediaId(String mediaId, Bundle extras) {
-            LogHelper.d(TAG, "playFromMediaId mediaId:", mediaId, "  extras=", extras);
-	        // TODO: Interpret the command as either a journey start or an explicit queue request, and reroute the function call as required
-            MusicFilter filter = new MusicFilter(mediaId);
+	    public void onPlayFromMediaId(String data, Bundle extras) {
+            LogHelper.d(TAG, "playFromMediaId data:", data, "  extras=", extras);
+            try {
+            	Journey journey = new Journey(data);
+            	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(journey);
+                return;
+            }catch (JSONException e){
+            	LogHelper.e("Data rejected as JSON because '" + e.getMessage() + "'");
+            }
+
+            MusicFilter filter = new MusicFilter(data);
             if (filter.isValid()){
-            	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(filter);
-            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(mediaId)))
+            	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(new Journey(filter));
+            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(data)))
             	handlePlayRequest();
         }
 

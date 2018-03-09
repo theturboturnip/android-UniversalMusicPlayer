@@ -27,6 +27,8 @@ import android.widget.Toast;
 import com.turboturnip.turboshuffle.SongPool;
 import com.turboturnip.turboshuffle.TurboShuffleSong;
 import com.turboturnip.turnipmusic.AlbumArtCache;
+import com.turboturnip.turnipmusic.ConstJourney;
+import com.turboturnip.turnipmusic.Journey;
 import com.turboturnip.turnipmusic.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
@@ -69,6 +71,8 @@ public class QueueManager {
     private Song mCurrentSong;
     private int mCurrentCompiledQueueIndex;
     private static final int MAX_LOOKBACK = 10;
+
+    private ConstJourney journey;
 
 	private List<MediaSessionCompat.QueueItem> mCompiledQueue;
 	//private static List<AsyncQueueTask> asyncQueueTasks = new ArrayList<>();
@@ -201,7 +205,6 @@ public class QueueManager {
 		if (mCurrentCompiledQueueIndex < 0 || mCompiledQueue.size() == 0) return null;
 		return mCompiledQueue.get(mCurrentCompiledQueueIndex);
 	}
-    // TODO: startJourney()
 	void updateHistoryFromNewCompiledQueueIndex(int newCompiledQueueIndex){
 		if (newCompiledQueueIndex < 0 || mCurrentSong == null || mCurrentCompiledQueueIndex < 0) return;
 		if (newCompiledQueueIndex == mCurrentCompiledQueueIndex) return;
@@ -247,19 +250,39 @@ public class QueueManager {
 		}
 	}
 
-	void setNewImplicitQueueFilter(MusicFilter filter) {
-		AsyncHelper.ThrowIfOnMainThread("setNewImplicitQueueFilter()");
-		Collection<Song> songs = mMusicProvider.getFilteredSongs(filter);
-		mImplicitQueue.initialize(
-				new SongPool[]{
-						new SongPool(songs.toArray(new TurboShuffleSong[songs.size()]))
-				}
-		);
+	void startJourney(Journey newJourney){
+		AsyncHelper.ThrowIfOnMainThread("startJourney()");
+		journey = new ConstJourney(newJourney);
+		setJourneyStage(0);
+	}
+	void setJourneyStage(int stageIndex) {
+		AsyncHelper.ThrowIfOnMainThread("setJourneyStage()");
+		LogHelper.i(TAG, journey.toString());
+		SongPool[] pools = new SongPool[journey.stages[stageIndex].filters.length];
+		for (int i = 0; i < journey.stages[stageIndex].filters.length; i++){
+			Collection<Song> songs = mMusicProvider.getFilteredSongs(journey.stages[stageIndex].filters[i]);
+			pools[i] = new SongPool(
+					songs.toArray(new TurboShuffleSong[songs.size()])
+			);
+		}
+		mImplicitQueue =
+				(journey.stages[stageIndex].playType == Journey.Stage.PlayType.Repeat) ?
+						new OrderedImplicitQueue() : new ShuffledImplicitQueue();
+		mImplicitQueue.initialize(pools);
 		updateCompiledQueue();
 	}
 
 	public void initImplicitQueue(){
-		setNewImplicitQueueFilter(MusicFilter.emptyFilter());
+		startJourney(
+				new Journey(
+						new Journey.Stage(
+								Journey.Stage.PlayType.Repeat,
+								0,
+								null,
+								MusicFilter.emptyFilter()
+						)
+				)
+		);
 	}
 
     void updateMetadata() {
