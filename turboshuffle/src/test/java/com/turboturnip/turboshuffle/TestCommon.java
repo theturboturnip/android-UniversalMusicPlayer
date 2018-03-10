@@ -6,8 +6,8 @@ class TestCommon {
 	public static final int CONFIG_TEST_REPS = 100;
 	public static final int CONFIG_TEST_SONGS = 1000;
 
-	static TurboShuffle.Config EvenConfig(int poolCount){
-		return new TurboShuffle.Config(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, TurboShuffle.Config.ProbabilityMode.BySong, 1,
+	static TurboShuffleConfig EvenConfig(int poolCount){
+		return new TurboShuffleConfig(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, TurboShuffleConfig.ProbabilityMode.BySong, 1,
 				TestCommon.EvenWeights(poolCount));
 	}
 	static float[] EvenWeights(int poolCount){
@@ -40,7 +40,7 @@ class TestCommon {
 
 		return toReturn;
 	}
-	static TurboShuffle CreateTestCaseShuffler(TurboShuffle.Config config, int pools, int songsPerPool, int songLength){
+	static TurboShuffle CreateTestCaseShuffler(TurboShuffleConfig config, int pools, int songsPerPool, int songLength){
 		return new TurboShuffle(config, CreateTestCasePools(pools, songsPerPool, songLength));
 	}
 	static TurboShuffle.State RunShufflerNTimes(TurboShuffle shuffler, int N){

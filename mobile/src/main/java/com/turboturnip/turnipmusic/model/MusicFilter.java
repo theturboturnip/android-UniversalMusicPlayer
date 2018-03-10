@@ -1,19 +1,10 @@
-package com.turboturnip.turnipmusic;
+package com.turboturnip.turnipmusic.model;
 
-import android.support.v4.media.MediaDescriptionCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.text.TextUtils;
-
-import com.turboturnip.turnipmusic.model.MusicProvider;
-import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class MusicFilter {
 	public static final String TAG = LogHelper.makeLogTag(MusicFilter.class);
@@ -50,7 +41,7 @@ public class MusicFilter {
 				this.filterValue = filterParts[1];
 			}
 		}
-		isValid = true;
+		isValid = this.filterType != null;
 	}
 	public MusicFilter(MusicFilterType filterType, String filterValue) {
 		this.filterType = filterType;

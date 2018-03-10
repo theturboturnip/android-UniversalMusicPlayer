@@ -1,16 +1,18 @@
-package com.turboturnip.turnipmusic;
+package com.turboturnip.turnipmusic.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public enum MusicFilterType {
-	Empty ("__EMPTY__"),
-	Root ("__ROOT__"),
-	Search ("__SEARCH__"),
-	Explore ("__EXPLORE__"),
-	ByAlbum ("__ALBUM__"),
-	ByArtist ("__ARTIST__"),
-	ByTag("__TAG__");
+	Empty("Empty"),
+	Root("Root"),
+	Search("Search"),
+	Explore("Explore"),
+	ByAlbum("Album"),
+	ByArtist("Artist"),
+	ByTag("Tag");
 
 	private final String name;
 
@@ -19,6 +21,12 @@ public enum MusicFilterType {
 		for (MusicFilterType en : values()) {
 			map.put(en.name, en);
 		}
+	}
+	public static final List<MusicFilterType> explorableTypes = new ArrayList<>();
+	static{
+		explorableTypes.add(ByAlbum);
+		explorableTypes.add(ByArtist);
+		explorableTypes.add(ByTag);
 	}
 
 	public static MusicFilterType valueFor(String name) {

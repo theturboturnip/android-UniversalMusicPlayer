@@ -1,21 +1,25 @@
 package com.turboturnip.turnipmusic.ui;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.turboturnip.turnipmusic.Journey;
-import com.turboturnip.turnipmusic.MusicFilter;
-import com.turboturnip.turnipmusic.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.model.Journey;
+import com.turboturnip.turnipmusic.model.MusicFilter;
+import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 public class HubFragment extends ItemListCommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(HubFragment.class);
+
+	private static final int STATE_PLAYABLE = 2;
 
 	@Override
 	public boolean isRoot(){
@@ -27,8 +31,6 @@ public class HubFragment extends ItemListCommandFragment {
 	                         Bundle savedInstanceState) {
 		View resultView = super.onCreateView(inflater, container, savedInstanceState);
 
-		MusicProvider.getInstance().retrieveMediaAsync(getActivity(), null);
-
 		mBrowserAdapter.clear();
 		mBrowserAdapter.addHeader(new ListItemData("Built In Filters"));
 		mBrowserAdapter.addItem(new ListItemData("Filter by Album", "", new HubButtonOnClickListener(MusicFilterType.ByAlbum), null));
@@ -36,21 +38,31 @@ public class HubFragment extends ItemListCommandFragment {
 		mBrowserAdapter.addItem(new ListItemData("Filter by Tag", "", new HubButtonOnClickListener(MusicFilterType.ByTag), null));
 
 		mBrowserAdapter.addHeader(new ListItemData("Tests"));
-		mBrowserAdapter.addItem(new ListItemData("Repeat AC", "", new JourneyTestOnClickListener(
+		mBrowserAdapter.addItem(new ListItemData("Repeat AC", "", null, new JourneyTestOnClickListener(
 				new Journey(new MusicFilter(MusicFilterType.ByAlbum, "Assassination Classroom"))
-		), null));
-		mBrowserAdapter.addItem(new ListItemData("Shuffle Persona", "",
+		)));
+		mBrowserAdapter.addItem(new ListItemData("Shuffle Persona", "", null,
 				new JourneyTestOnClickListener(
 						new Journey(
 								new Journey.Stage(Journey.Stage.PlayType.Shuffle, 0, null, new MusicFilter(MusicFilterType.ByAlbum, "Persona"))
 						)
-				),
-				null)
+				))
 		);
 		mBrowserAdapter.addItem(new ListItemData("Shuffle AC, D, Persona"));
 		mBrowserAdapter.notifyDataSetChanged();
 
 		return resultView;
+	}
+
+	@Override
+	int getNewListItemState(ListItemData itemData){
+		if (itemData.playable) return STATE_PLAYABLE;
+		return STATE_NONE;
+	}
+	@Override
+	Drawable getDrawableFromListItemState(int state){
+		if (state == STATE_PLAYABLE) return ContextCompat.getDrawable(getActivity(),R.drawable.ic_play_arrow_black_36dp);
+		return null;
 	}
 
 	@Override

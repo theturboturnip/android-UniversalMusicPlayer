@@ -5,7 +5,7 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 
-import com.turboturnip.turnipmusic.MusicFilter;
+import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 

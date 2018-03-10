@@ -5,12 +5,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 public class AlgorithmTests {
 
@@ -21,7 +19,7 @@ public class AlgorithmTests {
 			float unclumpiness;
 			float poolRatioDifference;
 
-			SingleResult(TurboShuffle.Config config, TurboShuffle.State finalState) {
+			SingleResult(TurboShuffleConfig config, TurboShuffle.State finalState) {
 				songOccurrences = finalState.songOccurrences;
 				poolOccurences = finalState.poolOccurrences;
 
@@ -128,10 +126,10 @@ public class AlgorithmTests {
 		}
 		return new TestResults(results);
 	}
-	private TestResults[] TestConfigVariable(String varName, float[] values, TurboShuffle.Config base, int poolCount, int songsPerPool, int songLength){
+	private TestResults[] TestConfigVariable(String varName, float[] values, TurboShuffleConfig base, int poolCount, int songsPerPool, int songLength){
 		Field varField;
 		try {
-			varField = TurboShuffle.Config.class.getField(varName);
+			varField = TurboShuffleConfig.class.getField(varName);
 			varField.setAccessible(true);
 		}catch (NoSuchFieldException e){
 			System.out.println("No Such Field!");
@@ -153,9 +151,9 @@ public class AlgorithmTests {
 
 	@Test
 	public void shuffle_Run1000Times10Reps(){
-		TurboShuffle.Config config = new TurboShuffle.Config(
+		TurboShuffleConfig config = new TurboShuffleConfig(
 				0.5f, 0f, 0f, 0f, 50f,
-				TurboShuffle.Config.ProbabilityMode.BySong, 1000, TestCommon.UnevenWeights(3)
+				TurboShuffleConfig.ProbabilityMode.BySong, 1000, TestCommon.UnevenWeights(3)
 		);
 		TurboShuffle shuffler = TestCommon.CreateTestCaseShuffler(config, 3, 3, 120);
 		System.out.println(RunShufflerXTimesWithYReps(shuffler, 1000, 10));
@@ -164,9 +162,9 @@ public class AlgorithmTests {
 	public void shuffle_TestClumpType(){
 		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
-		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
+		TurboShuffleConfig baseConfig = new TurboShuffleConfig(
 				0.0f,
-				1f, 0.8f, 0f, 10f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
+				1f, 0.8f, 0f, 10f, TurboShuffleConfig.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
 		TestResults[] results = TestConfigVariable("clumpType", new float[]{0.0f, 0.5f, 1.0f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);
@@ -187,10 +185,10 @@ public class AlgorithmTests {
 	public void shuffle_TestClumpWeight(){
 		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
-		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
+		TurboShuffleConfig baseConfig = new TurboShuffleConfig(
 				1.0f, 1.0f,
 				0f,
-				0f, 0f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
+				0f, 0f, TurboShuffleConfig.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
 		TestResults[] results = TestConfigVariable("clumpWeight", new float[]{0.0f, 0.5f, 0.99f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);
@@ -211,10 +209,10 @@ public class AlgorithmTests {
 	public void shuffle_TestHistorySeverity(){
 		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
-		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
+		TurboShuffleConfig baseConfig = new TurboShuffleConfig(
 				0.5f, 0f, 0f, 0f,
 				10f,
-				TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
+				TurboShuffleConfig.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
 		TestResults[] results = TestConfigVariable("historySeverity", new float[]{0.0f, 10.0f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);
@@ -235,10 +233,10 @@ public class AlgorithmTests {
 	public void shuffle_TestClumpSeverity() {
 		final int runsPerTest = 1000, poolCount = 3, songsPerPool = 3, songLength = 120;
 
-		TurboShuffle.Config baseConfig = new TurboShuffle.Config(
+		TurboShuffleConfig baseConfig = new TurboShuffleConfig(
 				1.0f,
 				0f,
-				0.99f, 0f, 0f, TurboShuffle.Config.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
+				0.99f, 0f, 0f, TurboShuffleConfig.ProbabilityMode.BySong, runsPerTest, TestCommon.UnevenWeights(poolCount)
 		);
 		TestResults[] results = TestConfigVariable("clumpSeverity", new float[]{0.0f, 1.0f, 10.0f}, baseConfig, poolCount, songsPerPool, songLength);
 		Assert.assertTrue(results != null);

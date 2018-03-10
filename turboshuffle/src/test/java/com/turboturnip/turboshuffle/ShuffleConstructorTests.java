@@ -10,18 +10,18 @@ public class ShuffleConstructorTests {
 	}
 	@Test(expected=IllegalArgumentException.class)
 	public void shuffle_Config_NoWeightThrows(){
-		new TurboShuffle.Config(0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-				TurboShuffle.Config.ProbabilityMode.ByLength, 1, new float[0]);
+		new TurboShuffleConfig(0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				TurboShuffleConfig.ProbabilityMode.ByLength, 1, new float[0]);
 	}
 	@Test(expected=IllegalArgumentException.class)
 	public void shuffle_Config_ZeroWeightThrows(){
-		new TurboShuffle.Config(0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-				TurboShuffle.Config.ProbabilityMode.ByLength, 1, new float[]{1.0f, 1.0f, 0.0f});
+		new TurboShuffleConfig(0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				TurboShuffleConfig.ProbabilityMode.ByLength, 1, new float[]{1.0f, 1.0f, 0.0f});
 	}
 	@Test(expected=IllegalArgumentException.class)
 	public void shuffle_Config_SubZeroWeightThrows(){
-		new TurboShuffle.Config(0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-				TurboShuffle.Config.ProbabilityMode.ByLength, 1, new float[]{1.0f, 1.0f, -0.1f});
+		new TurboShuffleConfig(0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+				TurboShuffleConfig.ProbabilityMode.ByLength, 1, new float[]{1.0f, 1.0f, -0.1f});
 	}
 
 	@Test

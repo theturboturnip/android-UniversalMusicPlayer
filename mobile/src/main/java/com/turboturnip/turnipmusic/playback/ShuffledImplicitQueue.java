@@ -1,5 +1,6 @@
 package com.turboturnip.turnipmusic.playback;
 
+import com.turboturnip.turboshuffle.TurboShuffleConfig;
 import com.turboturnip.turboshuffle.SongPool;
 import com.turboturnip.turboshuffle.SongPoolKey;
 import com.turboturnip.turboshuffle.TurboShuffle;
@@ -18,8 +19,8 @@ public class ShuffledImplicitQueue extends ImplicitQueue {
 		float[] weights = new float[pools.length];
 		for (int i = 0; i < weights.length; i++)
 			weights[i] = 5.0f;
-		TurboShuffle.Config config = new TurboShuffle.Config(
-				0.5f, 1.0f, 0.8f, 0.0f, 10.0f, TurboShuffle.Config.ProbabilityMode.BySong, 100, weights
+		TurboShuffleConfig config = new TurboShuffleConfig(
+				0.5f, 1.0f, 0.8f, 0.0f, 10.0f, TurboShuffleConfig.ProbabilityMode.BySong, 100, weights
 		);
 		shuffler = new TurboShuffle(config, pools);
 		currentState = shuffler.new State();

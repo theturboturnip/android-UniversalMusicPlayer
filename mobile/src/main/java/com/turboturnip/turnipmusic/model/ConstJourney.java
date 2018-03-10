@@ -1,4 +1,6 @@
-package com.turboturnip.turnipmusic;
+package com.turboturnip.turnipmusic.model;
+
+import com.turboturnip.turnipmusic.model.Journey;
 
 import org.json.JSONException;
 

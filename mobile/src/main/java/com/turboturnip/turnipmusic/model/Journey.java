@@ -1,12 +1,12 @@
-package com.turboturnip.turnipmusic;
+package com.turboturnip.turnipmusic.model;
 
-import com.turboturnip.turboshuffle.TurboShuffle;
+import com.turboturnip.turboshuffle.TurboShuffleConfig;
+import com.turboturnip.turnipmusic.utils.JSONHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
-import org.json.JSONTokener;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,41 +54,41 @@ public class Journey {
 		}
 		public PlayType playType;
 		public int playCount;
-		public TurboShuffle.Config shuffleConfig;
+		public TurboShuffleConfig shuffleConfig;
 		public MusicFilter[] filters;
 
-		public Stage(PlayType playType, int playCount, TurboShuffle.Config shuffleConfig, MusicFilter... filters){
+		public Stage(PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
 			this.playType = playType;
 			this.playCount = playCount;
 			this.shuffleConfig = shuffleConfig;
 			this.filters = filters;
 		}
 		public Stage(JSONObject sourceObject) throws JSONException{
-			if (!sourceObject.has("type"))
-				throw new JSONException("Given JSON doesn't have a type field, which is required.");
-			if (sourceObject.getString("type").compareTo(JSON_TYPE_VALUE) != 0)
-				throw new JSONException("Given JSON has incorrect type, '" + JSON_TYPE_VALUE + "' is required.");
+			JSONHelper.typeCheckJSONObject(sourceObject, JSON_TYPE_VALUE);
 			playType = PlayType.valueFor(sourceObject.getString(JSON_PLAYTYPE_KEY));
 			playCount = sourceObject.getInt(JSON_PLAYCOUNT_KEY);
-			//shuffleConfig = ;
+			if (!sourceObject.isNull(JSON_SHUFFLECONFIG_KEY))
+				shuffleConfig = JSONHelper.TurboShuffleConfigHandler.decode(sourceObject.getJSONObject(JSON_SHUFFLECONFIG_KEY));
+			else
+				shuffleConfig = null;
 			JSONArray jsonFilters = sourceObject.getJSONArray(JSON_FILTERS_KEY);
 			filters = new MusicFilter[jsonFilters.length()];
 			for (int i = 0; i < jsonFilters.length(); i++)
 				filters[i] = new MusicFilter(jsonFilters.getString(i));
 		}
-		public JSONStringer encodeAsJson(JSONStringer stringer) throws JSONException{
+		public void encodeAsJson(JSONStringer stringer) throws JSONException{
 			stringer.object();
-			stringer.key("type").value(JSON_TYPE_VALUE);
+			stringer.key(JSONHelper.JSON_TYPE_KEY).value(JSON_TYPE_VALUE);
 			stringer.key(JSON_PLAYTYPE_KEY).value(playType.toString());
 			stringer.key(JSON_PLAYCOUNT_KEY).value(playCount);
-			//stringer.key(JSON_SHUFFLECONFIG_KEY).value(shuffleConfig);
+			stringer.key(JSON_SHUFFLECONFIG_KEY);
+			JSONHelper.TurboShuffleConfigHandler.encode(shuffleConfig, stringer);
 			stringer.key(JSON_FILTERS_KEY).array();
 			for (MusicFilter f : filters){
 				stringer.value(f.toString());
 			}
 			stringer.endArray();
 			stringer.endObject();
-			return stringer;
 		}
 	}
 	public Stage[] stages;
@@ -99,14 +99,7 @@ public class Journey {
 		};
 	}
 	public Journey(String json) throws JSONException{
-		Object o = new JSONTokener(json).nextValue();
-		if (!o.getClass().isAssignableFrom(JSONObject.class))
-			throw new JSONException("Given data was not valid JSON.");
-		JSONObject decodedObject = (JSONObject) o;
-		if (!decodedObject.has("type"))
-			throw new JSONException("Given JSON does not have a type field, which is required!");
-		if (decodedObject.getString("type").compareTo(JSON_TYPE_VALUE) != 0)
-			throw new JSONException("Given JSON has an incorrect type, '" + JSON_TYPE_VALUE + "' is required.");
+		JSONObject decodedObject = JSONHelper.typeCheckJSONObject(json, JSON_TYPE_VALUE);
 		JSONArray jsonStages = decodedObject.getJSONArray(JSON_STAGES_KEY);
 		stages = new Stage[jsonStages.length()];
 		for (int i = 0; i < jsonStages.length(); i++){
@@ -121,7 +114,7 @@ public class Journey {
 	public String toString(){
 		try {
 			JSONStringer stringer = new JSONStringer();
-			stringer.object().key("type").value(JSON_TYPE_VALUE);
+			stringer.object().key(JSONHelper.JSON_TYPE_KEY).value(JSON_TYPE_VALUE);
 			stringer.key(JSON_STAGES_KEY).array();
 			for (Stage s : stages) {
 				s.encodeAsJson(stringer);

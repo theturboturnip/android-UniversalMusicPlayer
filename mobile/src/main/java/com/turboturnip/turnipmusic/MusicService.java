@@ -26,7 +26,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -35,6 +34,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.media.MediaRouter;
 
+import com.turboturnip.turnipmusic.model.MusicFilter;
+import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.playback.CastPlayback;
 import com.turboturnip.turnipmusic.playback.LocalPlayback;
@@ -161,25 +162,15 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         mMusicProvider = MusicProvider.getInstance();
 
-        // To make the app more responsive, fetch and cache catalog information now.
-        // This can help improve the response time in the method
-        // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
-        mMusicProvider.retrieveMediaAsync(this, new MusicProvider.MusicCatalogCallback() {
-            @Override
-            public void onMusicCatalogReady(boolean success) {
-                if (success)
-                    mPlaybackManager.mQueueManager.initImplicitQueue();
-            }
-        });
-
         mPackageValidator = new PackageValidator(this);
 
-        QueueManager queueManager = new QueueManager(mMusicProvider, getResources(),
+        new QueueManager(mMusicProvider, getResources(),
                 new QueueManager.MetadataUpdateListener() {
                     @Override
                     public void onMetadataChanged(MediaMetadataCompat metadata) {
                     	LogHelper.d(TAG, metadata==null);
                         mSession.setMetadata(metadata);
+
                     }
 
                     @Override
@@ -190,7 +181,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
                     @Override
                     public void onCurrentQueueIndexUpdated(int queueIndex) {
-                        mPlaybackManager.handlePlayRequest();
+                    	mPlaybackManager.handlePlayRequest();
                     }
 
                     @Override
@@ -201,9 +192,19 @@ public class MusicService extends MediaBrowserServiceCompat implements
                     }
                 });
 
+        // To make the app more responsive, fetch and cache catalog information now.
+        // This can help improve the response time in the method
+        // {@link #onLoadChildren(String, Result<List<MediaItem>>) onLoadChildren()}.
+        mMusicProvider.retrieveMediaAsync(this, new MusicProvider.MusicCatalogCallback() {
+            @Override
+            public void onMusicCatalogReady(boolean success) {
+                if (success)
+                    QueueManager.getInstance().initImplicitQueue();
+            }
+        });
+
         LocalPlayback playback = new LocalPlayback(this, mMusicProvider);
-        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, queueManager,
-                playback, this);
+        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, playback, this);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(this, "MusicService");

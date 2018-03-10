@@ -18,25 +18,23 @@ package com.turboturnip.turnipmusic.playback;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.media.session.PlaybackState;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
-import com.turboturnip.turnipmusic.Journey;
-import com.turboturnip.turnipmusic.MusicFilter;
-import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.model.Journey;
+import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
-import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.WearHelper;
 
 import org.json.JSONException;
 
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Manage the interactions among the container service, the queue manager and the actual playback.
@@ -45,25 +43,25 @@ public class PlaybackManager implements Playback.Callback {
 
     private static final String TAG = LogHelper.makeLogTag(PlaybackManager.class);
     // Action to thumbs up a media item
-    private static final String CUSTOM_ACTION_THUMBS_UP = "com.turboturnip.turnipmusic.THUMBS_UP";
+    //private static final String CUSTOM_ACTION_THUMBS_UP = "com.turboturnip.turnipmusic.THUMBS_UP";
 
     private static final long BACK_SKIP_MAX_TIME = 10 * 1000; // The maximum point in milliseconds a song can be within where pressing the "previous" button will skip it back to the start.
 
     private MusicProvider mMusicProvider;
-    public QueueManager mQueueManager;
     private Resources mResources;
     private Playback mPlayback;
     private PlaybackServiceCallback mServiceCallback;
     private MediaSessionCallback mMediaSessionCallback;
+    private QueueManager mQueueManager;
     private Context mContext;
 
     public PlaybackManager(PlaybackServiceCallback serviceCallback, Resources resources,
-                           MusicProvider musicProvider, QueueManager queueManager,
+                           MusicProvider musicProvider,
                            Playback playback, Context context) {
         mMusicProvider = musicProvider;
         mServiceCallback = serviceCallback;
         mResources = resources;
-        mQueueManager = queueManager;
+        mQueueManager = QueueManager.getInstance();
         mMediaSessionCallback = new MediaSessionCallback();
         mPlayback = playback;
         mPlayback.setCallback(this);
@@ -182,8 +180,8 @@ public class PlaybackManager implements Playback.Callback {
         // The media player finished playing the current song, so we go ahead
         // and start the next.
         if (mQueueManager.next()) {
+        	LogHelper.e(TAG, "onCompletion");
             handlePlayRequest();
-
         } else {
             // If skipping was not possible, we stop and release the resources:
             handleStopRequest(null);
@@ -302,14 +300,15 @@ public class PlaybackManager implements Playback.Callback {
             	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(journey);
                 return;
             }catch (JSONException e){
-            	LogHelper.e("Data rejected as JSON because '" + e.getMessage() + "'");
+            	LogHelper.i(TAG, "Data rejected as JSON because '" + e.getMessage() + "'");
             }
 
             MusicFilter filter = new MusicFilter(data);
             if (filter.isValid()){
             	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(new Journey(filter));
-            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(data)))
-            	handlePlayRequest();
+            }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(data))) {
+	            handlePlayRequest();
+            }
         }
 
         @Override

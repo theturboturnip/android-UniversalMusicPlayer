@@ -17,18 +17,13 @@
 package com.turboturnip.turnipmusic.model;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.media.projection.MediaProjection;
 import android.os.AsyncTask;
-import android.service.media.MediaBrowserService;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
-import com.turboturnip.turnipmusic.MusicFilter;
-import com.turboturnip.turnipmusic.MusicFilterType;
 import com.turboturnip.turnipmusic.model.db.AlbumEntity;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
 import com.turboturnip.turnipmusic.utils.AsyncHelper;

@@ -17,18 +17,10 @@
 package com.turboturnip.turnipmusic.utils;
 
 import android.app.Activity;
-import android.os.Bundle;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 
-import com.turboturnip.turnipmusic.MusicFilter;
-import com.turboturnip.turnipmusic.VoiceSearchParams;
-import com.turboturnip.turnipmusic.model.MusicProvider;
-import com.turboturnip.turnipmusic.model.Song;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**

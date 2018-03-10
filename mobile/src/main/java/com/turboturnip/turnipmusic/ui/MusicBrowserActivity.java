@@ -24,8 +24,8 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.view.MenuItem;
 
-import com.turboturnip.turnipmusic.MusicFilter;
-import com.turboturnip.turnipmusic.MusicFilterType;
+import com.turboturnip.turnipmusic.model.MusicFilter;
+import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
@@ -85,13 +85,10 @@ public class MusicBrowserActivity extends BrowserActivity
 	@Override
 	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
 		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + item.getMediaId());
-		if (item.isPlayable()) {
-			MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls()
-					.playFromMediaId(item.getMediaId(), null);
-		} else if (item.isBrowsable()) {
+		if (item.isBrowsable()) {
 			navigateToBrowser(item.getMediaId());
 		} else {
-			LogHelper.w(TAG, "Ignoring MediaItem that is neither browsable nor playable: ",
+			LogHelper.w(TAG, "Ignoring MediaItem that is not browsable: ",
 					"musicFilter=", item.getMediaId());
 		}
 	}

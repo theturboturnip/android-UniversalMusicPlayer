@@ -1,97 +1,13 @@
 package com.turboturnip.turboshuffle;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 
 @SuppressWarnings("WeakerAccess")
 public class TurboShuffle {
-	public static class Config {
-
-		// clumpType = float [0.0, 1.0] (0 = unclumped, 0.5 = no effect, 1 = clumped)
-		public final float clumpType;
-		// clumpSeverity = float [0,] (0 = clumping ignored, inf = clumping used to max. Practical limit = 10)
-		public final float clumpSeverity;
-		// clumpWeight = float [0.0, 1.0] (0 = no effect, 1 = maximal effect)
-		public final float clumpWeight;
-		// clumpLengthSeverity = float [0,] (0 = length ignored when clumped, inf = length used to max when clumped)
-		public final float clumpLengthSeverity;
-		// historySeverity = float [0,] (0 = history ignored, inf = history used to max. Practical limit = 500)
-		public final float historySeverity;
-
-		public enum ProbabilityMode {
-			BySong,
-			ByLength
-		}
-		public final ProbabilityMode probabilityMode;
-
-		public final int maximumMemory;
-
-		public final float[] poolWeights;
-		public final float[] sumToOnePoolWeights;
-
-		public Config(float clumpType, float clumpSeverity, float clumpWeight, float clumpLengthSeverity, float historySeverity, ProbabilityMode probabilityMode, int maximumMemory, float[] poolWeights) {
-			if (clumpType < 0.0f || clumpType > 1.0f)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with clumpType " + clumpType + " outside of the range [0, 1]!"
-				);
-			this.clumpType = clumpType;
-			if (clumpSeverity < 0.0f)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with clumpSeverity " + clumpSeverity + " smaller than 0!"
-				);
-			this.clumpSeverity = clumpSeverity;
-			if (clumpWeight < 0.0f || clumpWeight > 1.0f)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with clumpWeight " + clumpWeight + " outside of the range [0, 1]!"
-				);
-			this.clumpWeight = clumpWeight;
-			if (clumpLengthSeverity < 0.0f)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with clumpLengthSeverity " + clumpLengthSeverity + " smaller than 0!"
-				);
-			this.clumpLengthSeverity = clumpLengthSeverity;
-			if (historySeverity < 0.0f)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with historySeverity " + historySeverity + " smaller than 0!"
-				);
-			this.historySeverity = historySeverity;
-
-			this.probabilityMode = probabilityMode;
-
-			if (maximumMemory < 0)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with maximumMemory " + maximumMemory + " smaller than 0!"
-				);
-			this.maximumMemory = maximumMemory;
-
-			if (poolWeights.length == 0)
-				throw new IllegalArgumentException(
-						"Tried to create a shuffle config with 0 weights!"
-				);
-
-			this.poolWeights = new float[poolWeights.length];
-			float totalWeights = 0;
-			for (int i = 0; i < poolWeights.length; i++) {
-				if (poolWeights[i] <= 0)
-					throw new IllegalArgumentException(
-							"Illegal pool weight " + poolWeights[i] +
-									" for index " + i
-					);
-				totalWeights += poolWeights[i];
-				this.poolWeights[i] = poolWeights[i];
-			}
-
-			this.sumToOnePoolWeights = new float[poolWeights.length];
-			for (int i = 0; i < poolWeights.length; i++) {
-				this.sumToOnePoolWeights[i] = poolWeights[i] / totalWeights;
-			}
-		}
-	}
 
 	public class State {
 		List<SongPoolKey> songHistory;
@@ -150,10 +66,10 @@ public class TurboShuffle {
 		}
 	}
 
-	public final Config config;
-	public  final SongPool[] songPools;
+	public final TurboShuffleConfig config;
+	public final SongPool[] songPools;
 
-	public TurboShuffle(Config config, SongPool... songPools){
+	public TurboShuffle(TurboShuffleConfig config, SongPool... songPools){
 		if (songPools.length == 0)
 			throw new IllegalArgumentException(
 					"Tried to create a shuffle without any pools!"
@@ -260,7 +176,7 @@ public class TurboShuffle {
 				float totalChiSquared = 0;
 				for (int j = 0; j < songPools.length; j++) {
 					float expected = config.sumToOnePoolWeights[j] * (shuffleState.songHistory.size() + 1);
-					float actual = shuffleState.poolOccurrences[j] + (j == i ? (config.probabilityMode == Config.ProbabilityMode.BySong ? 1 : songPools[j].averageLengthInMinutes) : 0);
+					float actual = shuffleState.poolOccurrences[j] + (j == i ? (config.probabilityMode == TurboShuffleConfig.ProbabilityMode.BySong ? 1 : songPools[j].averageLengthInMinutes) : 0);
 					float chiSquared = (float) Math.pow(1 - actual / expected, 2);
 					totalChiSquared += chiSquared;
 				}
@@ -320,7 +236,7 @@ public class TurboShuffle {
 				for (int j = 0; j < songWeights.length; j++) {
 					float expected = (shuffleState.poolOccurrences[nextPoolIndex] + 1) / (float)(songWeights.length);
 					float actual = shuffleState.getSongOccurrences(new SongPoolKey(nextPoolIndex, j))
-							+ (j == i ? (config.probabilityMode == Config.ProbabilityMode.BySong ? 1 : currentSongLengthInMinutes) : 0);
+							+ (j == i ? (config.probabilityMode == TurboShuffleConfig.ProbabilityMode.BySong ? 1 : currentSongLengthInMinutes) : 0);
 					float chiSquared = (float) Math.pow(1 - actual / expected, 2);
 					totalChiSquared += chiSquared;
 				}
@@ -329,7 +245,7 @@ public class TurboShuffle {
 			}
 			// Clumping part
 			// If we're clumping, try to select a song that fits within the current clump
-			if (config.clumpType < 0.5f && shuffleState.songHistory.size() > 0 && config.probabilityMode == Config.ProbabilityMode.ByLength){
+			if (config.clumpType < 0.5f && shuffleState.songHistory.size() > 0 && config.probabilityMode == TurboShuffleConfig.ProbabilityMode.ByLength){
 				songWeights[i] = clumpLengthDistribution(songWeights[i], targetClumpLength - currentClumpLength, currentSongLengthInMinutes);
 			}
 		}

@@ -27,15 +27,14 @@ import android.widget.Toast;
 import com.turboturnip.turboshuffle.SongPool;
 import com.turboturnip.turboshuffle.TurboShuffleSong;
 import com.turboturnip.turnipmusic.AlbumArtCache;
-import com.turboturnip.turnipmusic.ConstJourney;
-import com.turboturnip.turnipmusic.Journey;
-import com.turboturnip.turnipmusic.MusicFilter;
+import com.turboturnip.turnipmusic.model.ConstJourney;
+import com.turboturnip.turnipmusic.model.Journey;
+import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
 import com.turboturnip.turnipmusic.utils.AsyncHelper;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,20 +47,10 @@ import java.util.List;
  */
 public class QueueManager {
 
-	/*public static abstract class AsyncQueueTask extends AsyncTask<Void, Void, Void>{
-		protected void onPostExecute(){
-			OnAsyncQueueTaskComplete();
-		}
-	}*/
-
-	public interface ImplicitQueueUpdateCallback {
-		void complete();
-	}
-
     private static final String TAG = LogHelper.makeLogTag(QueueManager.class);
 
     private MusicProvider mMusicProvider;
-    private MetadataUpdateListener mListener;
+    private List<MetadataUpdateListener> mListeners;
     private Resources mResources;
 
     // "Now playing" queue:
@@ -75,34 +64,38 @@ public class QueueManager {
     private ConstJourney journey;
 
 	private List<MediaSessionCompat.QueueItem> mCompiledQueue;
-	//private static List<AsyncQueueTask> asyncQueueTasks = new ArrayList<>();
+
+	private static QueueManager instance = null;
 
 	public QueueManager(@NonNull MusicProvider musicProvider,
                         @NonNull Resources resources,
                         @NonNull MetadataUpdateListener listener) {
+		if (instance != null){
+			throw new RuntimeException("Tried to create a QueueManager when one already existed!");
+		}
+		instance = this;
+
         mMusicProvider = musicProvider;
-        mListener = listener;
+        mListeners = new ArrayList<>();
+        mListeners.add(listener);
         mResources = resources;
 
         mCompiledQueue = Collections.synchronizedList(new ArrayList<MediaSessionCompat.QueueItem>());
         mExplicitQueue = Collections.synchronizedList(new ArrayList<Song>());
         mHistory = Collections.synchronizedList(new ArrayList<Song>());
-		//mImplicitQueue = new OrderedImplicitQueue();
-		mImplicitQueue = new ShuffledImplicitQueue();
+		mImplicitQueue = null;
 	    mCurrentCompiledQueueIndex = -1;
 		mCurrentSong = null;
     }
-
-    /*private void AddAsyncQueueTask(AsyncQueueTask task){
-		asyncQueueTasks.add(task);
-	    if (asyncQueueTasks.size() == 1) task.execute();
+    public static QueueManager getInstance(){
+		return instance;
     }
-	private static void OnAsyncQueueTaskComplete(){
-		asyncQueueTasks.remove(0);
-		if (asyncQueueTasks.size() > 0)
-			asyncQueueTasks.get(0).execute();
-	}*/
 
+    public int getExplicitQueueIndex(String musicId){
+    	Song s = mMusicProvider.getSong(musicId);
+    	if (s == null) return -1;
+    	return mExplicitQueue.indexOf(s);
+    }
 	public boolean next(){
 		return takeNewSongFromExplicitQueue() || takeNewSongFromImplicitQueue();
 	}
@@ -164,6 +157,7 @@ public class QueueManager {
 	}
 	private void updateCompiledQueue(){
 		ArrayList<MediaSessionCompat.QueueItem> newCompiledQueue = new ArrayList<>();
+		final int oldCompiledQueueIndex = mCurrentCompiledQueueIndex;
 		mCurrentCompiledQueueIndex = 0;
 
 		// Add songs from the history
@@ -191,8 +185,11 @@ public class QueueManager {
 		LogHelper.i(TAG, "]");
 
 		mCompiledQueue = newCompiledQueue;
-		mListener.onQueueUpdated("Now Playing", mCompiledQueue);
-		mListener.onCurrentQueueIndexUpdated(mCurrentCompiledQueueIndex);
+		for (MetadataUpdateListener l : mListeners)
+			l.onQueueUpdated("Now Playing", mCompiledQueue);
+		// TODO: Is this the right behaviour?
+		//if (oldCompiledQueueIndex != mCurrentCompiledQueueIndex)
+		//	mListener.onCurrentQueueIndexUpdated(mCurrentCompiledQueueIndex);
 	}
 	private MediaSessionCompat.QueueItem queueItemFromSong(Song song, int queueIndex) {
 		return new MediaSessionCompat.QueueItem(mMusicProvider.getSong(song.getId()).getMetadata().getDescription(), queueIndex);
@@ -287,13 +284,15 @@ public class QueueManager {
 
     void updateMetadata() {
         if (mCurrentSong == null) {
-            mListener.onMetadataRetrieveError();
+	        for (MetadataUpdateListener l : mListeners)
+		        l.onMetadataRetrieveError();
             return;
         }
         final Song song = getCurrentSong();
         MediaMetadataCompat metadata = song.getMetadata();
 
-        mListener.onMetadataChanged(metadata);
+	    for (MetadataUpdateListener l : mListeners)
+		    l.onMetadataChanged(metadata);
 
         // Set the proper album artwork on the media session, so it can be shown in the
         // locked screen and in other places.
@@ -311,7 +310,8 @@ public class QueueManager {
                         return;
                     }
                     if (song == currentSong) {
-                        mListener.onMetadataChanged(currentSong.getMetadata());
+	                    for (MetadataUpdateListener l : mListeners)
+		                    l.onMetadataChanged(currentSong.getMetadata());
                     }
                 }
             });

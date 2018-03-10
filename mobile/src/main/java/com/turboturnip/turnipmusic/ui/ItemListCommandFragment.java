@@ -3,6 +3,7 @@ package com.turboturnip.turnipmusic.ui;
 import android.app.Activity;
 import android.app.LauncherActivity;
 import android.content.Context;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -32,6 +33,7 @@ public class ItemListCommandFragment extends CommandFragment {
 
 	protected BrowseAdapter mBrowserAdapter;
 	private View mErrorView;
+	private View mIndeterminateProgressView;
 	private TextView mErrorMessage;
 
 	public static final int STATE_INVALID = -1;
@@ -51,16 +53,22 @@ public class ItemListCommandFragment extends CommandFragment {
 		ListView listView = (ListView) rootView.findViewById(R.id.list_view);
 		listView.setAdapter(mBrowserAdapter);
 
+		mIndeterminateProgressView = rootView.findViewById(R.id.progress_bar);
+		mIndeterminateProgressView.setVisibility(View.VISIBLE);
+
 		return rootView;
 	}
 
-	protected void checkForUserVisibleErrors(boolean forceError) {
+	protected void checkForUserVisibleErrors(boolean forceError){
+		checkForUserVisibleErrors(forceError, R.string.error_loading_media);
+	}
+	protected void checkForUserVisibleErrors(boolean forceError, int forceErrorString) {
 		boolean showError = forceError;
 		// If offline, message is about the lack of connectivity:
-		if (!NetworkHelper.isOnline(getActivity())) {
+		/*if (!NetworkHelper.isOnline(getActivity())) {
 			mErrorMessage.setText(R.string.error_no_connection);
 			showError = true;
-		} else {
+		} else {*/
 			// otherwise, if state is ERROR and metadata!=null, use playback state error message:
 			MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
 			if (controller != null
@@ -72,10 +80,10 @@ public class ItemListCommandFragment extends CommandFragment {
 				showError = true;
 			} else if (forceError) {
 				// Finally, if the caller requested to show error, show a generic message:
-				mErrorMessage.setText(R.string.error_loading_media);
+				mErrorMessage.setText(forceErrorString);
 				showError = true;
 			}
-		}
+		//}
 		mErrorView.setVisibility(showError ? View.VISIBLE : View.GONE);
 		LogHelper.d(TAG, "checkForUserVisibleErrors. forceError=", forceError,
 				" showError=", showError,
@@ -104,19 +112,19 @@ public class ItemListCommandFragment extends CommandFragment {
 			cachedState = (Integer) itemView.getTag(R.id.tag_mediaitem_state_cache);
 		}
 
-		item.applyToViews(cachedViews);
-
 		int newState = getNewListItemState(item);
 		if (cachedState == STATE_INVALID || cachedState != newState){
 			Drawable drawable = getDrawableFromListItemState(newState);
 			if (drawable == null)
-				cachedViews.imageView.setVisibility(View.GONE);
+				cachedViews.playButtonView.setVisibility(View.GONE);
 			else {
-				cachedViews.imageView.setVisibility(View.VISIBLE);
-				cachedViews.imageView.setImageDrawable(drawable);
+				cachedViews.playButtonView.setVisibility(View.VISIBLE);
+				cachedViews.playImageView.setImageDrawable(drawable);
 			}
 			itemView.setTag(R.id.tag_mediaitem_state_cache, newState);
 		}
+
+		item.applyToViews(cachedViews);
 
 		return itemView;
 	}
@@ -140,15 +148,23 @@ public class ItemListCommandFragment extends CommandFragment {
 
 	private class ListItemCachedViews {
 		final View itemView;
-		final ImageView imageView;
+		final View playButtonView;
+		final TextView playTextView;
+		final View intoButtonView;
+		final ImageView playImageView;
+		final ImageView intoImageView;
 		final TextView titleView;
 		final TextView subtitleView;
 
 		ListItemCachedViews(View itemView){
 			this.itemView = itemView;
-			imageView = itemView.findViewById(R.id.play_eq);
+			playButtonView = itemView.findViewById(R.id.play_button);
+			intoButtonView = itemView.findViewById(R.id.into_button);
+			playImageView = itemView.findViewById(R.id.play_drawable);
+			intoImageView = itemView.findViewById(R.id.into_drawable);
+			playTextView = itemView.findViewById(R.id.play_text);
 			titleView = itemView.findViewById(R.id.title);
-			subtitleView = itemView.findViewById(R.id.description);
+			subtitleView = itemView.findViewById(R.id.subtitle);
 		}
 	}
 	private class ListSeparatorItemCachedViews {
@@ -161,8 +177,9 @@ public class ItemListCommandFragment extends CommandFragment {
 		}
 	}
 	class ListItemData {
-		CharSequence title = null, subtitle = null;
-		View.OnClickListener onDrawableClick = null, onItemClick = null;
+		CharSequence title = null, subtitle = null, playText = null;
+		View.OnClickListener onPlayClick = null, onIntoClick = null;
+		boolean playable = false, browseable = false;
 
 		Object internalData;
 
@@ -170,11 +187,13 @@ public class ItemListCommandFragment extends CommandFragment {
 		ListItemData(CharSequence title){
 			this.title = title;
 		}
-		ListItemData(CharSequence title, CharSequence subtitle, View.OnClickListener onItemClick, View.OnClickListener onDrawableClick){
+		ListItemData(CharSequence title, CharSequence subtitle, View.OnClickListener onIntoClick, View.OnClickListener onPlayClick){
 			this.title = title;
 			this.subtitle = subtitle;
-			this.onItemClick = onItemClick;
-			this.onDrawableClick = onDrawableClick;
+			this.onIntoClick = onIntoClick;
+			this.onPlayClick = onPlayClick;
+			this.playable = this.onPlayClick != null;
+			this.browseable = this.onIntoClick != null;
 		}
 
 		void applyToHeaderViews(ListSeparatorItemCachedViews views){
@@ -183,8 +202,11 @@ public class ItemListCommandFragment extends CommandFragment {
 		void applyToViews(ListItemCachedViews views){
 			views.titleView.setText(title);
 			views.subtitleView.setText(subtitle);
-			views.imageView.setOnClickListener(onDrawableClick);
-			views.itemView.setOnClickListener(onItemClick);
+			views.playButtonView.setVisibility(playable ? View.VISIBLE : View.GONE);
+			views.playButtonView.setOnClickListener(onPlayClick);
+			if (playable && playText != null) views.playTextView.setText(playText);
+			views.intoButtonView.setVisibility(browseable ? View.VISIBLE : View.GONE);
+			views.intoButtonView.setOnClickListener(onIntoClick);
 		}
 	}
 
@@ -239,6 +261,17 @@ public class ItemListCommandFragment extends CommandFragment {
 		@Override
 		public long getItemId(int position) {
 			return position;
+		}
+
+		@Override
+		public boolean isEnabled(int position){
+			return false;
+		}
+
+		@Override
+		public void notifyDataSetChanged(){
+			super.notifyDataSetChanged();
+			mIndeterminateProgressView.setVisibility(mData.size() == 0 ? View.VISIBLE : View.GONE);
 		}
 
 		@NonNull
