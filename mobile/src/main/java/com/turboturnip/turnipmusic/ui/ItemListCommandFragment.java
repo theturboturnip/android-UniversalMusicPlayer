@@ -1,19 +1,14 @@
 package com.turboturnip.turnipmusic.ui;
 
 import android.app.Activity;
-import android.app.LauncherActivity;
-import android.content.Context;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -25,8 +20,6 @@ import com.turboturnip.turnipmusic.utils.NetworkHelper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
 
 public class ItemListCommandFragment extends CommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(ItemListCommandFragment.class);
@@ -179,7 +172,7 @@ public class ItemListCommandFragment extends CommandFragment {
 	class ListItemData {
 		CharSequence title = null, subtitle = null, playText = null;
 		View.OnClickListener onPlayClick = null, onIntoClick = null;
-		boolean playable = false, browseable = false;
+		boolean playable = false, browsable = false;
 
 		Object internalData;
 
@@ -193,7 +186,7 @@ public class ItemListCommandFragment extends CommandFragment {
 			this.onIntoClick = onIntoClick;
 			this.onPlayClick = onPlayClick;
 			this.playable = this.onPlayClick != null;
-			this.browseable = this.onIntoClick != null;
+			this.browsable = this.onIntoClick != null;
 		}
 
 		void applyToHeaderViews(ListSeparatorItemCachedViews views){
@@ -205,9 +198,16 @@ public class ItemListCommandFragment extends CommandFragment {
 			views.playButtonView.setVisibility(playable ? View.VISIBLE : View.GONE);
 			views.playButtonView.setOnClickListener(onPlayClick);
 			if (playable && playText != null) views.playTextView.setText(playText);
-			views.intoButtonView.setVisibility(browseable ? View.VISIBLE : View.GONE);
+			views.intoButtonView.setVisibility(browsable ? View.VISIBLE : View.GONE);
 			views.intoButtonView.setOnClickListener(onIntoClick);
 		}
+	}
+
+	protected void enableProgressBar(){
+		mIndeterminateProgressView.setVisibility(View.VISIBLE);
+	}
+	protected void disableProgressBar(){
+		mIndeterminateProgressView.setVisibility(View.GONE);
 	}
 
 	// An adapter for showing the list of browsed MediaItem's
@@ -271,7 +271,6 @@ public class ItemListCommandFragment extends CommandFragment {
 		@Override
 		public void notifyDataSetChanged(){
 			super.notifyDataSetChanged();
-			mIndeterminateProgressView.setVisibility(mData.size() == 0 ? View.VISIBLE : View.GONE);
 		}
 
 		@NonNull

@@ -116,7 +116,7 @@ public class MusicBrowserActivity extends BrowserActivity
 		startFullScreenActivityIfNeeded(intent);
 	}
 
-	private void startFullScreenActivityIfNeeded(Intent intent) {
+	protected void startFullScreenActivityIfNeeded(Intent intent) {
 		if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
 			Intent fullScreenIntent = new Intent(this, FullScreenPlayerActivity.class)
 					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
@@ -199,7 +199,7 @@ public class MusicBrowserActivity extends BrowserActivity
 		return filter.toString();
 	}
 
-	private CommandFragment getCurrentFragment() {
+	protected CommandFragment getCurrentFragment() {
 		return (CommandFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
 	}
 

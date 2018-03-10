@@ -45,6 +45,7 @@ public class PlaybackControlsFragment extends Fragment {
 
     private static final String TAG = LogHelper.makeLogTag(PlaybackControlsFragment.class);
 
+    private View mSkipBack, mSkipAhead;
     private ImageButton mPlayPause;
     private TextView mTitle;
     private TextView mSubtitle;
@@ -80,6 +81,12 @@ public class PlaybackControlsFragment extends Fragment {
         mPlayPause = (ImageButton) rootView.findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(mButtonListener);
+        mSkipBack = rootView.findViewById(R.id.skip_back);
+        mSkipBack.setEnabled(true);
+        mSkipBack.setOnClickListener(mButtonListener);
+        mSkipAhead = rootView.findViewById(R.id.skip_ahead);
+        mSkipAhead.setEnabled(true);
+        mSkipAhead.setOnClickListener(mButtonListener);
 
         mTitle = (TextView) rootView.findViewById(R.id.title);
         mSubtitle = (TextView) rootView.findViewById(R.id.artist);
@@ -247,6 +254,12 @@ public class PlaybackControlsFragment extends Fragment {
                         pauseMedia();
                     }
                     break;
+	            case R.id.skip_back:
+	            	skipBack();
+	            	break;
+	            case R.id.skip_ahead:
+	            	skipAhead();
+	            	break;
             }
         }
     };
@@ -264,4 +277,17 @@ public class PlaybackControlsFragment extends Fragment {
             controller.getTransportControls().pause();
         }
     }
+
+    private void skipBack(){
+	    MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
+	    if (controller != null) {
+		    controller.getTransportControls().skipToPrevious();
+	    }
+    }
+	private void skipAhead(){
+		MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
+		if (controller != null) {
+			controller.getTransportControls().skipToNext();
+		}
+	}
 }

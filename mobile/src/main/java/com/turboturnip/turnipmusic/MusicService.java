@@ -186,7 +186,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
                     @Override
                     public void onQueueUpdated(String title,
-                                               List<MediaSessionCompat.QueueItem> newQueue) {
+                                               List<MediaSessionCompat.QueueItem> newQueue, int queueIndex) {
                     	mSession.setQueue(newQueue);
                         mSession.setQueueTitle(title);
                     }

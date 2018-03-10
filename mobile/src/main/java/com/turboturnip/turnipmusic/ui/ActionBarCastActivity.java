@@ -43,6 +43,8 @@ import com.google.android.gms.cast.framework.IntroductoryOverlay;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
+import java.util.Queue;
+
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by
  * any activity that wants to be shown as a top level activity.
@@ -100,8 +102,10 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                         activityClass = MusicBrowserActivity.class;
                         break;
                     case R.id.navigation_journeys:
-                    case R.id.navigation_queue:
                         activityClass = PlaceholderActivity.class;
+                        break;
+                    case R.id.navigation_queue:
+                        activityClass = QueueActivity.class;
                         break;
                 }
                 if (activityClass != null) {
@@ -299,10 +303,12 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                         return true;
                     }
                 });
-        if (MusicBrowserActivity.class.isAssignableFrom(getClass())) {
-            navigationView.setCheckedItem(R.id.navigation_allmusic);
-        } else if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
+        if (this instanceof QueueActivity) {
             navigationView.setCheckedItem(R.id.navigation_queue);
+        } else if (this instanceof MusicBrowserActivity){
+          navigationView.setCheckedItem(R.id.navigation_allmusic);
+        } else if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
+            navigationView.setCheckedItem(R.id.navigation_journeys);
         }
     }
 

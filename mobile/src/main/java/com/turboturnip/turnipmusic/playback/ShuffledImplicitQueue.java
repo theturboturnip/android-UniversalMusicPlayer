@@ -13,6 +13,7 @@ public class ShuffledImplicitQueue extends ImplicitQueue {
 	private TurboShuffle shuffler;
 	private TurboShuffle.State currentState;
 	private Random rng;
+	private Song next = null;
 
 	void initialize(SongPool[] pools){
 		super.initialize(pools);
@@ -30,8 +31,11 @@ public class ShuffledImplicitQueue extends ImplicitQueue {
 		SongPoolKey key = getKeyForSong(song);
 		if (key != null)
 			currentState.IncrementHistory(key);
+		next = null;
 	}
 	Song nextSong(){
-		return (Song)shuffler.NextSong(currentState, rng);
+		if (next == null)
+			next = (Song)shuffler.NextSong(currentState, rng);
+		return next;
 	}
 }

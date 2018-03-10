@@ -50,7 +50,7 @@ public class QueueManager {
     private static final String TAG = LogHelper.makeLogTag(QueueManager.class);
 
     private MusicProvider mMusicProvider;
-    private List<MetadataUpdateListener> mListeners;
+    private static List<MetadataUpdateListener> mListeners = new ArrayList<>();
     private Resources mResources;
 
     // "Now playing" queue:
@@ -76,7 +76,6 @@ public class QueueManager {
 		instance = this;
 
         mMusicProvider = musicProvider;
-        mListeners = new ArrayList<>();
         mListeners.add(listener);
         mResources = resources;
 
@@ -90,10 +89,19 @@ public class QueueManager {
     public static QueueManager getInstance(){
 		return instance;
     }
+    public static void addMetadataListener(MetadataUpdateListener l){
+    	mListeners.add(l);
+    }
+    public static void removeMetadataListener(MetadataUpdateListener l){
+    	mListeners.remove(l);
+    }
 
     public int getExplicitQueueIndex(String musicId){
     	Song s = mMusicProvider.getSong(musicId);
     	if (s == null) return -1;
+	    // Uncomment this to make things in the implicit queue look like they are explicitly queued.
+    	/*int index = mExplicitQueue.indexOf(s);
+    	if (index < 0 && mImplicitQueue != null && mImplicitQueue.nextSong().equals(s)) return mExplicitQueue.size();*/
     	return mExplicitQueue.indexOf(s);
     }
 	public boolean next(){
@@ -108,6 +116,8 @@ public class QueueManager {
 			mCurrentSong = song;
 			mImplicitQueue.onSongPlayed(song);
 			updateCompiledQueue();
+			return true;
+		}else if (mCurrentSong.equals(song)){
 			return true;
 		}else if (mExplicitQueue.contains(song)){
 			// If this is in the explicit queue, promote it to the current song.
@@ -131,8 +141,11 @@ public class QueueManager {
 		mImplicitQueue.onSongPlayed(mCurrentSong);
 		if (mExplicitQueue.size() == 0)
 			updateCompiledQueue();
-		else
+		else {
 			mCurrentCompiledQueueIndex++;
+			for (MetadataUpdateListener l : mListeners)
+				l.onQueueUpdated("Now Playing", mCompiledQueue, mCurrentCompiledQueueIndex);
+		}
 		return true;
 	}
 	private boolean takeNewSongFromHistory(){
@@ -186,10 +199,11 @@ public class QueueManager {
 
 		mCompiledQueue = newCompiledQueue;
 		for (MetadataUpdateListener l : mListeners)
-			l.onQueueUpdated("Now Playing", mCompiledQueue);
+			l.onQueueUpdated("Now Playing", mCompiledQueue, mCurrentCompiledQueueIndex);
 		// TODO: Is this the right behaviour?
 		//if (oldCompiledQueueIndex != mCurrentCompiledQueueIndex)
-		//	mListener.onCurrentQueueIndexUpdated(mCurrentCompiledQueueIndex);
+		//for(MetadataUpdateListener l : mListeners)
+		//	l.onCurrentQueueIndexUpdated(mCurrentCompiledQueueIndex);
 	}
 	private MediaSessionCompat.QueueItem queueItemFromSong(Song song, int queueIndex) {
 		return new MediaSessionCompat.QueueItem(mMusicProvider.getSong(song.getId()).getMetadata().getDescription(), queueIndex);
@@ -282,6 +296,13 @@ public class QueueManager {
 		);
 	}
 
+	public void stop(){
+		mCurrentSong = null;
+		mExplicitQueue.clear();
+		mHistory.clear();
+		updateCompiledQueue();
+	}
+
     void updateMetadata() {
         if (mCurrentSong == null) {
 	        for (MetadataUpdateListener l : mListeners)
@@ -317,11 +338,17 @@ public class QueueManager {
             });
         }
     }
+    public final List<MediaSessionCompat.QueueItem> getCompiledQueue(){
+		return mCompiledQueue;
+    }
+    public int getCompiledQueueIndex(){
+    	return mCurrentCompiledQueueIndex;
+    }
 
     public interface MetadataUpdateListener {
         void onMetadataChanged(MediaMetadataCompat metadata);
         void onMetadataRetrieveError();
         void onCurrentQueueIndexUpdated(int queueIndex);
-        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newCompiledQueue);
+        void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newCompiledQueue, int queueIndex);
     }
 }
