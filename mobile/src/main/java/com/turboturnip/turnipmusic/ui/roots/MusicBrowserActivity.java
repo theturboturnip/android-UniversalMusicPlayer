@@ -139,4 +139,7 @@ public class MusicBrowserActivity extends BrowserActivity
 				return super.onOptionsItemSelected(item);
 		}
 	}
+
+	@Override
+	public void getDataFromFragment(Bundle data) {}
 }

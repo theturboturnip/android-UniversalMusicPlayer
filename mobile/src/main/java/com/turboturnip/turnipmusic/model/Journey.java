@@ -66,6 +66,9 @@ public class Journey {
 			this.shuffleConfig = shuffleConfig;
 			this.filters = filters;
 		}
+		public Stage(String json) throws JSONException{
+			this(JSONHelper.typeCheckJSONObject(json, JSON_TYPE_VALUE));
+		}
 		public Stage(JSONObject sourceObject) throws JSONException{
 			JSONHelper.typeCheckJSONObject(sourceObject, JSON_TYPE_VALUE);
 			name = sourceObject.getString(JSON_NAME_KEY);
@@ -94,6 +97,17 @@ public class Journey {
 			}
 			stringer.endArray();
 			stringer.endObject();
+		}
+		@Override
+		public String toString(){
+			try{
+				JSONStringer stringer = new JSONStringer();
+				encodeAsJson(stringer);
+				return stringer.toString();
+			}catch(JSONException e){
+				e.printStackTrace();
+				return "null";
+			}
 		}
 	}
 	public String name;

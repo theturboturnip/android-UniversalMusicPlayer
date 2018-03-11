@@ -79,7 +79,7 @@ public class LogHelper {
 		String message;
 		if (t == null && messages != null && messages.length == 1) {
 			// handle this common case without the extra cost of creating a stringbuffer:
-			message = messages[0].toString();
+			message = (messages[0] == null) ? "null" : messages[0].toString();
 		} else {
 			StringBuilder sb = new StringBuilder();
 			if (messages != null) for (Object m : messages) {

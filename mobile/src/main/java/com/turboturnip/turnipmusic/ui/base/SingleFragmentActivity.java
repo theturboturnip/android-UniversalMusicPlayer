@@ -21,4 +21,7 @@ public abstract class SingleFragmentActivity extends BrowserActivity {
 
 	@Override
 	public void onMediaItemSelected(MediaBrowserCompat.MediaItem filter) {}
+
+	@Override
+	public void getDataFromFragment(Bundle data) {}
 }

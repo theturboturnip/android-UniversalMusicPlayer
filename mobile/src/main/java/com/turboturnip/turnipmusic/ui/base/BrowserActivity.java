@@ -230,7 +230,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
     }
 
     protected abstract void initializeFromParams(Bundle savedInstanceState, Intent intent);
-    public void navigateToNewFragment(Class fragmentClass, Bundle data){
+    public CommandFragment navigateToNewFragment(Class fragmentClass, Bundle data){
         CommandFragment fragment = getCurrentFragment();
 
         if (fragment == null || !fragment.getArguments().equals(data) || !fragmentClass.isInstance(fragment)){
@@ -238,10 +238,10 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
                 fragment = (CommandFragment)fragmentClass.newInstance();
             }catch (InstantiationException e){
                 e.printStackTrace();
-                return;
+                return null;
             }catch (IllegalAccessException e){
                 e.printStackTrace();
-                return;
+                return null;
             }
             fragment.setArguments(data);
 
@@ -254,12 +254,17 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
                 transaction.addToBackStack(null);
             transaction.commit();
         }
+        return fragment;
     }
     protected CommandFragment getCurrentFragment() {
         return (CommandFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
+	@Override
+	public void navigateBack() {
+		getFragmentManager().popBackStackImmediate();
+	}
 
-    // MusicCatalogCallback that ensures that we are showing the controls
+	// MusicCatalogCallback that ensures that we are showing the controls
     private final MediaControllerCompat.Callback mMediaControllerCallback =
         new MediaControllerCompat.Callback() {
             @Override

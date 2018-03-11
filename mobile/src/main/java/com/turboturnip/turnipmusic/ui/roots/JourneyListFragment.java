@@ -1,17 +1,20 @@
 package com.turboturnip.turnipmusic.ui.roots;
 
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
+import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
 import com.turboturnip.turnipmusic.model.db.entities.JourneyEntity;
 import com.turboturnip.turnipmusic.ui.base.ItemListCommandFragment;
+import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,10 @@ interface JourneyReceiver{
 	void getJourneys(List<Journey> journeys);
 }
 public class JourneyListFragment extends ItemListCommandFragment implements JourneyReceiver {
+	private final static String TAG = LogHelper.makeLogTag(JourneyListFragment.class);
+
+	private final static int STATE_PLAYABLE = 1;
+
 	@Override
 	public boolean isRoot(){
 		return true;
@@ -57,14 +64,34 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 		}
 	}
 
+	@Override
+	protected int getNewListItemState(ListItemData data) {
+		return (data.onIntoClick == null) ? STATE_NONE : STATE_PLAYABLE;
+	}
+
+	@Override
+	protected Drawable getDrawableFromListItemState(int itemState) {
+		switch(itemState){
+			case STATE_NONE:
+				return ContextCompat.getDrawable(getActivity(),
+						R.drawable.ic_add_black);
+			case STATE_PLAYABLE:
+				return ContextCompat.getDrawable(getActivity(),
+						R.drawable.ic_play_arrow_black_36dp);
+			default:
+				return null;
+		}
+	}
+
 	public void getJourneys(List<Journey> journeys){
 		mBrowserAdapter.clear();
 		for(Journey j : journeys){
+			LogHelper.e(TAG, j.toString());
 			mBrowserAdapter.addItem(
 					new ListItemData(
 							j.name,
-							"",
-							null,
+							j.stages.length + " stages",
+							new EditJourneyOnClickListener(j),
 							new PlayJourneyOnClickListener(j)
 					)
 			);
@@ -73,9 +100,30 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 				"New Journey",
 				"Create a new Journey",
 				null,
-				null
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						Bundle data = new Bundle();
+						data.putBoolean(JourneyEditFragment.IS_NEW_JOURNEY_KEY, true);
+						mCommandListener.navigateToNewFragment(JourneyEditFragment.class, data);
+					}
+				}
 		));
 		mBrowserAdapter.notifyDataSetChanged();
+	}
+	private class EditJourneyOnClickListener implements View.OnClickListener{
+		final Journey toEdit;
+		public EditJourneyOnClickListener(Journey toEdit){
+			this.toEdit = toEdit;
+		}
+
+		@Override
+		public void onClick(View view) {
+			Bundle data = new Bundle();
+			data.putBoolean(JourneyEditFragment.IS_NEW_JOURNEY_KEY, false);
+			data.putString(JourneyEditFragment.JOURNEY_TO_EDIT_KEY, toEdit.toString());
+			mCommandListener.navigateToNewFragment(JourneyEditFragment.class, data);
+		}
 	}
 	private class PlayJourneyOnClickListener implements View.OnClickListener{
 		final Journey toPlay;

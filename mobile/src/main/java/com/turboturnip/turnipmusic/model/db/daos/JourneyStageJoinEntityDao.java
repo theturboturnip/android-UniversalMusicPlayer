@@ -2,6 +2,7 @@ package com.turboturnip.turnipmusic.model.db.daos;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
+import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.RoomWarnings;
 
@@ -21,6 +22,9 @@ public interface JourneyStageJoinEntityDao {
 	)
 	List<JourneyStageEntity> getStagesForJourney(int journeyId);
 
-	@Insert()
+	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	void insertJoin(JourneyStageJoinEntity join);
+
+	@Query("DELETE FROM " + DBConstants.JOURNEY_STAGE_JOIN_TABLE + " WHERE journeyId = :id")
+	void deleteJoinsForJourney(int id);
 }

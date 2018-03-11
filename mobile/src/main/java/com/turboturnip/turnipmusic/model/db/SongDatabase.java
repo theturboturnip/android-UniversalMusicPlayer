@@ -64,12 +64,16 @@ public abstract class SongDatabase extends RoomDatabase {
 		}
 		return new Journey(entity.name, stages);
 	}
-	public void renameJourney(Journey journey, String oldName){
-		journeyDao().removeJourney(oldName);
+	public void renameJourney(Journey journey, Journey oldVersion){
+		int oldId = new JourneyEntity(oldVersion).id;
+		journeyDao().removeJourney(oldId);
+		journeyStageJoinDao().deleteJoinsForJourney(oldId);
 		insertJourney(journey);
 	}
 	public void insertJourney(Journey journey){
 		JourneyEntity journeyEntity = new JourneyEntity(journey);
+		journeyDao().insertJourney(journeyEntity);
+		journeyStageJoinDao().deleteJoinsForJourney(journeyEntity.id);
 		int i = 0;
 		for (Journey.Stage s : journey.stages){
 			FilterEntity filterEntity = new FilterEntity(s.filters[0]);
@@ -79,6 +83,5 @@ public abstract class SongDatabase extends RoomDatabase {
 			journeyStageJoinDao().insertJoin(new JourneyStageJoinEntity(journeyEntity.id, stageEntity.id, i));
 			i++;
 		}
-		journeyDao().insertJourney(journeyEntity);
 	}
 }

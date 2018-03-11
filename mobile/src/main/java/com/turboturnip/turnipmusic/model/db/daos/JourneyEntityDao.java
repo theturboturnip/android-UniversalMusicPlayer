@@ -22,8 +22,8 @@ public interface JourneyEntityDao {
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
 	void insertJourney(JourneyEntity journey);
 
-	@Query("DELETE FROM " + DBConstants.JOURNEY_TABLE + " WHERE name like :name")
-	void removeJourney(String name);
+	@Query("DELETE FROM " + DBConstants.JOURNEY_TABLE + " WHERE id=:id")
+	void removeJourney(int id);
 	@Query("DELETE FROM " + DBConstants.JOURNEY_TABLE)
 	void clearDatabase();
 }

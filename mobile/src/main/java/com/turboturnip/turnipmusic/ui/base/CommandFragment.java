@@ -88,8 +88,10 @@ public class CommandFragment extends Fragment {
 
 	public interface CommandFragmentListener extends MusicBrowserProvider {
 		void setToolbarTitle(CharSequence title);
-		void navigateToNewFragment(Class newFragmentClass, Bundle initData);
+		CommandFragment navigateToNewFragment(Class newFragmentClass, Bundle initData);
 		void onMediaItemSelected(MediaBrowserCompat.MediaItem filter);
 		void onMediaItemPlayed(MediaBrowserCompat.MediaItem filter);
+		void getDataFromFragment(Bundle data);
+		void navigateBack();
 	}
 }
