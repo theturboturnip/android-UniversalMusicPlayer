@@ -18,7 +18,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/playback_controls_height"
     android:padding="@dimen/playback_controls_padding">
 
     <ImageView
@@ -76,7 +76,7 @@
     <LinearLayout
         android:id="@+id/controls"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:gravity="center_vertical"
@@ -84,31 +84,29 @@
 
         <ImageView
             android:id="@+id/skip_back"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/playback_controls_button_size"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?selectableItemBackgroundBorderless"
             android:tint="@color/bt_accent"
             android:tintMode="src_in"
             app:srcCompat="@drawable/ic_skip_previous_white_48dp" />
 
-        <ImageButton
+        <ImageView
             android:id="@+id/play_pause"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_alignParentEnd="false"
-            android:layout_centerVertical="true"
+            android:layout_width="@dimen/playback_controls_button_size"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?selectableItemBackgroundBorderless"
             android:contentDescription="@string/play_pause"
-            android:src="@drawable/ic_play_arrow_black_36dp"
             android:tint="@color/bt_accent"
-            android:tintMode="src_in" />
+            android:tintMode="src_in"
+            app:srcCompat="@drawable/ic_play_arrow_black_36dp" />
 
         <ImageView
             android:id="@+id/skip_ahead"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="@dimen/playback_controls_button_size"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="?selectableItemBackgroundBorderless"
             android:tint="@color/bt_accent"

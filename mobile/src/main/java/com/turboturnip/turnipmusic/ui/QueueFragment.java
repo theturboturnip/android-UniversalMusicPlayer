@@ -55,7 +55,6 @@ public class QueueFragment extends MusicListCommandFragment implements QueueMana
 	public void onCurrentQueueIndexUpdated(int queueIndex) {}
 	@Override
 	public void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newCompiledQueue, int queueIndex) {
-		checkForUserVisibleErrors(newCompiledQueue.isEmpty(), R.string.error_no_values);
 		mBrowserAdapter.clear();
 		int i = 0;
 		if (queueIndex > 0) mBrowserAdapter.addHeader(new ListItemData("History"));
@@ -69,6 +68,5 @@ public class QueueFragment extends MusicListCommandFragment implements QueueMana
 			i++;
 		}
 		mBrowserAdapter.notifyDataSetChanged();
-		disableProgressBar();
 	}
 }

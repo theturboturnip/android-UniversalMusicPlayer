@@ -45,8 +45,8 @@ public class PlaybackControlsFragment extends Fragment {
 
     private static final String TAG = LogHelper.makeLogTag(PlaybackControlsFragment.class);
 
-    private View mSkipBack, mSkipAhead;
-    private ImageButton mPlayPause;
+    private ImageView mSkipBack, mSkipAhead;
+    private ImageView mPlayPause;
     private TextView mTitle;
     private TextView mSubtitle;
     private TextView mExtraInfo;
@@ -78,7 +78,7 @@ public class PlaybackControlsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_playback_controls, container, false);
 
-        mPlayPause = (ImageButton) rootView.findViewById(R.id.play_pause);
+        mPlayPause = rootView.findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(mButtonListener);
         mSkipBack = rootView.findViewById(R.id.skip_back);

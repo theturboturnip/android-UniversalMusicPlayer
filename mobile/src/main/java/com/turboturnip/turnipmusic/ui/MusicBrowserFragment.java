@@ -98,13 +98,11 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
                 try {
                     LogHelper.d(TAG, "fragment onChildrenLoaded, parentId=" + parentId +
                         "  count=" + children.size());
-                    checkForUserVisibleErrors(children.isEmpty(), R.string.error_no_values);
                     mBrowserAdapter.clear();
                     for (MediaBrowserCompat.MediaItem item : children) {
                         mBrowserAdapter.addItem(getDataForListItem(item));
                     }
                     mBrowserAdapter.notifyDataSetChanged();
-                    disableProgressBar();
                 } catch (Throwable t) {
                     LogHelper.e(TAG, "Error on childrenloaded", t);
                 }

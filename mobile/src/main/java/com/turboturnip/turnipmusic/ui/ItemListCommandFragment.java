@@ -24,10 +24,13 @@ import java.util.List;
 public class ItemListCommandFragment extends CommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(ItemListCommandFragment.class);
 
+	private boolean loadedItems = false;
+
 	protected BrowseAdapter mBrowserAdapter;
 	private View mErrorView;
 	private View mIndeterminateProgressView;
 	private TextView mErrorMessage;
+	private TextView mNoItemsText;
 
 	public static final int STATE_INVALID = -1;
 	public static final int STATE_NONE = 0;
@@ -47,7 +50,8 @@ public class ItemListCommandFragment extends CommandFragment {
 		listView.setAdapter(mBrowserAdapter);
 
 		mIndeterminateProgressView = rootView.findViewById(R.id.progress_bar);
-		mIndeterminateProgressView.setVisibility(View.VISIBLE);
+		mNoItemsText = rootView.findViewById(R.id.no_data_text);
+		updateLoadedState(0);
 
 		return rootView;
 	}
@@ -203,11 +207,9 @@ public class ItemListCommandFragment extends CommandFragment {
 		}
 	}
 
-	protected void enableProgressBar(){
-		mIndeterminateProgressView.setVisibility(View.VISIBLE);
-	}
-	protected void disableProgressBar(){
-		mIndeterminateProgressView.setVisibility(View.GONE);
+	protected void updateLoadedState(int itemCount){
+		mIndeterminateProgressView.setVisibility(loadedItems ? View.GONE : View.VISIBLE);
+		mNoItemsText.setVisibility((loadedItems && itemCount > 0) ? View.GONE : View.VISIBLE);
 	}
 
 	// An adapter for showing the list of browsed MediaItem's
@@ -271,6 +273,8 @@ public class ItemListCommandFragment extends CommandFragment {
 		@Override
 		public void notifyDataSetChanged(){
 			super.notifyDataSetChanged();
+			if (!loadedItems) loadedItems = true;
+			updateLoadedState(mData.size());
 		}
 
 		@NonNull
