@@ -15,6 +15,7 @@
  */
 package com.turboturnip.turnipmusic.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import com.turboturnip.turnipmusic.R;
@@ -23,13 +24,9 @@ import com.turboturnip.turnipmusic.R;
  * Placeholder activity for features that are not implemented in this sample, but
  * are in the navigation drawer.
  */
-public class PlaceholderActivity extends BrowserActivity {
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_placeholder);
-        initializeToolbar();
-    }
-
+public class PlaceholderActivity extends SingleFragmentActivity {
+	@Override
+	protected Class getFragmentClass() {
+		return PlaceholderFragment.class;
+	}
 }

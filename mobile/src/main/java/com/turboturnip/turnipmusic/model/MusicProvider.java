@@ -101,13 +101,7 @@ public class MusicProvider {
 	 */
 	public void retrieveMediaAsync(final Context context, final MusicCatalogCallback callback) {
 		LogHelper.d(TAG, "retrieveMediaAsync called");
-		if (mCurrentState == State.INITIALIZED) {
-			if (callback != null) {
-				// Nothing to do, execute callback immediately
-				callback.onMusicCatalogReady(true);
-			}
-			return;
-		}
+
 
 		// Asynchronously load the music catalog in a separate thread
 		new AsyncRetrieveMediaTask(callback).execute(context);
@@ -121,6 +115,13 @@ public class MusicProvider {
 
 		@Override
 		protected Void doInBackground(Context... params) {
+			if (MusicProvider.getInstance().mCurrentState == State.INITIALIZED) {
+				if (callback != null) {
+					// Nothing to do, execute callback immediately
+					callback.onMusicCatalogReady(true);
+				}
+				return null;
+			}
 			MusicProvider.getInstance().retrieveMedia(params[0]);
 			if (callback != null) {
 				callback.onMusicCatalogReady(MusicProvider.getInstance().mCurrentState == State.INITIALIZED);

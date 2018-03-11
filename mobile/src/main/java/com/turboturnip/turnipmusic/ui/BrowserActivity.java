@@ -16,17 +16,22 @@
 package com.turboturnip.turnipmusic.ui;
 
 import android.app.ActivityManager;
+import android.app.FragmentTransaction;
 import android.content.ComponentName;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.widget.CardView;
+import android.view.animation.AnimationUtils;
 
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.R;
@@ -37,18 +42,40 @@ import com.turboturnip.turnipmusic.utils.ResourceHelper;
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BrowserActivity extends ActionBarCastActivity implements MusicBrowserProvider {
+public abstract class BrowserActivity extends ActionBarCastActivity implements MusicBrowserProvider, CommandFragment.CommandFragmentListener{
 
     private static final String TAG = LogHelper.makeLogTag(BrowserActivity.class);
+    private static final String FRAGMENT_TAG = "turnipmusic_fragment_container";
+	public static final String EXTRA_START_FULLSCREEN =
+			"com.turboturnip.turnipmusic.EXTRA_START_FULLSCREEN";
+
+	/**
+	 * Optionally used with {@link #EXTRA_START_FULLSCREEN} to carry a MediaDescription to
+	 * the {@link FullScreenPlayerActivity}, speeding up the screen rendering
+	 * while the {@link android.support.v4.media.session.MediaControllerCompat} is connecting.
+	 */
+	public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
+			"com.turboturnip.turnipmusic.CURRENT_MEDIA_DESCRIPTION";
 
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
+    private CardView mControlsCardView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         LogHelper.d(TAG, "Activity onCreate");
+
+	    setContentView(R.layout.activity_player);
+
+	    initializeToolbar();
+	    initializeFromParams(savedInstanceState, getIntent());
+
+	    // Only check if a full screen player is needed on the first time:
+	    if (savedInstanceState == null) {
+		    startFullScreenActivityIfNeeded(getIntent());
+	    }
 
         if (Build.VERSION.SDK_INT >= 21) {
             // Since our app icon has the same color as colorPrimary, our entry in the Recent Apps
@@ -78,6 +105,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
         if (mControlsFragment == null) {
             throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
         }
+        mControlsCardView = findViewById(R.id.controls_container);
 
         hidePlaybackControls();
 
@@ -95,6 +123,33 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
         mMediaBrowser.disconnect();
     }
 
+	@Override
+	public void setToolbarTitle(CharSequence title) {
+		LogHelper.d(TAG, "Setting toolbar title to ", title);
+		if (title == null) {
+			title = getString(R.string.app_name);
+		}
+		setTitle(title);
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		LogHelper.d(TAG, "onNewIntent, intent=" + intent);
+		initializeFromParams(null, intent);
+		startFullScreenActivityIfNeeded(intent);
+	}
+
+	protected void startFullScreenActivityIfNeeded(Intent intent) {
+		if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
+			Intent fullScreenIntent = new Intent(this, FullScreenPlayerActivity.class)
+					.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP |
+							Intent.FLAG_ACTIVITY_CLEAR_TOP)
+					.putExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION,
+							intent.getParcelableExtra(EXTRA_CURRENT_MEDIA_DESCRIPTION));
+			startActivity(fullScreenIntent);
+		}
+	}
+
     @Override
     public MediaBrowserCompat getMediaBrowser() {
         return mMediaBrowser;
@@ -104,20 +159,27 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
         // empty implementation, can be overridden by clients.
     }
 
+	@Override
+	public void onMediaItemPlayed(MediaBrowserCompat.MediaItem item) {
+		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + item.getMediaId());
+
+		MediaControllerCompat.getMediaController(this).getTransportControls()
+				.playFromMediaId(item.getMediaId(), null);
+	}
+
     protected void showPlaybackControls() {
         LogHelper.d(TAG, "showPlaybackControls");
-        if (NetworkHelper.isOnline(this)) {
-            getFragmentManager().beginTransaction()
-                .setCustomAnimations(
-                    R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom,
-                    R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom)
-                .show(mControlsFragment)
-                .commit();
-        }
+        getFragmentManager().beginTransaction()
+            .setCustomAnimations(
+                R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom,
+                R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom)
+            .show(mControlsFragment)
+            .commit();
     }
 
     protected void hidePlaybackControls() {
         LogHelper.d(TAG, "hidePlaybackControls");
+        // TODO: Animate the card view
         getFragmentManager().beginTransaction()
             .hide(mControlsFragment)
             .commit();
@@ -142,6 +204,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
             case PlaybackStateCompat.STATE_STOPPED:
                 return false;
             default:
+            	LogHelper.e(TAG, mediaController.getPlaybackState().getState());
                 return true;
         }
     }
@@ -164,6 +227,36 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
         }
 
         onMediaControllerConnected();
+    }
+
+    protected abstract void initializeFromParams(Bundle savedInstanceState, Intent intent);
+    public void navigateToNewFragment(Class fragmentClass, Bundle data){
+        CommandFragment fragment = getCurrentFragment();
+
+        if (fragment == null || !fragment.getArguments().equals(data) || !fragmentClass.isInstance(fragment)){
+            try {
+                fragment = (CommandFragment)fragmentClass.newInstance();
+            }catch (InstantiationException e){
+                e.printStackTrace();
+                return;
+            }catch (IllegalAccessException e){
+                e.printStackTrace();
+                return;
+            }
+            fragment.setArguments(data);
+
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.setCustomAnimations(
+                    R.animator.slide_in_from_right, R.animator.slide_out_to_left,
+                    R.animator.slide_in_from_left, R.animator.slide_out_to_right);
+            transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
+            if (!fragment.isRoot())
+                transaction.addToBackStack(null);
+            transaction.commit();
+        }
+    }
+    protected CommandFragment getCurrentFragment() {
+        return (CommandFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
     }
 
     // MusicCatalogCallback that ensures that we are showing the controls

@@ -47,6 +47,7 @@
     <string name="drawer_allmusic_title">All Music</string>
     <string name="drawer_playlists_title">Playlists</string>
     <string name="drawer_journeys_title">Journeys</string>
+    <string name="drawer_filters_title">Filters</string>
     <string name="drawer_queue_title">Queue</string>
     <string name="drawer_hub_title">Hub</string>
 

@@ -26,6 +26,10 @@
             android:icon="@drawable/ic_playlist_music_black_24dp"
             android:title="@string/drawer_journeys_title"/>
         <item
+            android:id="@+id/navigation_filters"
+            android:icon="@drawable/ic_playlist_music_black_24dp"
+            android:title="@string/drawer_filters_title"/>
+        <item
             android:id="@+id/navigation_queue"
             android:icon="@drawable/ic_playlist_music_black_24dp"
             android:title="@string/drawer_queue_title"/>

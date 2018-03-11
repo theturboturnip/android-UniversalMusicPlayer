@@ -164,33 +164,35 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         mPackageValidator = new PackageValidator(this);
 
-        new QueueManager(mMusicProvider, getResources(),
-                new QueueManager.MetadataUpdateListener() {
-                    @Override
-                    public void onMetadataChanged(MediaMetadataCompat metadata) {
-                    	LogHelper.d(TAG, metadata==null);
-                        mSession.setMetadata(metadata);
+        if (QueueManager.getInstance() == null) {
+            new QueueManager(mMusicProvider, getResources(),
+                    new QueueManager.MetadataUpdateListener() {
+                        @Override
+                        public void onMetadataChanged(MediaMetadataCompat metadata) {
+                            LogHelper.d(TAG, metadata == null);
+                            mSession.setMetadata(metadata);
 
-                    }
+                        }
 
-                    @Override
-                    public void onMetadataRetrieveError() {
-                        mPlaybackManager.updatePlaybackState(
-                                getString(R.string.error_no_metadata));
-                    }
+                        @Override
+                        public void onMetadataRetrieveError() {
+                            mPlaybackManager.updatePlaybackState(
+                                    getString(R.string.error_no_metadata));
+                        }
 
-                    @Override
-                    public void onCurrentQueueIndexUpdated(int queueIndex) {
-                    	mPlaybackManager.handlePlayRequest();
-                    }
+                        @Override
+                        public void onCurrentQueueIndexUpdated(int queueIndex) {
+                            mPlaybackManager.handlePlayRequest();
+                        }
 
-                    @Override
-                    public void onQueueUpdated(String title,
-                                               List<MediaSessionCompat.QueueItem> newQueue, int queueIndex) {
-                    	mSession.setQueue(newQueue);
-                        mSession.setQueueTitle(title);
-                    }
-                });
+                        @Override
+                        public void onQueueUpdated(String title,
+                                                   List<MediaSessionCompat.QueueItem> newQueue, int queueIndex) {
+                            mSession.setQueue(newQueue);
+                            mSession.setQueueTitle(title);
+                        }
+                    });
+        }
 
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method

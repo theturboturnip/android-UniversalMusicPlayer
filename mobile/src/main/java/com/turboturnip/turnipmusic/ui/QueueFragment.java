@@ -16,8 +16,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class QueueFragment extends MusicListCommandFragment implements QueueManager.MetadataUpdateListener{
-
 	private static final String TAG = LogHelper.makeLogTag(QueueFragment.class);
+
+	@Override
+	public boolean isRoot(){
+		return true;
+	}
 
 	@Override
 	public void onStart() {

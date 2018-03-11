@@ -102,8 +102,11 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
                         activityClass = MusicBrowserActivity.class;
                         break;
                     case R.id.navigation_journeys:
-                        activityClass = PlaceholderActivity.class;
+                        activityClass = JourneyActivity.class;
                         break;
+	                case R.id.navigation_filters:
+	                	activityClass = PlaceholderActivity.class;
+	                	break;
                     case R.id.navigation_queue:
                         activityClass = QueueActivity.class;
                         break;
@@ -307,8 +310,10 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
             navigationView.setCheckedItem(R.id.navigation_queue);
         } else if (this instanceof MusicBrowserActivity){
           navigationView.setCheckedItem(R.id.navigation_allmusic);
-        } else if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
+        } else if (this instanceof JourneyActivity) {
             navigationView.setCheckedItem(R.id.navigation_journeys);
+        } else if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
+            navigationView.setCheckedItem(R.id.navigation_filters);
         }
     }
 
