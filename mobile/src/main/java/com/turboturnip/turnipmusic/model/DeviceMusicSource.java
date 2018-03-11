@@ -1,13 +1,12 @@
 package com.turboturnip.turnipmusic.model;
 
-import android.arch.persistence.room.PrimaryKey;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
-import com.turboturnip.turnipmusic.model.db.AlbumEntity;
-import com.turboturnip.turnipmusic.model.db.SongEntity;
+import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
+import com.turboturnip.turnipmusic.model.db.entities.SongEntity;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 

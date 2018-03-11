@@ -39,12 +39,12 @@ public class HubFragment extends ItemListCommandFragment {
 
 		mBrowserAdapter.addHeader(new ListItemData("Tests"));
 		mBrowserAdapter.addItem(new ListItemData("Repeat AC", "", null, new JourneyTestOnClickListener(
-				new Journey(new MusicFilter(MusicFilterType.ByAlbum, "Assassination Classroom"))
+				new Journey("Test Repeat AC", new MusicFilter(MusicFilterType.ByAlbum, "Assassination Classroom"))
 		)));
 		mBrowserAdapter.addItem(new ListItemData("Shuffle Persona", "", null,
 				new JourneyTestOnClickListener(
-						new Journey(
-								new Journey.Stage(Journey.Stage.PlayType.Shuffle, 0, null, new MusicFilter(MusicFilterType.ByAlbum, "Persona"))
+						new Journey("Test Shuffle Persona",
+								new Journey.Stage("", Journey.Stage.PlayType.Shuffle, 0, null, new MusicFilter(MusicFilterType.ByAlbum, "Persona"))
 						)
 				))
 		);

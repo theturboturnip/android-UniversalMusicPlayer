@@ -1,10 +1,14 @@
-package com.turboturnip.turnipmusic.model.db;
+package com.turboturnip.turnipmusic.model.db.daos;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.RoomWarnings;
+
+import com.turboturnip.turnipmusic.model.db.DBConstants;
+import com.turboturnip.turnipmusic.model.db.entities.SongTagJoinEntity;
+import com.turboturnip.turnipmusic.model.db.entities.TagEntity;
 
 import java.util.List;
 
@@ -25,8 +29,8 @@ public interface SongTagJoinEntityDao {
 	)
 	List<Integer> getSongIdsForTag(int tagId);
 
-	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	void insertTags(TagEntity tags);
+	@Insert()
+	void insertJoin(SongTagJoinEntity join);
 
 	@Query("DELETE FROM " + DBConstants.SONG_TAG_JOIN_TABLE)
 	void clearDatabase();

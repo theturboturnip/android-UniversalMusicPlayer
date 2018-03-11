@@ -29,7 +29,7 @@ public class JSONHelper {
 	}
 
 	public static class TurboShuffleConfigHandler {
-		private static final String JSON_TYPE_VALUE = "TSConfig";
+		public static final String JSON_TYPE_VALUE = "TSConfig";
 		private static final String JSON_CLUMP_TYPE_KEY = "clumpType";
 		private static final String JSON_CLUMP_SEVERITY_KEY = "clumpSeverity";
 		private static final String JSON_CLUMP_WEIGHT_KEY = "clumpWeight";
@@ -39,6 +39,16 @@ public class JSONHelper {
 		private static final String JSON_MAX_MEMORY_KEY = "maxMemory";
 		private static final String JSON_POOL_WEIGHTS_KEY = "poolWeights";
 
+		public static String encode(TurboShuffleConfig config){
+			JSONStringer stringer = new JSONStringer();
+			try {
+				encode(config, stringer);
+			}catch(JSONException e){
+				e.printStackTrace();
+				return "null";
+			}
+			return stringer.toString();
+		}
 		public static void encode(TurboShuffleConfig config, JSONStringer stringer) throws JSONException{
 			if (config == null){
 				stringer.value(null);

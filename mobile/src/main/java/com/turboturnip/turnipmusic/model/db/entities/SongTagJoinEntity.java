@@ -1,7 +1,9 @@
-package com.turboturnip.turnipmusic.model.db;
+package com.turboturnip.turnipmusic.model.db.entities;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+
+import com.turboturnip.turnipmusic.model.db.DBConstants;
 
 @Entity(tableName = DBConstants.SONG_TAG_JOIN_TABLE,
 		primaryKeys = { "songId", "tagId" },

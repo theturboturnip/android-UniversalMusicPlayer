@@ -24,7 +24,7 @@ import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
-import com.turboturnip.turnipmusic.model.db.AlbumEntity;
+import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
 import com.turboturnip.turnipmusic.utils.AsyncHelper;
 import com.turboturnip.turnipmusic.utils.LogHelper;

@@ -5,6 +5,7 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Objects;
 
 public class MusicFilter {
 	public static final String TAG = LogHelper.makeLogTag(MusicFilter.class);
@@ -77,6 +78,10 @@ public class MusicFilter {
 		if (o.getClass() != MusicFilter.class) return false;
 		MusicFilter castedO = (MusicFilter) o;
 		return castedO.filterType.equals(filterType) && castedO.filterValue.equals(filterValue);
+	}
+	@Override
+	public int hashCode(){
+		return 37 * filterType.hashCode() + filterValue.hashCode();
 	}
 
 }

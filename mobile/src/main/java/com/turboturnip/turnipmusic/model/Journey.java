@@ -13,6 +13,7 @@ import java.util.Map;
 
 public class Journey {
 	public static final String JSON_TYPE_VALUE = "Journey";
+	public static final String JSON_NAME_KEY = "name";
 	public static final String JSON_STAGES_KEY = "stages";
 
 	public static class Stage {
@@ -52,12 +53,14 @@ public class Journey {
 				return this.name;
 			}
 		}
+		public String name;
 		public PlayType playType;
 		public int playCount;
 		public TurboShuffleConfig shuffleConfig;
 		public MusicFilter[] filters;
 
-		public Stage(PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
+		public Stage(String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
+			this.name = name;
 			this.playType = playType;
 			this.playCount = playCount;
 			this.shuffleConfig = shuffleConfig;
@@ -65,6 +68,7 @@ public class Journey {
 		}
 		public Stage(JSONObject sourceObject) throws JSONException{
 			JSONHelper.typeCheckJSONObject(sourceObject, JSON_TYPE_VALUE);
+			name = sourceObject.getString(JSON_NAME_KEY);
 			playType = PlayType.valueFor(sourceObject.getString(JSON_PLAYTYPE_KEY));
 			playCount = sourceObject.getInt(JSON_PLAYCOUNT_KEY);
 			if (!sourceObject.isNull(JSON_SHUFFLECONFIG_KEY))
@@ -79,6 +83,7 @@ public class Journey {
 		public void encodeAsJson(JSONStringer stringer) throws JSONException{
 			stringer.object();
 			stringer.key(JSONHelper.JSON_TYPE_KEY).value(JSON_TYPE_VALUE);
+			stringer.key(JSON_NAME_KEY).value(name);
 			stringer.key(JSON_PLAYTYPE_KEY).value(playType.toString());
 			stringer.key(JSON_PLAYCOUNT_KEY).value(playCount);
 			stringer.key(JSON_SHUFFLECONFIG_KEY);
@@ -91,22 +96,26 @@ public class Journey {
 			stringer.endObject();
 		}
 	}
+	public String name;
 	public Stage[] stages;
 
-	public Journey(MusicFilter singleFilter){
+	public Journey(String name, MusicFilter singleFilter){
+		this.name = name;
 		stages = new Stage[]{
-			new Stage(Stage.PlayType.Repeat, 0, null, singleFilter)
+			new Stage("", Stage.PlayType.Repeat, 0, null, singleFilter)
 		};
 	}
 	public Journey(String json) throws JSONException{
 		JSONObject decodedObject = JSONHelper.typeCheckJSONObject(json, JSON_TYPE_VALUE);
+		name = decodedObject.getString(JSON_NAME_KEY);
 		JSONArray jsonStages = decodedObject.getJSONArray(JSON_STAGES_KEY);
 		stages = new Stage[jsonStages.length()];
 		for (int i = 0; i < jsonStages.length(); i++){
 			stages[i] = new Stage(jsonStages.getJSONObject(i));
 		}
 	}
-	public Journey(Stage... stages){
+	public Journey(String name, Stage... stages){
+		this.name = name;
 		this.stages = stages;
 	}
 
@@ -115,6 +124,7 @@ public class Journey {
 		try {
 			JSONStringer stringer = new JSONStringer();
 			stringer.object().key(JSONHelper.JSON_TYPE_KEY).value(JSON_TYPE_VALUE);
+			stringer.key(JSON_NAME_KEY).value(name);
 			stringer.key(JSON_STAGES_KEY).array();
 			for (Stage s : stages) {
 				s.encodeAsJson(stringer);

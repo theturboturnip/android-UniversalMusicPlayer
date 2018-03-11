@@ -3,8 +3,8 @@ package com.turboturnip.turnipmusic.model;
 import android.support.v4.media.MediaMetadataCompat;
 
 import com.turboturnip.turboshuffle.TurboShuffleSong;
-import com.turboturnip.turnipmusic.model.db.AlbumEntity;
-import com.turboturnip.turnipmusic.model.db.SongEntity;
+import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
+import com.turboturnip.turnipmusic.model.db.entities.SongEntity;
 
 import java.util.ArrayList;
 

@@ -1,10 +1,11 @@
-package com.turboturnip.turnipmusic.model.db;
+package com.turboturnip.turnipmusic.model.db.entities;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 
 import com.turboturnip.turnipmusic.model.Song;
+import com.turboturnip.turnipmusic.model.db.DBConstants;
 
 import java.util.UUID;
 

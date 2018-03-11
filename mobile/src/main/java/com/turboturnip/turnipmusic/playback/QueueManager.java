@@ -286,7 +286,9 @@ public class QueueManager {
 	public void initImplicitQueue(){
 		startJourney(
 				new Journey(
+						"",
 						new Journey.Stage(
+								"",
 								Journey.Stage.PlayType.Repeat,
 								0,
 								null,

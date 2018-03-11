@@ -24,7 +24,7 @@ import java.util.List;
 public class ItemListCommandFragment extends CommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(ItemListCommandFragment.class);
 
-	private boolean loadedItems = false;
+	protected boolean loadedItems = false;
 
 	protected BrowseAdapter mBrowserAdapter;
 	private View mErrorView;
@@ -231,13 +231,11 @@ public class ItemListCommandFragment extends CommandFragment {
 
 		public void addItem(final ListItemData item) {
 			mData.add(item);
-			notifyDataSetChanged();
 		}
 
 		public void addHeader(final ListItemData item) {
 			headers.add(mData.size());
 			mData.add(item);
-			notifyDataSetChanged();
 		}
 
 		@Override

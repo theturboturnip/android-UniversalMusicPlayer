@@ -306,7 +306,7 @@ public class PlaybackManager implements Playback.Callback {
 
             MusicFilter filter = new MusicFilter(data);
             if (filter.isValid()){
-            	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(new Journey(filter));
+            	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(new Journey("Generated Journey", filter));
             }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(data))) {
 	            handlePlayRequest();
             }
