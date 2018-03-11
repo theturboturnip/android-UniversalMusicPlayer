@@ -13,36 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.ColorStateList;
-import android.graphics.drawable.AnimationDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
-import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.AppCompatDelegate;
-import android.view.View;
 import android.widget.Toast;
 
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.playback.QueueManager;
+import com.turboturnip.turnipmusic.ui.base.MusicListCommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
-import com.turboturnip.turnipmusic.utils.QueueHelper;
 
 import java.util.List;
 

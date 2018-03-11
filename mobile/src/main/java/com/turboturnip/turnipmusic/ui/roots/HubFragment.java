@@ -1,4 +1,4 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -13,7 +13,7 @@ import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
-import com.turboturnip.turnipmusic.model.MusicProvider;
+import com.turboturnip.turnipmusic.ui.base.ItemListCommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 public class HubFragment extends ItemListCommandFragment {
@@ -55,12 +55,12 @@ public class HubFragment extends ItemListCommandFragment {
 	}
 
 	@Override
-	int getNewListItemState(ListItemData itemData){
+	protected int getNewListItemState(ListItemData itemData){
 		if (itemData.playable) return STATE_PLAYABLE;
 		return STATE_NONE;
 	}
 	@Override
-	Drawable getDrawableFromListItemState(int state){
+	protected Drawable getDrawableFromListItemState(int state){
 		if (state == STATE_PLAYABLE) return ContextCompat.getDrawable(getActivity(),R.drawable.ic_play_arrow_black_36dp);
 		return null;
 	}

@@ -1,4 +1,4 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.base;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -92,7 +92,7 @@ public class MusicListCommandFragment extends ItemListCommandFragment {
 				R.color.media_item_icon_playing));
 	}
 	@Override
-	int getNewListItemState(ListItemData data){
+	protected int getNewListItemState(ListItemData data){
 		int state = STATE_PLAYABLE;
 		MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) data.internalData;
 		data.playText = null;
@@ -125,7 +125,7 @@ public class MusicListCommandFragment extends ItemListCommandFragment {
 	}
 
 	@Override
-	Drawable getDrawableFromListItemState(int state) {
+	protected Drawable getDrawableFromListItemState(int state) {
 		if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
 			initializeColorStateLists(getActivity());
 		}
@@ -165,7 +165,7 @@ public class MusicListCommandFragment extends ItemListCommandFragment {
 				return null;
 		}
 	}
-	ListItemData getDataForListItem(final MediaBrowserCompat.MediaItem item){
+	protected ListItemData getDataForListItem(final MediaBrowserCompat.MediaItem item){
 		ListItemData itemData = new ListItemData();
 		MediaDescriptionCompat description = item.getDescription();
 		itemData.title = description.getTitle();

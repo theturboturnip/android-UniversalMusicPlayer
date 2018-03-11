@@ -1,9 +1,11 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.turboturnip.turnipmusic.ui.base.ItemListCommandFragment;
 
 public class JourneyListFragment extends ItemListCommandFragment {
 	@Override

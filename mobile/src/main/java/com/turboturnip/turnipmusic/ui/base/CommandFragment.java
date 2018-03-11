@@ -1,4 +1,4 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 
 import com.turboturnip.turnipmusic.model.MusicFilter;
+import com.turboturnip.turnipmusic.ui.roots.MusicBrowserProvider;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 
@@ -13,8 +14,8 @@ public class CommandFragment extends Fragment {
 	private static final String TAG = LogHelper.makeLogTag(CommandFragment.class);
 	public static final String ARG_MUSIC_FILTER = "music_filter";
 
-	CommandFragmentListener mCommandListener = null;
-	MusicFilter mMusicFilter;
+	protected CommandFragmentListener mCommandListener = null;
+	protected MusicFilter mMusicFilter;
 
 	public boolean isRoot(){
 		return false;

@@ -1,4 +1,4 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
@@ -87,10 +87,10 @@ public class ItemListCommandFragment extends CommandFragment {
 				" isOnline=", NetworkHelper.isOnline(getActivity()));
 	}
 
-	int getNewListItemState(ListItemData data){
+	protected int getNewListItemState(ListItemData data){
 		return STATE_NONE;
 	}
-	Drawable getDrawableFromListItemState(int itemState){
+	protected Drawable getDrawableFromListItemState(int itemState){
 		return null;
 	}
 	private View getListItemView(ListItemData item, View itemView, @NonNull ViewGroup parent){
@@ -173,18 +173,18 @@ public class ItemListCommandFragment extends CommandFragment {
 			textView = itemView.findViewById(R.id.header_text);
 		}
 	}
-	class ListItemData {
-		CharSequence title = null, subtitle = null, playText = null;
-		View.OnClickListener onPlayClick = null, onIntoClick = null;
-		boolean playable = false, browsable = false;
+	public class ListItemData {
+		public CharSequence title = null, subtitle = null, playText = null;
+		public View.OnClickListener onPlayClick = null, onIntoClick = null;
+		public boolean playable = false, browsable = false;
 
-		Object internalData;
+		public Object internalData;
 
-		ListItemData(){}
-		ListItemData(CharSequence title){
+		public ListItemData(){}
+		public ListItemData(CharSequence title){
 			this.title = title;
 		}
-		ListItemData(CharSequence title, CharSequence subtitle, View.OnClickListener onIntoClick, View.OnClickListener onPlayClick){
+		public ListItemData(CharSequence title, CharSequence subtitle, View.OnClickListener onIntoClick, View.OnClickListener onPlayClick){
 			this.title = title;
 			this.subtitle = subtitle;
 			this.onIntoClick = onIntoClick;
@@ -209,7 +209,7 @@ public class ItemListCommandFragment extends CommandFragment {
 
 	protected void updateLoadedState(int itemCount){
 		mIndeterminateProgressView.setVisibility(loadedItems ? View.GONE : View.VISIBLE);
-		mNoItemsText.setVisibility((loadedItems && itemCount > 0) ? View.GONE : View.VISIBLE);
+		mNoItemsText.setVisibility((!loadedItems || itemCount > 0) ? View.GONE : View.VISIBLE);
 	}
 
 	// An adapter for showing the list of browsed MediaItem's

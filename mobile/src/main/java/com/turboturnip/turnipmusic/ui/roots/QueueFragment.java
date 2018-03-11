@@ -1,15 +1,12 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
-import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
 
-import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.playback.QueueManager;
+import com.turboturnip.turnipmusic.ui.base.MusicListCommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import java.util.ArrayList;

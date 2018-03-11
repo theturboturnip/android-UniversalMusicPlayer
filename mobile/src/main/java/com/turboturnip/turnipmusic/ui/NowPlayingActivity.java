@@ -18,9 +18,9 @@ package com.turboturnip.turnipmusic.ui;
 import android.app.Activity;
 import android.app.UiModeManager;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 
+import com.turboturnip.turnipmusic.ui.roots.MusicBrowserActivity;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 /**

@@ -28,7 +28,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,6 +35,7 @@ import android.widget.Toast;
 import com.turboturnip.turnipmusic.AlbumArtCache;
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.ui.roots.MusicBrowserActivity;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 /**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.ActivityManager;
 import android.app.FragmentTransaction;
@@ -24,25 +24,25 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.CardView;
-import android.view.animation.AnimationUtils;
 
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.ui.FullScreenPlayerActivity;
+import com.turboturnip.turnipmusic.ui.roots.MusicBrowserProvider;
+import com.turboturnip.turnipmusic.ui.PlaybackControlsFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
-import com.turboturnip.turnipmusic.utils.NetworkHelper;
 import com.turboturnip.turnipmusic.utils.ResourceHelper;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BrowserActivity extends ActionBarCastActivity implements MusicBrowserProvider, CommandFragment.CommandFragmentListener{
+public abstract class BrowserActivity extends ActionBarCastActivity implements MusicBrowserProvider, CommandFragment.CommandFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(BrowserActivity.class);
     private static final String FRAGMENT_TAG = "turnipmusic_fragment_container";

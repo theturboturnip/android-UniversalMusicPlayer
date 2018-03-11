@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.ActivityOptions;
 import android.app.FragmentManager;
@@ -34,6 +34,10 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.ui.roots.JourneyActivity;
+import com.turboturnip.turnipmusic.ui.roots.MusicBrowserActivity;
+import com.turboturnip.turnipmusic.ui.roots.PlaceholderActivity;
+import com.turboturnip.turnipmusic.ui.roots.QueueActivity;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
@@ -42,8 +46,6 @@ import com.google.android.gms.cast.framework.CastStateListener;
 import com.google.android.gms.cast.framework.IntroductoryOverlay;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-
-import java.util.Queue;
 
 /**
  * Abstract activity with toolbar, navigation drawer and cast support. Needs to be extended by

@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
-import android.support.v4.media.MediaBrowserCompat;
+import com.turboturnip.turnipmusic.ui.base.SingleFragmentActivity;
 
-public interface MusicBrowserProvider {
-    MediaBrowserCompat getMediaBrowser();
+/**
+ * Placeholder activity for features that are not implemented in this sample, but
+ * are in the navigation drawer.
+ */
+public class PlaceholderActivity extends SingleFragmentActivity {
+	@Override
+	protected Class getFragmentClass() {
+		return PlaceholderFragment.class;
+	}
 }

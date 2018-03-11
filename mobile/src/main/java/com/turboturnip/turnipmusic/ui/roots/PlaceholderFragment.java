@@ -1,12 +1,12 @@
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.ui.base.CommandFragment;
 
 public class PlaceholderFragment extends CommandFragment {
 	@Override

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.ui;
+package com.turboturnip.turnipmusic.ui.roots;
 
-import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,6 +26,8 @@ import android.view.MenuItem;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.ui.base.BrowserActivity;
+import com.turboturnip.turnipmusic.ui.base.CommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 /**
