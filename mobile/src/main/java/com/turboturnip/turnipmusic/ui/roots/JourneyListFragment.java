@@ -20,10 +20,7 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-interface JourneyReceiver{
-	void getJourneys(List<Journey> journeys);
-}
-public class JourneyListFragment extends ItemListCommandFragment implements JourneyReceiver {
+public class JourneyListFragment extends ItemListCommandFragment {
 	private final static String TAG = LogHelper.makeLogTag(JourneyListFragment.class);
 
 	private final static int STATE_PLAYABLE = 1;
@@ -39,9 +36,18 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 		loadedItems = false;
 		updateLoadedState(0);
 		SongDatabase db = SongDatabase.getInstance(getActivity());
-		new GetJourneysAsyncTask(this, db).execute();
+		new GetJourneysAsyncTask(new GetJourneysAsyncTask.JourneyReceiver() {
+			@Override
+			public void getJourneys(List<Journey> journeys) {
+				JourneyListFragment.this.getJourneys(journeys);
+			}
+		}, db).execute();
 	}
 	private static class GetJourneysAsyncTask extends AsyncTask<Void, Void, List<Journey>> {
+		interface JourneyReceiver{
+			void getJourneys(List<Journey> journeys);
+		}
+
 		JourneyReceiver callback;
 		SongDatabase db;
 		public GetJourneysAsyncTask(JourneyReceiver callback, SongDatabase db){
@@ -83,7 +89,7 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 		}
 	}
 
-	public void getJourneys(List<Journey> journeys){
+	private void getJourneys(List<Journey> journeys){
 		mBrowserAdapter.clear();
 		for(Journey j : journeys){
 			LogHelper.e(TAG, j.toString());

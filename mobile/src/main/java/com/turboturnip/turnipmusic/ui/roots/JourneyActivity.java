@@ -13,10 +13,7 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import org.json.JSONException;
 
-interface SaveJourneyFinishedCallback {
-	void onJourneySaved();
-}
-public class JourneyActivity extends BaseActivity implements SaveJourneyFinishedCallback {
+public class JourneyActivity extends BaseActivity {
 
 	private static final String TAG = LogHelper.makeLogTag(JourneyActivity.class);
 
@@ -47,17 +44,17 @@ public class JourneyActivity extends BaseActivity implements SaveJourneyFinished
 					return;
 				}
 				SongDatabase db = SongDatabase.getInstance(this);
-				new SaveJourneyAsyncTask(this, db, newJourney).execute();
+				new SaveJourneyAsyncTask(new SaveJourneyFinishedCallback() {
+					@Override
+					public void onJourneySaved() {
+						Toast.makeText(JourneyActivity.this, "Saved Journey", Toast.LENGTH_LONG).show();
+					}
+				}, db, newJourney).execute();
 				break;
 			}
 			default:
 				break;
 		}
-	}
-
-	@Override
-	public void onJourneySaved() {
-		Toast.makeText(this, "Saved Journey", Toast.LENGTH_LONG).show();
 	}
 
 	private static class SaveJourneyAsyncTask extends AsyncTask<Void, Void, Void>{
@@ -81,5 +78,9 @@ public class JourneyActivity extends BaseActivity implements SaveJourneyFinished
 		protected void onPostExecute(Void status) {
 			callback.onJourneySaved();
 		}
+	}
+
+	private interface SaveJourneyFinishedCallback{
+		void onJourneySaved();
 	}
 }

@@ -3,40 +3,57 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="96dp"
-    android:paddingStart="24dp">
+    android:layout_height="60dp"
+    android:background="@color/white"
+    android:paddingStart="12dp">
 
     <ImageView
         android:id="@+id/drag_handle"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:layout_marginEnd="24dp"
-        android:tint="@color/grey"
+        android:layout_marginEnd="12dp"
+        android:tint="@color/light_grey"
         app:srcCompat="@drawable/ic_reorder_black_24dp" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/stage_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
+        android:layout_marginEnd="12dp"
         android:layout_toEndOf="@+id/drag_handle"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:textColor="@color/grey"
+        android:textSize="18sp"
+        tools:text="Stage Name" />
 
-        <TextView
-            android:id="@+id/stage_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/black"
-            android:textSize="24sp"
-            android:typeface="normal"
-            tools:text="Stage Name" />
+    <TextView
+        android:id="@+id/stage_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@+id/stage_name"
+        android:gravity="center_vertical"
+        android:textColor="@color/light_grey"
+        android:textSize="18sp"
+        tools:text="Text..." />
 
-        <TextView
-            android:id="@+id/stage_desc"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:text="Text..." />
+    <LinearLayout
+        android:id="@+id/add_button"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:tint="@color/light_grey"
+            app:srcCompat="@drawable/ic_add_black" />
     </LinearLayout>
 
 </RelativeLayout>

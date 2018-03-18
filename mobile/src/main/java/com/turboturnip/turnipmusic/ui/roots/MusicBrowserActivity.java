@@ -47,7 +47,7 @@ public class MusicBrowserActivity extends BaseActivity
 	private Bundle mVoiceSearchParams;
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState) {
+	public void onSaveInstanceState(Bundle outState) {
 		String musicFilter = getFilter();
 		if (musicFilter != null) {
 			outState.putString(SAVED_MUSIC_FILTER, musicFilter);

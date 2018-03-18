@@ -16,6 +16,8 @@
 package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.ActivityManager;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.content.ComponentName;
@@ -32,11 +34,13 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.CardView;
 
+import com.google.android.exoplayer2.C;
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.ui.FullScreenPlayerActivity;
 import com.turboturnip.turnipmusic.ui.roots.MusicBrowserProvider;
 import com.turboturnip.turnipmusic.ui.PlaybackControlsFragment;
+import com.turboturnip.turnipmusic.utils.JSONHelper;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.ResourceHelper;
 
@@ -62,11 +66,24 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
 	public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
 			"com.turboturnip.turnipmusic.CURRENT_MEDIA_DESCRIPTION";
 
+	private static final String IS_SAVED_STATE_KEY = "is_saved_state";
+	private static final String FRAGMENT_STACK_KEY = "fragment_stack";
+	private static final String FRAGMENT_BUNDLE_KEY = "fragment_bundle";
+
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
     private CardView mControlsCardView;
 
-    private List<WeakReference<CommandFragment>> fragmentStack = new ArrayList<>();
+    private class FragmentStackEntry{
+	    WeakReference<CommandFragment> fragment;
+	    Bundle args;
+
+	    public FragmentStackEntry(WeakReference<CommandFragment> fragment, Bundle args){
+	    	this.fragment = fragment;
+	    	this.args = args;
+	    }
+    }
+    private List<FragmentStackEntry> fragmentStack = new ArrayList<>();
 
     private boolean isConnecting = false;
 
@@ -124,7 +141,47 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
         }
     }
 
-    @Override
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		super.onRestoreInstanceState(savedInstanceState);
+		if (!savedInstanceState.getBoolean(IS_SAVED_STATE_KEY, false)) return;
+		Class[] fragmentClasses;
+		Parcelable[] fragmentArguments;
+		try {
+			String[] fragmentClassNames = savedInstanceState.getStringArray(FRAGMENT_STACK_KEY);
+			fragmentClasses = new Class[fragmentClassNames.length];
+			fragmentArguments = savedInstanceState.getParcelableArray(FRAGMENT_BUNDLE_KEY);
+			for (int i = 0; i < fragmentClassNames.length; i++){
+				fragmentClasses[i] = Class.forName(fragmentClassNames[i]);
+			}
+
+			for (int i = 0; i < fragmentClasses.length; i++){
+				navigateToNewFragment(fragmentClasses[i], (Bundle)fragmentArguments[i]);
+			}
+		}catch (NullPointerException e){
+			e.printStackTrace();
+		}catch (ClassNotFoundException e){
+			e.printStackTrace();
+		}
+		LogHelper.e(TAG, "Success loading from args!");
+	}
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+
+		if (fragmentStack.size() == 0) return;
+		outState.putBoolean(IS_SAVED_STATE_KEY, true);
+		String[] fragmentClassNames = new String[fragmentStack.size()];
+		Parcelable[] fragmentArguments = new Parcelable[fragmentStack.size()];
+		for (int i = 0; i < fragmentStack.size(); i++){
+			fragmentClassNames[i] = fragmentStack.get(i).fragment.get().getClass().getName();
+			fragmentArguments[i] = fragmentStack.get(i).args;
+		}
+		outState.putStringArray(FRAGMENT_STACK_KEY, fragmentClassNames);
+		outState.putParcelableArray(FRAGMENT_BUNDLE_KEY, fragmentArguments);
+	}
+
+	@Override
     protected void onStop() {
         super.onStop();
         LogHelper.d(TAG, "Activity onStop");
@@ -264,16 +321,16 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
                 transaction.addToBackStack(null);
             transaction.commit();
 
-            fragmentStack.add(new WeakReference<>(fragment));
+            fragmentStack.add(new FragmentStackEntry(new WeakReference<>(fragment), data));
         }
     }
     protected CommandFragment getCurrentFragment() {
     	if (fragmentStack.isEmpty()) return null;
-        return fragmentStack.get(fragmentStack.size() - 1).get();
+        return fragmentStack.get(fragmentStack.size() - 1).fragment.get();
     }
     protected CommandFragment getPreviousFragment() {
     	if (fragmentStack.size() < 2) return null;
-    	return fragmentStack.get(fragmentStack.size() - 2).get();
+    	return fragmentStack.get(fragmentStack.size() - 2).fragment.get();
     }
 	@Override
 	public void navigateBack() {

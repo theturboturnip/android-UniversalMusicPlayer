@@ -2,6 +2,7 @@ package com.turboturnip.turnipmusic.ui.base;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -35,6 +36,7 @@ public abstract class EditorCommandFragment extends CommandFragment {
 	public void onCreate(@Nullable Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		findEditingObject();
+		setRetainInstance(true);
 	}
 
 	@Nullable
@@ -153,10 +155,15 @@ public abstract class EditorCommandFragment extends CommandFragment {
 		createGenericOption(name, result, R.layout.editor_list_option);
 		return result;
 	}
-	protected RecyclerView createRecycler(String name, RecyclerView.Adapter adapter){
+	protected RecyclerView createLinearRecycler(String name, RecyclerView.Adapter adapter){
 		RecyclerView result = new RecyclerView(getContext());
-		result.setLayoutManager(new LinearLayoutManager(getContext()));
+		LinearLayoutManager manager = new LinearLayoutManager(getContext());
+		result.setLayoutManager(manager);
+		DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(getContext(),
+				manager.getOrientation());
+		result.addItemDecoration(dividerItemDecoration);
 		result.setAdapter(adapter);
+
 		createGenericOption(name, result, R.layout.editor_list_option);
 		return result;
 	}

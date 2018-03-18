@@ -19,9 +19,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="192dp"
-    android:background="@color/turnip_green_dark"
+    android:background="@color/turnip_purple_dark"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="16dp"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark">
-</LinearLayout>
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"></LinearLayout>
