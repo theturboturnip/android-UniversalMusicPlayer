@@ -90,7 +90,7 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 			mBrowserAdapter.addItem(
 					new ListItemData(
 							j.name,
-							j.stages.length + " stages",
+							j.stages.size() + " stages",
 							new EditJourneyOnClickListener(j),
 							new PlayJourneyOnClickListener(j)
 					)

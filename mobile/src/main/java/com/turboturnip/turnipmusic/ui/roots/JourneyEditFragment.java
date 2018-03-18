@@ -2,6 +2,8 @@ package com.turboturnip.turnipmusic.ui.roots;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,13 +16,16 @@ import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.ui.base.EditorCommandFragment;
+import com.turboturnip.turnipmusic.ui.ext.BaseItemTouchHelperCallback;
+import com.turboturnip.turnipmusic.ui.ext.ItemTouchHelperAdapter;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import org.json.JSONException;
 
 import java.util.Arrays;
+import java.util.Collections;
 
-public class JourneyEditFragment extends EditorCommandFragment {
+public class JourneyEditFragment extends EditorCommandFragment{
 
 	private static final String TAG = LogHelper.makeLogTag(JourneyEditFragment.class);
 
@@ -32,7 +37,7 @@ public class JourneyEditFragment extends EditorCommandFragment {
 	private Journey currentlyEditing;
 
 	private EditText nameEditor;
-	private ListView stageList;
+	private RecyclerView stageList;
 
 	private StageAdapter stageAdapter;
 
@@ -40,7 +45,7 @@ public class JourneyEditFragment extends EditorCommandFragment {
 	public void findEditingObject(){
 		Bundle args = getArguments();
 		if (args.getBoolean(IS_NEW_JOURNEY_KEY, false)) {
-			currentlyEditing = new Journey(0, "", defaultStage());
+			currentlyEditing = new Journey(0, "", defaultStage(), defaultStage(), defaultStage());
 		}else {
 			try {
 				currentlyEditing = new Journey(args.getString(JOURNEY_TO_EDIT_KEY));
@@ -51,60 +56,24 @@ public class JourneyEditFragment extends EditorCommandFragment {
 		}
 	}
 
-	/*@Nullable
-	@Override
-	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-		View rootView = inflater.inflate(R.layout.fragment_journey_editor, container, false);
-
-		nameEditor = rootView.findViewById(R.id.name_field);
-		nameEditor.addTextChangedListener(new TextWatcher() {
-			@Override
-			public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-			@Override
-			public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
-			@Override
-			public void afterTextChanged(Editable editable) {
-				updateJourneyFromUI();
-			}
-		});
-		stageList = rootView.findViewById(R.id.stage_list);
-		stageAdapter = new StageAdapter();
-		stageList.setAdapter(stageAdapter);
-		cancelButton = rootView.findViewById(R.id.cancel_button);
-		cancelButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				mCommandListener.navigateBack();
-			}
-		});
-		applyButton = rootView.findViewById(R.id.apply_button);
-		applyButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-
-			}
-		});
-		updateUIFromJourney();
-
-		currentInstance = new WeakReference<>(this);
-
-		return rootView;
-	}*/
 	@Override
 	protected void updateTitle(){
 		mCommandListener.setToolbarTitle("Editing Journey");
 	}
 
 	private Journey.Stage defaultStage(){
-		return new Journey.Stage("Stage #" + (currentlyEditing == null ? 1 : (currentlyEditing.stages.length + 1)), Journey.Stage.PlayType.Repeat, 0, null, new MusicFilter());
+		return new Journey.Stage("Stage #" + (currentlyEditing == null ? 1 : (currentlyEditing.stages.size() + 1)), Journey.Stage.PlayType.Repeat, 0, null, new MusicFilter());
 	}
 
 	@Override
 	protected void createEditUI() {
 		nameEditor = createTextField("Name");
 		stageAdapter = new StageAdapter();
-		stageList = createList("Stages", stageAdapter);
+		ItemTouchHelper.Callback callback =
+				new BaseItemTouchHelperCallback(stageAdapter);
+		ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+		stageList = createRecycler("Stages", stageAdapter);
+		touchHelper.attachToRecyclerView(stageList);
 	}
 
 	@Override
@@ -143,11 +112,11 @@ public class JourneyEditFragment extends EditorCommandFragment {
 	}
 
 	public void updateStage(Journey.Stage stage, int index){
-		if (currentlyEditing.stages.length < index) return;
-		else if (currentlyEditing.stages.length == index){
+		/*if (currentlyEditing.stages.size() < index) return;
+		else if (currentlyEditing.stages.size() == index){
 			currentlyEditing.stages = Arrays.copyOf(currentlyEditing.stages, index + 1);
-		}
-		currentlyEditing.stages[index] = stage;
+		}*/
+		currentlyEditing.stages.set(index, stage);
 		LogHelper.e(TAG, stage);
 		applyObjectValuesToUI();
 	}
@@ -162,53 +131,81 @@ public class JourneyEditFragment extends EditorCommandFragment {
 		@Override
 		public void onClick(View view) {
 			Bundle data = new Bundle();
-			data.putString(JourneyStageEditFragment.STAGE_TO_EDIT_KEY, currentlyEditing.stages[indexToChange].toString());
+			data.putString(JourneyStageEditFragment.STAGE_TO_EDIT_KEY, currentlyEditing.stages.get(indexToChange).toString());
 			data.putInt(JourneyStageEditFragment.STAGE_INDEX_KEY, indexToChange);
 			mCommandListener.navigateToNewFragment(JourneyStageEditFragment.class, data);
 		}
 	}
 
-	private class StageCachedViews{
+	private static class StageCachedViews{
 		TextView nameTextView, subtitleTextView;
 		StageCachedViews(View baseView){
 			nameTextView = baseView.findViewById(R.id.stage_name);
 			subtitleTextView = baseView.findViewById(R.id.stage_desc);
 		}
 	}
-	private class StageAdapter extends BaseAdapter {
-		private static final int STAGE_TYPE = 0, ADD_STAGE_BUTTON_TYPE = 1;
+	public static class StageViewHolder extends RecyclerView.ViewHolder{
+		public View parentView;
+		public StageCachedViews cachedViews;
 
+		public StageViewHolder(View parentView){
+			super(parentView);
+			this.parentView = parentView;
+			cachedViews = new StageCachedViews(parentView);
+		}
+	}
+	private class StageAdapter extends RecyclerView.Adapter<StageViewHolder> implements ItemTouchHelperAdapter {
 		@Override
-		public int getItemViewType(int position) {
-			return position < currentlyEditing.stages.length ? STAGE_TYPE : ADD_STAGE_BUTTON_TYPE;
+		public void onItemMove(int fromPosition, int toPosition) {
+			if (fromPosition < toPosition) {
+				for (int i = fromPosition; i < toPosition; i++) {
+					Collections.swap(currentlyEditing.stages, i, i + 1);
+				}
+			} else {
+				for (int i = fromPosition; i > toPosition; i--) {
+					Collections.swap(currentlyEditing.stages, i, i - 1);
+				}
+			}
+			notifyItemMoved(fromPosition, toPosition);
+		}
+		@Override
+		public void onItemDismiss(int position) {
+			currentlyEditing.stages.remove(position);
+			notifyItemRemoved(position);
 		}
 
+
+		// Create new views (invoked by the layout manager)
 		@Override
-		public int getViewTypeCount() {
-			return 2;
+		public StageViewHolder onCreateViewHolder(ViewGroup parent,
+		                                               int viewType) {
+			// create a new view
+			View rootView = LayoutInflater.from(parent.getContext())
+					.inflate(R.layout.stage_list_item, parent, false);
+			StageViewHolder vh = new StageViewHolder(rootView);
+			return vh;
 		}
 
+		// Replace the contents of a view (invoked by the layout manager)
 		@Override
-		public int getCount() {
-			return currentlyEditing.stages.length + 1;
+		public void onBindViewHolder(StageViewHolder holder, int position) {
+			final Journey.Stage item = currentlyEditing.stages.get(position);
+
+			// - get element from your dataset at this position
+			// - replace the contents of the view with that element
+			holder.cachedViews.nameTextView.setText(item.name);
+			holder.cachedViews.subtitleTextView.setText(item.playType.toString() + " " + (item.playCount == 0 ? "forever" : (item.playCount + " songs")));
+			holder.parentView.setOnClickListener(new EditStageOnClickListener(position));
 		}
 
+		// Return the size of your dataset (invoked by the layout manager)
 		@Override
-		public Journey.Stage getItem(int position) {
-			return position < currentlyEditing.stages.length ? currentlyEditing.stages[position] : null;
+		public int getItemCount() {
+			return currentlyEditing.stages.size();
 		}
 
-		@Override
-		public long getItemId(int position) {
-			return position;
-		}
 
-		@Override
-		public boolean isEnabled(int position){
-			return false;
-		}
-
-		@NonNull
+		/*@NonNull
 		@Override
 		public View getView(int position, View convertView, @NonNull ViewGroup parent) {
 			int type = getItemViewType(position);
@@ -236,11 +233,11 @@ public class JourneyEditFragment extends EditorCommandFragment {
 				convertView.findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
 					@Override
 					public void onClick(View view) {
-						updateStage(defaultStage(), currentlyEditing.stages.length);
+						updateStage(defaultStage(), currentlyEditing.stages.size());
 					}
 				});
 			}
 			return convertView;
-		}
+		}*/
 	}
 }

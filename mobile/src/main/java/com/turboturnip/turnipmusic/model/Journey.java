@@ -8,7 +8,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class Journey {
@@ -122,23 +126,23 @@ public class Journey {
 	}
 	public final int id;
 	public String name;
-	public Stage[] stages;
+	public LinkedList<Stage> stages;
 
 	public Journey(String name, MusicFilter singleFilter){
 		this.id = 0;
 		this.name = name;
-		stages = new Stage[]{
+		stages = new LinkedList<>(Arrays.asList(
 			new Stage("", Stage.PlayType.Repeat, 0, null, singleFilter)
-		};
+		));
 	}
 	public Journey(String json) throws JSONException{
 		JSONObject decodedObject = JSONHelper.typeCheckJSONObject(json, JSON_TYPE_VALUE);
 		id = decodedObject.getInt(JSON_ID_KEY);
 		name = decodedObject.getString(JSON_NAME_KEY);
 		JSONArray jsonStages = decodedObject.getJSONArray(JSON_STAGES_KEY);
-		stages = new Stage[jsonStages.length()];
+		stages = new LinkedList<>();
 		for (int i = 0; i < jsonStages.length(); i++){
-			stages[i] = new Stage(jsonStages.getJSONObject(i));
+			stages.add(new Stage(jsonStages.getJSONObject(i)));
 		}
 	}
 	public Journey(String name, Stage... stages){
@@ -147,7 +151,7 @@ public class Journey {
 	public Journey(int id, String name, Stage... stages){
 		this.id = id;
 		this.name = name;
-		this.stages = stages;
+		this.stages = new LinkedList<>(Arrays.asList(stages));
 	}
 
 	@Override

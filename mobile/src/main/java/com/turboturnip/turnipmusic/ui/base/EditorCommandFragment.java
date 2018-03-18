@@ -2,12 +2,15 @@ package com.turboturnip.turnipmusic.ui.base;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -147,6 +150,13 @@ public abstract class EditorCommandFragment extends CommandFragment {
 		result.setAdapter(adapter);
 		startWatchingField(result);
 
+		createGenericOption(name, result, R.layout.editor_list_option);
+		return result;
+	}
+	protected RecyclerView createRecycler(String name, RecyclerView.Adapter adapter){
+		RecyclerView result = new RecyclerView(getContext());
+		result.setLayoutManager(new LinearLayoutManager(getContext()));
+		result.setAdapter(adapter);
 		createGenericOption(name, result, R.layout.editor_list_option);
 		return result;
 	}
