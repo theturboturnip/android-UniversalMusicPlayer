@@ -23,7 +23,7 @@ import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 
 import java.util.List;
 
-public class MusicListCommandFragment extends ItemListCommandFragment {
+public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(MusicListCommandFragment.class);
 
 	// Extra states for the list items to have

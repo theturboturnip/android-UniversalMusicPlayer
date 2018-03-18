@@ -2,14 +2,10 @@ package com.turboturnip.turnipmusic.ui.roots;
 
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -17,34 +13,32 @@ import android.widget.TextView;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
-import com.turboturnip.turnipmusic.ui.base.CommandFragment;
+import com.turboturnip.turnipmusic.ui.base.EditorCommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import org.json.JSONException;
 
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 
-public class JourneyEditFragment extends CommandFragment {
+public class JourneyEditFragment extends EditorCommandFragment {
 
 	private static final String TAG = LogHelper.makeLogTag(JourneyEditFragment.class);
 
 	public static final String IS_NEW_JOURNEY_KEY = "NEW";
 	public static final String JOURNEY_TO_EDIT_KEY = "TO_EDIT";
+	public static final String NEW_STAGE_KEY = "NEWSTAGE";
+	public static final String NEW_STAGE_INDEX_KEY = "NEWSTAGEINDEX";
+
 	private Journey initialVersion;
 	private Journey currentlyEditing;
 
 	private EditText nameEditor;
 	private ListView stageList;
-	private Button cancelButton, applyButton;
 
 	private StageAdapter stageAdapter;
 
-	public static WeakReference<JourneyEditFragment> currentInstance;
-
 	@Override
-	public void onCreate(Bundle savedInstanceState){
-		super.onCreate(savedInstanceState);
+	public void findEditingObject(){
 		Bundle args = getArguments();
 		if (args.getBoolean(IS_NEW_JOURNEY_KEY, false)) {
 			currentlyEditing = new Journey("", defaultStage());
@@ -60,7 +54,7 @@ public class JourneyEditFragment extends CommandFragment {
 		}
 	}
 
-	@Nullable
+	/*@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
 		View rootView = inflater.inflate(R.layout.fragment_journey_editor, container, false);
@@ -91,12 +85,7 @@ public class JourneyEditFragment extends CommandFragment {
 		applyButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				Bundle data = new Bundle();
-				data.putInt(JourneyActivity.DATA_TYPE_KEY, JourneyActivity.SAVE_JOURNEY_REQUEST_TYPE);
-				data.putString(JourneyActivity.NEW_JOURNEY_KEY, currentlyEditing.toString());
-				if (initialVersion != null)
-					data.putString(JourneyActivity.OLD_JOURNEY_KEY, initialVersion.toString());
-				mCommandListener.getDataFromFragment(data);
+
 			}
 		});
 		updateUIFromJourney();
@@ -104,7 +93,7 @@ public class JourneyEditFragment extends CommandFragment {
 		currentInstance = new WeakReference<>(this);
 
 		return rootView;
-	}
+	}*/
 	@Override
 	protected void updateTitle(){
 		mCommandListener.setToolbarTitle("Editing Journey");
@@ -114,22 +103,48 @@ public class JourneyEditFragment extends CommandFragment {
 		return new Journey.Stage("Stage #" + (currentlyEditing == null ? 1 : (currentlyEditing.stages.length + 1)), Journey.Stage.PlayType.Repeat, 0, null, new MusicFilter());
 	}
 
-	void updateUIFromJourney(){
+	@Override
+	protected void createEditUI() {
+		nameEditor = createTextField("Name");
+		stageAdapter = new StageAdapter();
+		stageList = createList("Stages", stageAdapter);
+	}
+
+	@Override
+	protected void applyObjectValuesToUI() {
 		nameEditor.setText(currentlyEditing.name);
 		stageAdapter.notifyDataSetChanged();
-		stageList.setVisibility(View.INVISIBLE);
-		stageList.setVisibility(View.VISIBLE);
-		updateApplyButtonVisibility();
 	}
-	void updateJourneyFromUI(){
+	@Override
+	protected void applyUIValuesToObject(){
 		currentlyEditing.name = nameEditor.getText().toString();
-		updateApplyButtonVisibility();
 	}
-	void updateApplyButtonVisibility(){
-		if (currentlyEditing.name.length() == 0){
-			applyButton.setVisibility(View.GONE);
-		}else
-			applyButton.setVisibility(View.VISIBLE);
+	@Override
+	protected boolean canApply(){
+		if (currentlyEditing.name.length() == 0) return false;
+		return true;
+	}
+
+	@Override
+	protected void onApply() {
+		Bundle data = new Bundle();
+		data.putInt(JourneyActivity.DATA_TYPE_KEY, JourneyActivity.SAVE_JOURNEY_REQUEST_TYPE);
+		data.putString(JourneyActivity.NEW_JOURNEY_KEY, currentlyEditing.toString());
+		if (initialVersion != null)
+			data.putString(JourneyActivity.OLD_JOURNEY_KEY, initialVersion.toString());
+		mCommandListener.getDataFromFragment(data);
+	}
+
+	@Override
+	public void getDataFromChildFragment(Bundle data) {
+		super.getDataFromChildFragment(data);
+
+		if (!data.containsKey(NEW_STAGE_KEY)) return;
+		try{
+			updateStage(new Journey.Stage(data.getString(NEW_STAGE_KEY)), data.getInt(NEW_STAGE_INDEX_KEY));
+		}catch(JSONException e){
+			e.printStackTrace();
+		}
 	}
 
 	public void updateStage(Journey.Stage stage, int index){
@@ -138,7 +153,8 @@ public class JourneyEditFragment extends CommandFragment {
 			currentlyEditing.stages = Arrays.copyOf(currentlyEditing.stages, index + 1);
 		}
 		currentlyEditing.stages[index] = stage;
-		updateUIFromJourney();
+		LogHelper.e(TAG, stage);
+		applyObjectValuesToUI();
 	}
 
 	private class EditStageOnClickListener implements View.OnClickListener{

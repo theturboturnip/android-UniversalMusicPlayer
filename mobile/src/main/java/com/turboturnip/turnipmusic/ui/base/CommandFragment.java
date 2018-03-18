@@ -1,7 +1,7 @@
 package com.turboturnip.turnipmusic.ui.base;
 
-import android.app.Activity;
-import android.app.Fragment;
+import android.content.Context;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 
@@ -10,9 +10,12 @@ import com.turboturnip.turnipmusic.ui.roots.MusicBrowserProvider;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 
-public class CommandFragment extends Fragment {
+public abstract class CommandFragment extends Fragment {
 	private static final String TAG = LogHelper.makeLogTag(CommandFragment.class);
 	public static final String ARG_MUSIC_FILTER = "music_filter";
+
+	// Any data sent back where the boolean assigned to this tag is true should be rerouted to the previous fragment if it exists.
+	public static final String PASS_BACK_TAG = "PASSBACK";
 
 	protected CommandFragmentListener mCommandListener = null;
 	protected MusicFilter mMusicFilter;
@@ -22,11 +25,13 @@ public class CommandFragment extends Fragment {
 	}
 
 	@Override
-	public void onAttach(Activity activity) {
-		super.onAttach(activity);
-		// If used on an activity that doesn't implement MediaFragmentListener, it
-		// will throw an exception as expected:
-		mCommandListener = (CommandFragmentListener) activity;
+	public void onAttach(Context context) {
+		super.onAttach(context);
+
+		if (!(context instanceof CommandFragmentListener))
+			throw new RuntimeException("CommandFragments must ONLY be created as children of CommandFragmentListeners");
+
+		mCommandListener = (CommandFragmentListener) context;
 	}
 	@Override
 	public void onDetach(){
@@ -82,15 +87,18 @@ public class CommandFragment extends Fragment {
 		updateTitle();
 	}
 
-	protected void updateTitle(){
-		mCommandListener.setToolbarTitle("Default Title");
+	protected abstract void updateTitle();
+
+	public void getDataFromChildFragment(Bundle data){
+		if (!data.getBoolean(PASS_BACK_TAG, false))
+			throw new RuntimeException("Data was passed back even though it didn't have the correct tag!");
 	}
 
 	public interface CommandFragmentListener extends MusicBrowserProvider {
 		void setToolbarTitle(CharSequence title);
-		CommandFragment navigateToNewFragment(Class newFragmentClass, Bundle initData);
-		void onMediaItemSelected(MediaBrowserCompat.MediaItem filter);
-		void onMediaItemPlayed(MediaBrowserCompat.MediaItem filter);
+		void navigateToNewFragment(Class newFragmentClass, Bundle initData);
+		void onMediaItemSelected(MediaBrowserCompat.MediaItem item);
+		void onMediaItemPlayed(MediaBrowserCompat.MediaItem item);
 		void getDataFromFragment(Bundle data);
 		void navigateBack();
 	}

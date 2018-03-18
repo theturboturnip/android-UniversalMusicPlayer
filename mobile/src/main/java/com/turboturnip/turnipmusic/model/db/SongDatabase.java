@@ -66,8 +66,8 @@ public abstract class SongDatabase extends RoomDatabase {
 	}
 	public void renameJourney(Journey journey, Journey oldVersion){
 		int oldId = new JourneyEntity(oldVersion).id;
-		journeyDao().removeJourney(oldId);
 		journeyStageJoinDao().deleteJoinsForJourney(oldId);
+		journeyDao().removeJourney(oldVersion.name);
 		insertJourney(journey);
 	}
 	public void insertJourney(Journey journey){

@@ -22,7 +22,7 @@ import com.turboturnip.turnipmusic.utils.NetworkHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemListCommandFragment extends CommandFragment {
+public abstract class ItemListCommandFragment extends CommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(ItemListCommandFragment.class);
 
 	static { AppCompatDelegate.setCompatVectorFromResourcesEnabled(true); }

@@ -26,7 +26,7 @@ import android.view.MenuItem;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.ui.base.BrowserActivity;
+import com.turboturnip.turnipmusic.ui.base.BaseActivity;
 import com.turboturnip.turnipmusic.ui.base.CommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
@@ -36,7 +36,7 @@ import com.turboturnip.turnipmusic.utils.LogHelper;
  * when it is created and connect/disconnect on start/stop. Thus, a MediaBrowser will be always
  * connected while this activity is running.
  */
-public class MusicBrowserActivity extends BrowserActivity
+public class MusicBrowserActivity extends BaseActivity
         implements CommandFragment.CommandFragmentListener{
 
 	private static final String TAG = LogHelper.makeLogTag(MusicBrowserActivity.class);

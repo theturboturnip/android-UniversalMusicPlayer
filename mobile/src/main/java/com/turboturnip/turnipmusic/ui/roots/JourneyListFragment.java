@@ -142,7 +142,8 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 		}
 	}
 
-	public void createNewJourney(){
-		//mCommandListener.navigateToNewFragment(JourneyEditorFragment.class, );
+	@Override
+	protected void updateTitle() {
+		mCommandListener.setToolbarTitle("Journeys");
 	}
 }

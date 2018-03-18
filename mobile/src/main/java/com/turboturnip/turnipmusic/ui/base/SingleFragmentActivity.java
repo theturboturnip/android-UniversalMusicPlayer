@@ -7,7 +7,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import com.turboturnip.turnipmusic.ui.roots.QueueActivity;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
-public abstract class SingleFragmentActivity extends BrowserActivity {
+public abstract class SingleFragmentActivity extends BaseActivity {
 	private static final String TAG = LogHelper.makeLogTag(QueueActivity.class);
 
 	@Override

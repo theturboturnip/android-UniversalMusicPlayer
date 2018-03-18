@@ -16,7 +16,8 @@
 package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.ActivityManager;
-import android.app.FragmentTransaction;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
@@ -39,12 +40,16 @@ import com.turboturnip.turnipmusic.ui.PlaybackControlsFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 import com.turboturnip.turnipmusic.utils.ResourceHelper;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BrowserActivity extends ActionBarCastActivity implements MusicBrowserProvider, CommandFragment.CommandFragmentListener {
+public abstract class BaseActivity extends ActionBarCastActivity implements MusicBrowserProvider, CommandFragment.CommandFragmentListener {
 
-    private static final String TAG = LogHelper.makeLogTag(BrowserActivity.class);
+    private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
     private static final String FRAGMENT_TAG = "turnipmusic_fragment_container";
 	public static final String EXTRA_START_FULLSCREEN =
 			"com.turboturnip.turnipmusic.EXTRA_START_FULLSCREEN";
@@ -60,6 +65,10 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
     private CardView mControlsCardView;
+
+    private List<WeakReference<CommandFragment>> fragmentStack = new ArrayList<>();
+
+    private boolean isConnecting = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,7 +109,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
         super.onStart();
         LogHelper.d(TAG, "Activity onStart");
 
-        mControlsFragment = (PlaybackControlsFragment) getFragmentManager()
+        mControlsFragment = (PlaybackControlsFragment) getSupportFragmentManager()
             .findFragmentById(R.id.fragment_playback_controls);
         if (mControlsFragment == null) {
             throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
@@ -109,7 +118,10 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
 
         hidePlaybackControls();
 
-        mMediaBrowser.connect();
+        if (!isConnecting) {
+	        mMediaBrowser.connect();
+	        isConnecting = true;
+        }
     }
 
     @Override
@@ -156,7 +168,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
     }
 
     protected void onMediaControllerConnected() {
-        // empty implementation, can be overridden by clients.
+        isConnecting = false;
     }
 
 	@Override
@@ -169,7 +181,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
 
     protected void showPlaybackControls() {
         LogHelper.d(TAG, "showPlaybackControls");
-        getFragmentManager().beginTransaction()
+        getSupportFragmentManager().beginTransaction()
             .setCustomAnimations(
                 R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom,
                 R.animator.slide_in_from_bottom, R.animator.slide_out_to_bottom)
@@ -180,7 +192,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
     protected void hidePlaybackControls() {
         LogHelper.d(TAG, "hidePlaybackControls");
         // TODO: Animate the card view
-        getFragmentManager().beginTransaction()
+        getSupportFragmentManager().beginTransaction()
             .hide(mControlsFragment)
             .commit();
     }
@@ -230,7 +242,7 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
     }
 
     protected abstract void initializeFromParams(Bundle savedInstanceState, Intent intent);
-    public CommandFragment navigateToNewFragment(Class fragmentClass, Bundle data){
+    public void navigateToNewFragment(Class fragmentClass, Bundle data){
         CommandFragment fragment = getCurrentFragment();
 
         if (fragment == null || !fragment.getArguments().equals(data) || !fragmentClass.isInstance(fragment)){
@@ -238,14 +250,12 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
                 fragment = (CommandFragment)fragmentClass.newInstance();
             }catch (InstantiationException e){
                 e.printStackTrace();
-                return null;
             }catch (IllegalAccessException e){
                 e.printStackTrace();
-                return null;
             }
             fragment.setArguments(data);
 
-            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.setCustomAnimations(
                     R.animator.slide_in_from_right, R.animator.slide_out_to_left,
                     R.animator.slide_in_from_left, R.animator.slide_out_to_right);
@@ -253,15 +263,36 @@ public abstract class BrowserActivity extends ActionBarCastActivity implements M
             if (!fragment.isRoot())
                 transaction.addToBackStack(null);
             transaction.commit();
+
+            fragmentStack.add(new WeakReference<>(fragment));
         }
-        return fragment;
     }
     protected CommandFragment getCurrentFragment() {
-        return (CommandFragment) getFragmentManager().findFragmentByTag(FRAGMENT_TAG);
+    	if (fragmentStack.isEmpty()) return null;
+        return fragmentStack.get(fragmentStack.size() - 1).get();
+    }
+    protected CommandFragment getPreviousFragment() {
+    	if (fragmentStack.size() < 2) return null;
+    	return fragmentStack.get(fragmentStack.size() - 2).get();
     }
 	@Override
 	public void navigateBack() {
-		getFragmentManager().popBackStackImmediate();
+		getSupportFragmentManager().popBackStackImmediate();
+		fragmentStack.remove(fragmentStack.size() - 1);
+	}
+
+	@Override
+	public void onBackPressed() {
+    	LogHelper.e(TAG, "BACCC");
+		if (!fragmentStack.isEmpty())
+			fragmentStack.remove(fragmentStack.size() - 1);
+		super.onBackPressed();
+	}
+
+	@Override
+	public void getDataFromFragment(Bundle data) {
+		if (data.getBoolean(CommandFragment.PASS_BACK_TAG, false) && getPreviousFragment() != null)
+			getPreviousFragment().getDataFromChildFragment(data);
 	}
 
 	// MusicCatalogCallback that ensures that we are showing the controls

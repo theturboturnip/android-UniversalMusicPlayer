@@ -3,31 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="16dp">
 
-    <EditText
-        android:id="@+id/name_field"
+    <LinearLayout
+        android:id="@+id/options"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="Name"
-        android:inputType="textCapWords" />
-
-    <ListView
-        android:id="@+id/stage_list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/name_field"
-        android:divider="@null"
+        android:layout_above="@+id/buttons"
+        android:layout_alignParentTop="true"
         android:dividerHeight="0dp"
-        android:footerDividersEnabled="false"
-        android:headerDividersEnabled="false"
-        android:scrollbars="vertical">
-
-    </ListView>
+        android:orientation="vertical"
+        android:scrollbars="vertical"></LinearLayout>
 
     <RelativeLayout
+        android:id="@+id/buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true">
@@ -44,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:layout_alignParentStart="false"
             android:text="Apply" />
     </RelativeLayout>
-
 </RelativeLayout>

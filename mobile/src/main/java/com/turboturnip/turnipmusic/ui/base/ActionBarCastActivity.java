@@ -16,7 +16,7 @@
 package com.turboturnip.turnipmusic.ui.base;
 
 import android.app.ActivityOptions;
-import android.app.FragmentManager;
+import android.support.v4.app.FragmentManager;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -170,13 +170,13 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
 	    // Whenever the fragment back stack changes, we may need to update the
 	    // action bar toggle: only top level screens show the hamburger-like icon, inner
 	    // screens - either Activities or fragments - show the "Up" icon instead.
-	    getFragmentManager().addOnBackStackChangedListener(mBackStackChangedListener);
+	    getSupportFragmentManager().addOnBackStackChangedListener(mBackStackChangedListener);
     }
 
     @Override
     protected void onStop(){
     	super.onStop();
-	    getFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
+	    getSupportFragmentManager().removeOnBackStackChangedListener(mBackStackChangedListener);
     }
 
     @Override
@@ -246,7 +246,7 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
             return;
         }
         // Otherwise, it may return to the previous fragment stack
-        FragmentManager fragmentManager = getFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         if (fragmentManager.getBackStackEntryCount() > 0) {
             fragmentManager.popBackStack();
         } else {
@@ -323,9 +323,9 @@ public abstract class ActionBarCastActivity extends AppCompatActivity {
         if (mDrawerToggle == null) {
             return;
         }
-        boolean isRoot = getFragmentManager().getBackStackEntryCount() == 0;
+        boolean isRoot = getSupportFragmentManager().getBackStackEntryCount() == 0;
         mDrawerToggle.setDrawerIndicatorEnabled(isRoot);
-        LogHelper.d(TAG, "Is currently root: ", isRoot, " because backStackEntryCount = ", getFragmentManager().getBackStackEntryCount());
+        LogHelper.d(TAG, "Is currently root: ", isRoot, " because backStackEntryCount = ", getSupportFragmentManager().getBackStackEntryCount());
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowHomeEnabled(!isRoot);
             getSupportActionBar().setDisplayHomeAsUpEnabled(!isRoot);

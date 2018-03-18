@@ -41,4 +41,7 @@
     <!-- Margins for full screen activity-->
     <dimen name="text_view_margin">16dp</dimen>
     <dimen name="end_text_margin">16dp</dimen>
+
+    <dimen name="edit_option_height">48dp</dimen>
+    <dimen name="edit_option_dropdown_text_height">24dp</dimen>
 </resources>

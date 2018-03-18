@@ -40,6 +40,7 @@ public class JSONHelper {
 		private static final String JSON_POOL_WEIGHTS_KEY = "poolWeights";
 
 		public static String encode(TurboShuffleConfig config){
+			if (config == null) return "null";
 			JSONStringer stringer = new JSONStringer();
 			try {
 				encode(config, stringer);
@@ -51,7 +52,6 @@ public class JSONHelper {
 		}
 		public static void encode(TurboShuffleConfig config, JSONStringer stringer) throws JSONException{
 			if (config == null){
-				stringer.value(null);
 				return;
 			}
 			stringer.object().key(JSON_TYPE_KEY).value(JSON_TYPE_VALUE);

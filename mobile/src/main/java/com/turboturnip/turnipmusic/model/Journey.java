@@ -89,8 +89,10 @@ public class Journey {
 			stringer.key(JSON_NAME_KEY).value(name);
 			stringer.key(JSON_PLAYTYPE_KEY).value(playType.toString());
 			stringer.key(JSON_PLAYCOUNT_KEY).value(playCount);
-			stringer.key(JSON_SHUFFLECONFIG_KEY);
-			JSONHelper.TurboShuffleConfigHandler.encode(shuffleConfig, stringer);
+			if (shuffleConfig != null) {
+				stringer.key(JSON_SHUFFLECONFIG_KEY);
+				JSONHelper.TurboShuffleConfigHandler.encode(shuffleConfig, stringer);
+			}
 			stringer.key(JSON_FILTERS_KEY).array();
 			for (MusicFilter f : filters){
 				stringer.value(f.toString());

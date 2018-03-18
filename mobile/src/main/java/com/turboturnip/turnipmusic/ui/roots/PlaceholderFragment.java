@@ -14,4 +14,9 @@ public class PlaceholderFragment extends CommandFragment {
 	                         Bundle savedInstanceState) {
 		return inflater.inflate(R.layout.fragment_placeholder, container, false);
 	}
+
+	@Override
+	protected void updateTitle() {
+		mCommandListener.setToolbarTitle("Placeholder");
+	}
 }

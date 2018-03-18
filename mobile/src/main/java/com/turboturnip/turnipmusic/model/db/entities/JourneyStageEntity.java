@@ -11,6 +11,7 @@ import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.db.Converters;
 import com.turboturnip.turnipmusic.model.db.DBConstants;
 import com.turboturnip.turnipmusic.utils.JSONHelper;
+import com.turboturnip.turnipmusic.utils.LogHelper;
 
 import org.json.JSONException;
 
@@ -49,6 +50,7 @@ public class JourneyStageEntity {
 		this.filterId = filterId;
 	}
 	public final TurboShuffleConfig getConfig(){
+		if (shuffleConfigJSON == null || shuffleConfigJSON.isEmpty()) return null;
 		try {
 			return JSONHelper.TurboShuffleConfigHandler.decode(JSONHelper.typeCheckJSONObject(shuffleConfigJSON, JSONHelper.TurboShuffleConfigHandler.JSON_TYPE_VALUE));
 		}catch(JSONException e){
