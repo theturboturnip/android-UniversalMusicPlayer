@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity(tableName = DBConstants.TAG_TABLE)
 public class TagEntity {
-	@PrimaryKey
+	@PrimaryKey(autoGenerate = true)
 	public final int id;
 	public final int parentTableId;
 	public final String name;
@@ -23,7 +23,7 @@ public class TagEntity {
 	}
 	@Ignore
 	public TagEntity(String name, TagEntity parent){
-		this.id = UUID.randomUUID().hashCode();
+		this.id = 0;
 		this.name = name;
 		this.parentTableId = parent.id;
 	}

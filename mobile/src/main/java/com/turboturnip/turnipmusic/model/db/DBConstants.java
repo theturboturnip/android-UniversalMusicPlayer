@@ -8,5 +8,4 @@ public class DBConstants {
 	public static final String JOURNEY_TABLE = "Journeys";
 	public static final String JOURNEY_STAGE_TABLE = "JourneyStages";
 	public static final String JOURNEY_STAGE_JOIN_TABLE = "JourneyStageJoinEntity";
-	public static final String FILTER_TABLE = "Filters";
 }

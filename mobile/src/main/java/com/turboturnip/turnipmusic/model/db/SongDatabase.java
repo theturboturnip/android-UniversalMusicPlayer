@@ -13,7 +13,7 @@ import com.turboturnip.turnipmusic.model.db.entities.*;
 import java.util.List;
 
 // TODO: Multiple filter support in stages!
-@Database(entities = { SongEntity.class, TagEntity.class, SongTagJoinEntity.class, AlbumEntity.class, FilterEntity.class, JourneyEntity.class, JourneyStageEntity.class, JourneyStageJoinEntity.class },
+@Database(entities = { SongEntity.class, TagEntity.class, SongTagJoinEntity.class, AlbumEntity.class, JourneyEntity.class, JourneyStageEntity.class, JourneyStageJoinEntity.class },
 		version = 1)
 public abstract class SongDatabase extends RoomDatabase {
 
@@ -26,7 +26,6 @@ public abstract class SongDatabase extends RoomDatabase {
 	public abstract JourneyEntityDao journeyDao();
 	public abstract JourneyStageEntityDao journeyStageDao();
 	public abstract JourneyStageJoinEntityDao journeyStageJoinDao();
-	public abstract FilterEntityDao filterDao();
 
 	public static SongDatabase getInstance(Context context) {
 		if (INSTANCE == null) {
@@ -44,7 +43,6 @@ public abstract class SongDatabase extends RoomDatabase {
 	// TODO
 	public void clean(){
 		// Remove tags without songs
-		// Remove filters without stages
 	}
 	// TODO
 	public void clearAllDatabases(){
@@ -59,28 +57,29 @@ public abstract class SongDatabase extends RoomDatabase {
 		Journey.Stage[] stages = new Journey.Stage[stageEntities.size()];
 		for (int i = 0; i < stages.length; i++){
 			JourneyStageEntity stageEntity = stageEntities.get(i);
-			MusicFilter filter = filterDao().getFilter(stageEntity.filterId).getMusicFilter();
-			stages[i] = stageEntity.getStage(filter);
+			stages[i] = stageEntity.getStage();
 		}
-		return new Journey(entity.name, stages);
-	}
-	public void renameJourney(Journey journey, Journey oldVersion){
-		int oldId = new JourneyEntity(oldVersion).id;
-		journeyStageJoinDao().deleteJoinsForJourney(oldId);
-		journeyDao().removeJourney(oldVersion.name);
-		insertJourney(journey);
+		return new Journey(entity.id, entity.name, stages);
 	}
 	public void insertJourney(Journey journey){
+		int id = journey.id;
 		JourneyEntity journeyEntity = new JourneyEntity(journey);
-		journeyDao().insertJourney(journeyEntity);
-		journeyStageJoinDao().deleteJoinsForJourney(journeyEntity.id);
+		if (id > 0) {
+			journeyDao().updateJourney(journeyEntity);
+			journeyStageJoinDao().deleteJoinsForJourney(id);
+		}else {
+			id = (int) journeyDao().insertJourney(journeyEntity);
+		}
 		int i = 0;
 		for (Journey.Stage s : journey.stages){
-			FilterEntity filterEntity = new FilterEntity(s.filters[0]);
-			filterDao().insertFilter(filterEntity);
-			JourneyStageEntity stageEntity = new JourneyStageEntity(s, filterEntity.id);
-			journeyStageDao().insertStage(stageEntity);
-			journeyStageJoinDao().insertJoin(new JourneyStageJoinEntity(journeyEntity.id, stageEntity.id, i));
+			JourneyStageEntity stageEntity = new JourneyStageEntity(s);
+			int stageId = stageEntity.id;
+			if (stageId > 0) {
+				journeyStageDao().updateStage(stageEntity);
+			}else{
+				stageId = (int) journeyStageDao().insertStage(stageEntity);
+			}
+			journeyStageJoinDao().insertJoin(new JourneyStageJoinEntity(id, stageId, i));
 			i++;
 		}
 	}

@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Entity(tableName = DBConstants.SONG_TABLE)
 public class SongEntity {
-	@PrimaryKey
-	public final int id;
+	@PrimaryKey(autoGenerate = true)
+	private int id;
 	public final String mediaId;
 	public final String name;
 	public final int albumId;
@@ -24,7 +24,7 @@ public class SongEntity {
 	}
 	@Ignore
 	public SongEntity(String mediaId, String name, int albumId, int albumIndex){
-		this.id = mediaId.hashCode();
+		this.id = 0;
 		this.mediaId = mediaId;
 		this.name = name;
 		this.albumId = albumId;
@@ -37,4 +37,7 @@ public class SongEntity {
 		this.albumId = albumId;
 		this.albumIndex = albumIndex;
 	}
+
+	public int getId(){return id;}
+	public void setId(int newId){id = newId;}
 }

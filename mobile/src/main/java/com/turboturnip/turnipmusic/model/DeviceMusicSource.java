@@ -75,7 +75,7 @@ public class DeviceMusicSource implements MusicProviderSource {
 				int totalTrackCount = (int)albumCursor.getLong(albumTotalSongsColumn);
 				AlbumEntity preexistingEntity = db.albumDao().getAlbumByName(albumName);
 				if (preexistingEntity != null)
-					db.albumDao().insertAlbum(new AlbumEntity(preexistingEntity.id, albumName, totalTrackCount, artPath));
+					db.albumDao().updateAlbum(new AlbumEntity(preexistingEntity.getId(), albumName, totalTrackCount, artPath));
 				else
 					db.albumDao().insertAlbum(new AlbumEntity(albumName, totalTrackCount, artPath));
 			} while (albumCursor.moveToNext());
@@ -114,18 +114,18 @@ public class DeviceMusicSource implements MusicProviderSource {
 					albumEntity = db.albumDao().getAlbumByName(albumName);
 
 					// AlbumEntity cannot be null here, if the previous db update worked.
-					albumID = albumEntity.id;
+					albumID = albumEntity.getId();
 					albumIndex = (int)musicCursor.getLong(trackNumberColumn);
 				} else {
 					String albumName = musicCursor.getString(albumFromMusicColumn);
 					albumEntity = db.albumDao().getAlbumByName(albumName);
 					if (albumEntity == null) {
 						albumEntity = new AlbumEntity(albumName, 1, "");
-						db.albumDao().insertAlbum(albumEntity);
+						albumEntity.setId((int)db.albumDao().insertAlbum(albumEntity));
 					}
-					albumID = albumEntity.id;
+					albumID = albumEntity.getId();
 
-					List<SongEntity> songsInAlbum = db.songDao().getSongsInAlbum(albumEntity.id);
+					List<SongEntity> songsInAlbum = db.songDao().getSongsInAlbum(albumEntity.getId());
 					albumIndex = 0;
 					for (SongEntity s : songsInAlbum){
 						if (s.mediaId.equals(id))
@@ -135,7 +135,7 @@ public class DeviceMusicSource implements MusicProviderSource {
 				}
 
 				SongEntity songEntity = new SongEntity(id, title, albumID, albumIndex);
-				db.songDao().insertSong(songEntity);
+				songEntity.setId((int)db.songDao().insertSong(songEntity));
 
 				tracks.add(new Song(songEntity, albumEntity, filePath, artist, duration, genre));
 			} while (musicCursor.moveToNext());

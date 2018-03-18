@@ -277,8 +277,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
     }
 	@Override
 	public void navigateBack() {
-		getSupportFragmentManager().popBackStackImmediate();
-		fragmentStack.remove(fragmentStack.size() - 1);
+		onBackPressed();//getSupportFragmentManager().popBackStackImmediate();
 	}
 
 	@Override

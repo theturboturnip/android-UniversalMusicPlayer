@@ -134,7 +134,7 @@ public abstract class EditorCommandFragment extends CommandFragment {
 		return result;
 	}
 	protected <E extends Enum<E>> EnumSpinner<E> createEnumSpinner(String name, E... values){
-		EnumSpinner<E> result = new EnumSpinner<>(getContext(), R.layout.edit_dropdown_text, R.id.dropdown_text, values);
+		EnumSpinner<E> result = new EnumSpinner<>(getContext(), R.layout.editor_dropdown_text, R.id.dropdown_text, values);
 		startWatchingField(result);
 
 		createGenericOption(name, result);

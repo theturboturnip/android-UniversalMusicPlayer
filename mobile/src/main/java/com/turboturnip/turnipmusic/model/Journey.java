@@ -12,20 +12,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Journey {
-	public static final String JSON_TYPE_VALUE = "Journey";
-	public static final String JSON_NAME_KEY = "name";
-	public static final String JSON_STAGES_KEY = "stages";
+	static final String JSON_TYPE_VALUE = "Journey";
+	static final String JSON_ID_KEY = "id";
+	static final String JSON_NAME_KEY = "name";
+	static final String JSON_STAGES_KEY = "stages";
 
 	public static class Stage {
-		public static final String JSON_PLAYTYPE_KEY = "playType";
-		public static final String JSON_PLAYCOUNT_KEY = "playCount";
-		public static final String JSON_SHUFFLECONFIG_KEY = "shuffleConfig";
-		public static final String JSON_FILTERS_KEY = "filters";
-		public static final String JSON_TYPE_VALUE = "Stage";
+		static final String JSON_PLAYTYPE_KEY = "playType";
+		static final String JSON_PLAYCOUNT_KEY = "playCount";
+		static final String JSON_SHUFFLECONFIG_KEY = "shuffleConfig";
+		static final String JSON_FILTERS_KEY = "filters";
+		static final String JSON_TYPE_VALUE = "Stage";
 
 		public enum PlayType {
-			Repeat ("REPEAT"),
-			Shuffle ("SHUFFLE");
+			Repeat("Repeat"),
+			Shuffle("Shuffle");
 
 			private final String name;
 
@@ -53,6 +54,7 @@ public class Journey {
 				return this.name;
 			}
 		}
+		public final int id;
 		public String name;
 		public PlayType playType;
 		public int playCount;
@@ -60,6 +62,10 @@ public class Journey {
 		public MusicFilter[] filters;
 
 		public Stage(String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
+			this(0, name, playType, playCount, shuffleConfig, filters);
+		}
+		public Stage(int id, String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
+			this.id = id;
 			this.name = name;
 			this.playType = playType;
 			this.playCount = playCount;
@@ -72,6 +78,7 @@ public class Journey {
 		public Stage(JSONObject sourceObject) throws JSONException{
 			JSONHelper.typeCheckJSONObject(sourceObject, JSON_TYPE_VALUE);
 			name = sourceObject.getString(JSON_NAME_KEY);
+			id = sourceObject.getInt(JSON_ID_KEY);
 			playType = PlayType.valueFor(sourceObject.getString(JSON_PLAYTYPE_KEY));
 			playCount = sourceObject.getInt(JSON_PLAYCOUNT_KEY);
 			if (!sourceObject.isNull(JSON_SHUFFLECONFIG_KEY))
@@ -87,6 +94,7 @@ public class Journey {
 			stringer.object();
 			stringer.key(JSONHelper.JSON_TYPE_KEY).value(JSON_TYPE_VALUE);
 			stringer.key(JSON_NAME_KEY).value(name);
+			stringer.key(JSON_ID_KEY).value(id);
 			stringer.key(JSON_PLAYTYPE_KEY).value(playType.toString());
 			stringer.key(JSON_PLAYCOUNT_KEY).value(playCount);
 			if (shuffleConfig != null) {
@@ -112,10 +120,12 @@ public class Journey {
 			}
 		}
 	}
+	public final int id;
 	public String name;
 	public Stage[] stages;
 
 	public Journey(String name, MusicFilter singleFilter){
+		this.id = 0;
 		this.name = name;
 		stages = new Stage[]{
 			new Stage("", Stage.PlayType.Repeat, 0, null, singleFilter)
@@ -123,6 +133,7 @@ public class Journey {
 	}
 	public Journey(String json) throws JSONException{
 		JSONObject decodedObject = JSONHelper.typeCheckJSONObject(json, JSON_TYPE_VALUE);
+		id = decodedObject.getInt(JSON_ID_KEY);
 		name = decodedObject.getString(JSON_NAME_KEY);
 		JSONArray jsonStages = decodedObject.getJSONArray(JSON_STAGES_KEY);
 		stages = new Stage[jsonStages.length()];
@@ -131,6 +142,10 @@ public class Journey {
 		}
 	}
 	public Journey(String name, Stage... stages){
+		this(0, name, stages);
+	}
+	public Journey(int id, String name, Stage... stages){
+		this.id = id;
 		this.name = name;
 		this.stages = stages;
 	}
@@ -141,6 +156,7 @@ public class Journey {
 			JSONStringer stringer = new JSONStringer();
 			stringer.object().key(JSONHelper.JSON_TYPE_KEY).value(JSON_TYPE_VALUE);
 			stringer.key(JSON_NAME_KEY).value(name);
+			stringer.key(JSON_ID_KEY).value(id);
 			stringer.key(JSON_STAGES_KEY).array();
 			for (Stage s : stages) {
 				s.encodeAsJson(stringer);

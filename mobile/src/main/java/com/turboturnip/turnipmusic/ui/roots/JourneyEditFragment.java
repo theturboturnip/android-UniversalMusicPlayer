@@ -29,7 +29,6 @@ public class JourneyEditFragment extends EditorCommandFragment {
 	public static final String NEW_STAGE_KEY = "NEWSTAGE";
 	public static final String NEW_STAGE_INDEX_KEY = "NEWSTAGEINDEX";
 
-	private Journey initialVersion;
 	private Journey currentlyEditing;
 
 	private EditText nameEditor;
@@ -41,12 +40,10 @@ public class JourneyEditFragment extends EditorCommandFragment {
 	public void findEditingObject(){
 		Bundle args = getArguments();
 		if (args.getBoolean(IS_NEW_JOURNEY_KEY, false)) {
-			currentlyEditing = new Journey("", defaultStage());
-			initialVersion = null;
+			currentlyEditing = new Journey(0, "", defaultStage());
 		}else {
 			try {
 				currentlyEditing = new Journey(args.getString(JOURNEY_TO_EDIT_KEY));
-				initialVersion = new Journey(args.getString(JOURNEY_TO_EDIT_KEY));
 			} catch (JSONException e) {
 				e.printStackTrace();
 				mCommandListener.navigateBack();
@@ -130,8 +127,6 @@ public class JourneyEditFragment extends EditorCommandFragment {
 		Bundle data = new Bundle();
 		data.putInt(JourneyActivity.DATA_TYPE_KEY, JourneyActivity.SAVE_JOURNEY_REQUEST_TYPE);
 		data.putString(JourneyActivity.NEW_JOURNEY_KEY, currentlyEditing.toString());
-		if (initialVersion != null)
-			data.putString(JourneyActivity.OLD_JOURNEY_KEY, initialVersion.toString());
 		mCommandListener.getDataFromFragment(data);
 	}
 

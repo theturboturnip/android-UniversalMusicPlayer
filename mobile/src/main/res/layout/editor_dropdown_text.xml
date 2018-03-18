@@ -12,5 +12,6 @@
         android:ellipsize="end"
         android:gravity="center_vertical|center_horizontal"
         android:singleLine="true"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         tools:text="A very large amount of text" />
 </LinearLayout>

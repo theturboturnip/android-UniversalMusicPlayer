@@ -28,6 +28,32 @@ public class JSONHelper {
 			throw new JSONException("Given JSON has incorrect type, '" + expectedType + "' is required.");
 	}
 
+	public static String encodeStringArray(Object[] objects){
+		JSONStringer stringer = new JSONStringer();
+		try {
+			stringer.array();
+			for (Object o : objects){
+				stringer.value(o.toString());
+			}
+			stringer.endArray();
+		}catch (JSONException e){
+			e.printStackTrace();
+			return "[]";
+		}
+		return stringer.toString();
+	}
+	public static String[] decodeStringArray(String json) throws JSONException{
+		Object o = new JSONTokener(json).nextValue();
+		if (!(o instanceof JSONArray))
+			throw new JSONException("Given data \"" + json + "\" was not a valid JSON array");
+		JSONArray array = (JSONArray)o;
+		String[] result = new String[array.length()];
+		for (int i = 0; i < result.length; i++){
+			result[i] = array.getString(i);
+		}
+		return result;
+	}
+
 	public static class TurboShuffleConfigHandler {
 		public static final String JSON_TYPE_VALUE = "TSConfig";
 		private static final String JSON_CLUMP_TYPE_KEY = "clumpType";

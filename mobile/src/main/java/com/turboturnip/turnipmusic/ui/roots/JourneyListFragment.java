@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.util.Pair;
 import android.view.View;
 
 import com.turboturnip.turnipmusic.R;
@@ -52,9 +53,8 @@ public class JourneyListFragment extends ItemListCommandFragment implements Jour
 		protected List<Journey> doInBackground(Void... params) {
 			List<JourneyEntity> journeyEntities = db.journeyDao().getJourneys();
 			List<Journey> journeys = new ArrayList<>(journeyEntities.size());
-			for (int i = 0; i < journeyEntities.size(); i++){
-				journeys.add(db.createJourney(journeyEntities.get(i)));
-			}
+			for (JourneyEntity e : journeyEntities)
+				journeys.add(db.createJourney(e));
 			return journeys;
 		}
 

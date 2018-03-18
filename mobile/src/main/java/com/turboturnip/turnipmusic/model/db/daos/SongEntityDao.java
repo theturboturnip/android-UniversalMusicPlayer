@@ -27,7 +27,7 @@ public interface SongEntityDao {
 	List<Integer> orderedSearchForIds(String query);
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	void insertSong(SongEntity song);
+	long insertSong(SongEntity song);
 
 	@Query("DELETE FROM " + DBConstants.SONG_TABLE)
 	void clearDatabase();

@@ -4,6 +4,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
 import com.turboturnip.turnipmusic.model.db.DBConstants;
@@ -22,7 +23,9 @@ public interface AlbumEntityDao {
 	List<AlbumEntity> orderedSearch(String query);
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	void insertAlbum(AlbumEntity album);
+	long insertAlbum(AlbumEntity album);
+	@Update
+	void updateAlbum(AlbumEntity album);
 
 	@Query("DELETE FROM " + DBConstants.SONG_TABLE)
 	void clearDatabase();

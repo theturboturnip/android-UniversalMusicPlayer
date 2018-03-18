@@ -4,6 +4,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import com.turboturnip.turnipmusic.model.db.DBConstants;
 import com.turboturnip.turnipmusic.model.db.entities.JourneyEntity;
@@ -20,7 +21,9 @@ public interface JourneyEntityDao {
 	JourneyEntity getJourneyForName(String name);
 
 	@Insert(onConflict = OnConflictStrategy.REPLACE)
-	void insertJourney(JourneyEntity journey);
+	long insertJourney(JourneyEntity journey);
+	@Update
+	void updateJourney(JourneyEntity journey);
 
 	@Query("DELETE FROM " + DBConstants.JOURNEY_TABLE + " WHERE id=:id")
 	void removeJourney(int id);

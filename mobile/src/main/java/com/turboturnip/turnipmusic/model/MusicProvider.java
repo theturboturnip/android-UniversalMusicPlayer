@@ -190,7 +190,7 @@ public class MusicProvider {
 	    List<Integer> ids;
 	    switch(filter.filterType){
 		    case ByAlbum:
-			    ids = mDatabase.songDao().getSongIdsInAlbum(mDatabase.albumDao().getAlbumByName(filter.filterValue).id);
+			    ids = mDatabase.songDao().getSongIdsInAlbum(mDatabase.albumDao().getAlbumByName(filter.filterValue).getId());
 			    break;
 		    case ByTag:
 			    ids = mDatabase.songTagJoinDao().getSongIdsForTag(mDatabase.tagDao().getTag(filter.filterValue).id);
