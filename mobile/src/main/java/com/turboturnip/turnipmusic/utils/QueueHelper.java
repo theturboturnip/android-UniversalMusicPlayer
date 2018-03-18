@@ -180,7 +180,7 @@ public class QueueHelper {
      * @param queueItem to compare to currently playing {@link MediaSessionCompat.QueueItem}
      * @return boolean indicating whether queue item matches currently playing queue item
      */
-    public static boolean isQueueItemPlaying(Activity context,
+    /*public static boolean isQueueItemPlaying(Activity context,
                                              MediaSessionCompat.QueueItem queueItem) {
         // Queue item is considered to be playing or paused based on both the controller's
         // current media id and the controller's active queue item id
@@ -220,5 +220,5 @@ public class QueueHelper {
 			}
 		}
 		return true;
-	}
+	}*/
 }
