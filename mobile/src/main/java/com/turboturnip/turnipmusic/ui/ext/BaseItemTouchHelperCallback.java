@@ -5,9 +5,12 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 
 public class BaseItemTouchHelperCallback extends ItemTouchHelper.Callback {
 	private final ItemTouchHelperAdapter mAdapter;
+	private boolean allowRearrange, allowRemove;
 
-	public BaseItemTouchHelperCallback(ItemTouchHelperAdapter adapter) {
-		mAdapter = adapter;
+	public BaseItemTouchHelperCallback(ItemTouchHelperAdapter adapter, boolean allowRearrange, boolean allowRemove) {
+		this.mAdapter = adapter;
+		this.allowRearrange = allowRearrange;
+		this.allowRemove = allowRemove;
 	}
 
 	@Override
@@ -22,16 +25,15 @@ public class BaseItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
 	@Override
 	public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-		int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
-		int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+		int dragFlags = allowRearrange ? (ItemTouchHelper.UP | ItemTouchHelper.DOWN) : 0;
+		int swipeFlags = allowRemove ? (ItemTouchHelper.START | ItemTouchHelper.END) : 0;
 		return makeMovementFlags(dragFlags, swipeFlags);
 	}
 
 	@Override
 	public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
 	                      RecyclerView.ViewHolder target) {
-		mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
-		return true;
+		return mAdapter.onItemMove(viewHolder.getAdapterPosition(), target.getAdapterPosition());
 	}
 
 	@Override

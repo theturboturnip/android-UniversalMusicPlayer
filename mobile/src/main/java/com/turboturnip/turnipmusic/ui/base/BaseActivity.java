@@ -51,7 +51,7 @@ import java.util.List;
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends ActionBarCastActivity implements MusicBrowserProvider, CommandFragment.CommandFragmentListener {
+public abstract class BaseActivity extends ActionBarCastActivity implements CommandFragment.CommandFragmentListener {
 
     private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
     private static final String FRAGMENT_TAG = "turnipmusic_fragment_container";
@@ -334,7 +334,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
     }
 	@Override
 	public void navigateBack() {
-		onBackPressed();//getSupportFragmentManager().popBackStackImmediate();
+		onBackPressed();
 	}
 
 	@Override

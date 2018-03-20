@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 public class Journey {
@@ -25,7 +24,7 @@ public class Journey {
 		static final String JSON_PLAYTYPE_KEY = "playType";
 		static final String JSON_PLAYCOUNT_KEY = "playCount";
 		static final String JSON_SHUFFLECONFIG_KEY = "shuffleConfig";
-		static final String JSON_FILTERS_KEY = "filters";
+		static final String JSON_FILTERS_KEY = "pools";
 		static final String JSON_TYPE_VALUE = "Stage";
 
 		public enum PlayType {
@@ -63,18 +62,18 @@ public class Journey {
 		public PlayType playType;
 		public int playCount;
 		public TurboShuffleConfig shuffleConfig;
-		public MusicFilter[] filters;
+		public LinkedList<CompositeMusicFilter> pools;
 
-		public Stage(String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
-			this(0, name, playType, playCount, shuffleConfig, filters);
+		public Stage(String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, CompositeMusicFilter... pools){
+			this(0, name, playType, playCount, shuffleConfig, pools);
 		}
-		public Stage(int id, String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, MusicFilter... filters){
+		public Stage(int id, String name, PlayType playType, int playCount, TurboShuffleConfig shuffleConfig, CompositeMusicFilter... pools){
 			this.id = id;
 			this.name = name;
 			this.playType = playType;
 			this.playCount = playCount;
 			this.shuffleConfig = shuffleConfig;
-			this.filters = filters;
+			this.pools = new LinkedList<>(Arrays.asList(pools));
 		}
 		public Stage(String json) throws JSONException{
 			this(JSONHelper.typeCheckJSONObject(json, JSON_TYPE_VALUE));
@@ -89,10 +88,12 @@ public class Journey {
 				shuffleConfig = JSONHelper.TurboShuffleConfigHandler.decode(sourceObject.getJSONObject(JSON_SHUFFLECONFIG_KEY));
 			else
 				shuffleConfig = null;
-			JSONArray jsonFilters = sourceObject.getJSONArray(JSON_FILTERS_KEY);
-			filters = new MusicFilter[jsonFilters.length()];
-			for (int i = 0; i < jsonFilters.length(); i++)
-				filters[i] = new MusicFilter(jsonFilters.getString(i));
+			JSONArray jsonCompositeFilters = sourceObject.getJSONArray(JSON_FILTERS_KEY);
+			pools = new LinkedList<>();
+			for (int i = 0; i < jsonCompositeFilters.length(); i++) {
+				CompositeMusicFilter pool = new CompositeMusicFilter(jsonCompositeFilters.getString(i));
+				pools.add(pool);
+			}
 		}
 		public void encodeAsJson(JSONStringer stringer) throws JSONException{
 			stringer.object();
@@ -106,8 +107,8 @@ public class Journey {
 				JSONHelper.TurboShuffleConfigHandler.encode(shuffleConfig, stringer);
 			}
 			stringer.key(JSON_FILTERS_KEY).array();
-			for (MusicFilter f : filters){
-				stringer.value(f.toString());
+			for (CompositeMusicFilter cf : pools){
+				stringer.value(cf.toString());
 			}
 			stringer.endArray();
 			stringer.endObject();
@@ -132,7 +133,7 @@ public class Journey {
 		this.id = 0;
 		this.name = name;
 		stages = new LinkedList<>(Arrays.asList(
-			new Stage("", Stage.PlayType.Repeat, 0, null, singleFilter)
+			new Stage("", Stage.PlayType.Repeat, 0, null, new CompositeMusicFilter(singleFilter))
 		));
 	}
 	public Journey(String json) throws JSONException{

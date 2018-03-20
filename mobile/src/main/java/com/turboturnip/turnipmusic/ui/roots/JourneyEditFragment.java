@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.model.CompositeMusicFilter;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.ui.base.EditorCommandFragment;
@@ -58,7 +59,7 @@ public class JourneyEditFragment extends EditorCommandFragment{
 	}
 
 	private Journey.Stage defaultStage(){
-		return new Journey.Stage("", Journey.Stage.PlayType.Repeat, 0, null, new MusicFilter());
+		return new Journey.Stage("", Journey.Stage.PlayType.Repeat, 0, null, new CompositeMusicFilter(new MusicFilter()));
 	}
 
 	@Override
@@ -66,7 +67,7 @@ public class JourneyEditFragment extends EditorCommandFragment{
 		nameEditor = createTextField("Name");
 		stageAdapter = new StageAdapter();
 		ItemTouchHelper.Callback callback =
-				new BaseItemTouchHelperCallback(stageAdapter);
+				new BaseItemTouchHelperCallback(stageAdapter, true, true);
 		ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
 		stageList = createLinearRecycler("Stages", stageAdapter);
 		touchHelper.attachToRecyclerView(stageList);
@@ -84,6 +85,7 @@ public class JourneyEditFragment extends EditorCommandFragment{
 	@Override
 	protected boolean canApply(){
 		if (currentlyEditing.name.length() == 0) return false;
+		if (currentlyEditing.stages.size() == 0) return false;
 		return true;
 	}
 
@@ -163,7 +165,7 @@ public class JourneyEditFragment extends EditorCommandFragment{
 	}
 	private class StageAdapter extends RecyclerView.Adapter<StageViewHolder> implements ItemTouchHelperAdapter {
 		@Override
-		public void onItemMove(int fromPosition, int toPosition) {
+		public boolean onItemMove(int fromPosition, int toPosition) {
 			if (fromPosition < toPosition) {
 				for (int i = fromPosition; i < toPosition; i++) {
 					Collections.swap(currentlyEditing.stages, i, i + 1);
@@ -174,6 +176,7 @@ public class JourneyEditFragment extends EditorCommandFragment{
 				}
 			}
 			notifyItemMoved(fromPosition, toPosition);
+			return true;
 		}
 		@Override
 		public void onItemDismiss(int position) {

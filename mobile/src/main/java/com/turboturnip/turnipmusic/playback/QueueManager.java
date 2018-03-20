@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.turboturnip.turboshuffle.SongPool;
 import com.turboturnip.turboshuffle.TurboShuffleSong;
 import com.turboturnip.turnipmusic.AlbumArtCache;
+import com.turboturnip.turnipmusic.model.CompositeMusicFilter;
 import com.turboturnip.turnipmusic.model.ConstJourney;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
@@ -269,9 +270,10 @@ public class QueueManager {
 	void setJourneyStage(int stageIndex) {
 		AsyncHelper.ThrowIfOnMainThread("setJourneyStage()");
 		LogHelper.i(TAG, journey.toString());
-		SongPool[] pools = new SongPool[journey.stages[stageIndex].filters.length];
-		for (int i = 0; i < journey.stages[stageIndex].filters.length; i++){
-			Collection<Song> songs = mMusicProvider.getFilteredSongs(journey.stages[stageIndex].filters[i]);
+		SongPool[] pools = new SongPool[journey.stages[stageIndex].pools.size()];
+		for (int i = 0; i < journey.stages[stageIndex].pools.size(); i++){
+			// TODO: Support collective filters
+			Collection<Song> songs = mMusicProvider.getFilteredSongs(journey.stages[stageIndex].pools.get(i).filters.get(0));
 			pools[i] = new SongPool(
 					songs.toArray(new TurboShuffleSong[songs.size()])
 			);
@@ -292,7 +294,7 @@ public class QueueManager {
 								Journey.Stage.PlayType.Repeat,
 								0,
 								null,
-								MusicFilter.emptyFilter()
+								new CompositeMusicFilter(MusicFilter.emptyFilter())
 						)
 				)
 		);

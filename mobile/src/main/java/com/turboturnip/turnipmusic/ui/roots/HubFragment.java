@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.model.CompositeMusicFilter;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
@@ -44,7 +45,8 @@ public class HubFragment extends ItemListCommandFragment {
 		mBrowserAdapter.addItem(new ListItemData("Shuffle Persona", "", null,
 				new JourneyTestOnClickListener(
 						new Journey("Test Shuffle Persona",
-								new Journey.Stage("", Journey.Stage.PlayType.Shuffle, 0, null, new MusicFilter(MusicFilterType.ByAlbum, "Persona"))
+								new Journey.Stage("", Journey.Stage.PlayType.Shuffle, 0, null,
+										new CompositeMusicFilter(new MusicFilter(MusicFilterType.ByAlbum, "Persona")))
 						)
 				))
 		);

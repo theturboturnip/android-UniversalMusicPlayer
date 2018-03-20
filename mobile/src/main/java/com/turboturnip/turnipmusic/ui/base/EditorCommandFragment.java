@@ -11,7 +11,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -112,7 +111,7 @@ public abstract class EditorCommandFragment extends CommandFragment {
 	}
 
 	protected void startWatchingField(AdapterView view){
-		view.setOnItemSelectedListener(new AdapterWatcher());
+		view.setOnItemSelectedListener(new AdapterViewWatcher());
 	}
 	protected void startWatchingField(EditText view){
 		view.addTextChangedListener(new EditTextWatcher());
@@ -163,6 +162,7 @@ public abstract class EditorCommandFragment extends CommandFragment {
 				manager.getOrientation());
 		result.addItemDecoration(dividerItemDecoration);
 		result.setAdapter(adapter);
+		adapter.registerAdapterDataObserver(new AdapterWatcher());
 
 		createGenericOption(name, result, R.layout.editor_list_option);
 		return result;
@@ -179,7 +179,7 @@ public abstract class EditorCommandFragment extends CommandFragment {
 			onUIUpdate();
 		}
 	}
-	protected class AdapterWatcher implements AdapterView.OnItemSelectedListener{
+	protected class AdapterViewWatcher implements AdapterView.OnItemSelectedListener{
 		@Override
 		public void onNothingSelected(AdapterView<?> adapterView) {
 			onUIUpdate();
@@ -187,6 +187,13 @@ public abstract class EditorCommandFragment extends CommandFragment {
 
 		@Override
 		public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+			onUIUpdate();
+		}
+	}
+	protected class AdapterWatcher extends RecyclerView.AdapterDataObserver{
+		@Override
+		public void onChanged() {
+			super.onChanged();
 			onUIUpdate();
 		}
 	}
