@@ -31,6 +31,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -110,7 +111,14 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         }
     };
 
-    private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
+    @Override
+    protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {}
+	@Override
+	public void onItemSelected(String item) {}
+	@Override
+	public void onItemPlayed(String item){}
+
+	private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
             new MediaBrowserCompat.ConnectionCallback() {
         @Override
         public void onConnected() {

@@ -44,6 +44,8 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 
     private static final String TAG = LogHelper.makeLogTag(MusicBrowserFragment.class);
 
+    private MusicBrowserProvider mBrowserProvider;
+
     protected BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
         @Override
@@ -106,7 +108,9 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 	public void onConnected(){
     	super.onConnected();
 
-		// Unsubscribing before subscribing is required if this filter already has a subscriber
+	    mBrowserProvider = (MusicBrowserProvider)mCommandListener;
+
+	    // Unsubscribing before subscribing is required if this filter already has a subscriber
 		// on this MediaBrowser instance. Subscribing to an already subscribed filter will replace
 		// the callback, but won't trigger the initial callback.onChildrenLoaded.
 		//
@@ -115,10 +119,12 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 		// subscriber or not. Currently this only happens if the filter has no previous
 		// subscriber or if the media content changes on the service side, so we need to
 		// unsubscribe first.
-		mCommandListener.getMediaBrowser().unsubscribe(mMusicFilter.toString());
+		mBrowserProvider.getMediaBrowser().unsubscribe(mMusicFilter.toString());
+
+		LogHelper.e(TAG, "REsubscribing");
 
 		// This sends the request to get children.
-		mCommandListener.getMediaBrowser().subscribe(mMusicFilter.toString(), mSubscriptionCallback);
+	    mBrowserProvider.getMediaBrowser().subscribe(mMusicFilter.toString(), mSubscriptionCallback);
 	}
 
     @Override

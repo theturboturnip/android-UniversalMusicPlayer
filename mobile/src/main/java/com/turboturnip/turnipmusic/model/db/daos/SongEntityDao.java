@@ -16,6 +16,8 @@ public interface SongEntityDao {
 	SongEntity getSong(int id);
 	@Query("SELECT * FROM " + DBConstants.SONG_TABLE + " WHERE mediaId=:mediaId")
 	SongEntity getSongByMediaId(String mediaId);
+	@Query("SELECT id FROM " + DBConstants.SONG_TABLE + " WHERE mediaId=:mediaId")
+	int getSongIdByMediaId(String mediaId);
 	@Query("SELECT id FROM " + DBConstants.SONG_TABLE + " WHERE name LIKE :name")
 	Integer getSongIdByName(String name);
 	@Query("SELECT * FROM " + DBConstants.SONG_TABLE + " WHERE albumId=:albumId ORDER BY albumIndex")

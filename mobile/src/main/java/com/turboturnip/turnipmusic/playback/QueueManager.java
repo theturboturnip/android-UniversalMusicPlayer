@@ -22,6 +22,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.turboturnip.turboshuffle.SongPool;
@@ -273,7 +274,11 @@ public class QueueManager {
 		SongPool[] pools = new SongPool[journey.stages[stageIndex].pools.size()];
 		for (int i = 0; i < journey.stages[stageIndex].pools.size(); i++){
 			// TODO: Support collective filters
+			LogHelper.e(TAG, journey.stages[stageIndex].pools.get(i).filters.get(0).filterValue);
 			Collection<Song> songs = mMusicProvider.getFilteredSongs(journey.stages[stageIndex].pools.get(i).filters.get(0));
+			for(Song s : songs){
+				LogHelper.e(TAG, s != null);
+			}
 			pools[i] = new SongPool(
 					songs.toArray(new TurboShuffleSong[songs.size()])
 			);

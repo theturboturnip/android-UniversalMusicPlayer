@@ -51,10 +51,9 @@ import java.util.List;
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends ActionBarCastActivity implements CommandFragment.CommandFragmentListener {
+public abstract class BaseActivity extends ActionBarCastActivity implements MusicBrowserProvider{
 
     private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
-    private static final String FRAGMENT_TAG = "turnipmusic_fragment_container";
 	public static final String EXTRA_START_FULLSCREEN =
 			"com.turboturnip.turnipmusic.EXTRA_START_FULLSCREEN";
 
@@ -66,24 +65,13 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Comm
 	public static final String EXTRA_CURRENT_MEDIA_DESCRIPTION =
 			"com.turboturnip.turnipmusic.CURRENT_MEDIA_DESCRIPTION";
 
-	private static final String IS_SAVED_STATE_KEY = "is_saved_state";
-	private static final String FRAGMENT_STACK_KEY = "fragment_stack";
-	private static final String FRAGMENT_BUNDLE_KEY = "fragment_bundle";
+
 
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
     private CardView mControlsCardView;
 
-    private class FragmentStackEntry{
-	    WeakReference<CommandFragment> fragment;
-	    Bundle args;
 
-	    public FragmentStackEntry(WeakReference<CommandFragment> fragment, Bundle args){
-	    	this.fragment = fragment;
-	    	this.args = args;
-	    }
-    }
-    private List<FragmentStackEntry> fragmentStack = new ArrayList<>();
 
     private boolean isConnecting = false;
 
@@ -141,44 +129,11 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Comm
         }
     }
 
-	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-		if (!savedInstanceState.getBoolean(IS_SAVED_STATE_KEY, false)) return;
-		Class[] fragmentClasses;
-		Parcelable[] fragmentArguments;
-		try {
-			String[] fragmentClassNames = savedInstanceState.getStringArray(FRAGMENT_STACK_KEY);
-			fragmentClasses = new Class[fragmentClassNames.length];
-			fragmentArguments = savedInstanceState.getParcelableArray(FRAGMENT_BUNDLE_KEY);
-			for (int i = 0; i < fragmentClassNames.length; i++){
-				fragmentClasses[i] = Class.forName(fragmentClassNames[i]);
-			}
 
-			for (int i = 0; i < fragmentClasses.length; i++){
-				navigateToNewFragment(fragmentClasses[i], (Bundle)fragmentArguments[i]);
-			}
-		}catch (NullPointerException e){
-			e.printStackTrace();
-		}catch (ClassNotFoundException e){
-			e.printStackTrace();
-		}
-		LogHelper.e(TAG, "Success loading from args!");
-	}
 	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-
-		if (fragmentStack.size() == 0) return;
-		outState.putBoolean(IS_SAVED_STATE_KEY, true);
-		String[] fragmentClassNames = new String[fragmentStack.size()];
-		Parcelable[] fragmentArguments = new Parcelable[fragmentStack.size()];
-		for (int i = 0; i < fragmentStack.size(); i++){
-			fragmentClassNames[i] = fragmentStack.get(i).fragment.get().getClass().getName();
-			fragmentArguments[i] = fragmentStack.get(i).args;
-		}
-		outState.putStringArray(FRAGMENT_STACK_KEY, fragmentClassNames);
-		outState.putParcelableArray(FRAGMENT_BUNDLE_KEY, fragmentArguments);
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		startFullScreenActivityIfNeeded(intent);
 	}
 
 	@Override
@@ -190,23 +145,10 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Comm
             controllerCompat.unregisterCallback(mMediaControllerCallback);
         }
         mMediaBrowser.disconnect();
+        isConnecting = false;
     }
 
-	@Override
-	public void setToolbarTitle(CharSequence title) {
-		LogHelper.d(TAG, "Setting toolbar title to ", title);
-		if (title == null) {
-			title = getString(R.string.app_name);
-		}
-		setTitle(title);
-	}
 
-	@Override
-	protected void onNewIntent(Intent intent) {
-		LogHelper.d(TAG, "onNewIntent, intent=" + intent);
-		initializeFromParams(null, intent);
-		startFullScreenActivityIfNeeded(intent);
-	}
 
 	protected void startFullScreenActivityIfNeeded(Intent intent) {
 		if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
@@ -229,11 +171,11 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Comm
     }
 
 	@Override
-	public void onMediaItemPlayed(MediaBrowserCompat.MediaItem item) {
-		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + item.getMediaId());
+	public void onItemPlayed(String id) {
+		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + id);
 
 		MediaControllerCompat.getMediaController(this).getTransportControls()
-				.playFromMediaId(item.getMediaId(), null);
+				.playFromMediaId(id, null);
 	}
 
     protected void showPlaybackControls() {
@@ -283,6 +225,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Comm
         MediaControllerCompat.setMediaController(this, mediaController);
         mediaController.registerCallback(mMediaControllerCallback);
 
+        LogHelper.e(TAG, "connected");
         if (shouldShowControls()) {
             showPlaybackControls();
         } else {
@@ -298,58 +241,9 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Comm
         onMediaControllerConnected();
     }
 
-    protected abstract void initializeFromParams(Bundle savedInstanceState, Intent intent);
-    public void navigateToNewFragment(Class fragmentClass, Bundle data){
-        CommandFragment fragment = getCurrentFragment();
 
-        if (fragment == null || !fragment.getArguments().equals(data) || !fragmentClass.isInstance(fragment)){
-            try {
-                fragment = (CommandFragment)fragmentClass.newInstance();
-            }catch (InstantiationException e){
-                e.printStackTrace();
-            }catch (IllegalAccessException e){
-                e.printStackTrace();
-            }
-            fragment.setArguments(data);
 
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.setCustomAnimations(
-                    R.animator.slide_in_from_right, R.animator.slide_out_to_left,
-                    R.animator.slide_in_from_left, R.animator.slide_out_to_right);
-            transaction.replace(R.id.container, fragment, FRAGMENT_TAG);
-            if (!fragment.isRoot())
-                transaction.addToBackStack(null);
-            transaction.commit();
 
-            fragmentStack.add(new FragmentStackEntry(new WeakReference<>(fragment), data));
-        }
-    }
-    protected CommandFragment getCurrentFragment() {
-    	if (fragmentStack.isEmpty()) return null;
-        return fragmentStack.get(fragmentStack.size() - 1).fragment.get();
-    }
-    protected CommandFragment getPreviousFragment() {
-    	if (fragmentStack.size() < 2) return null;
-    	return fragmentStack.get(fragmentStack.size() - 2).fragment.get();
-    }
-	@Override
-	public void navigateBack() {
-		onBackPressed();
-	}
-
-	@Override
-	public void onBackPressed() {
-    	LogHelper.e(TAG, "BACCC");
-		if (!fragmentStack.isEmpty())
-			fragmentStack.remove(fragmentStack.size() - 1);
-		super.onBackPressed();
-	}
-
-	@Override
-	public void getDataFromFragment(Bundle data) {
-		if (data.getBoolean(CommandFragment.PASS_BACK_TAG, false) && getPreviousFragment() != null)
-			getPreviousFragment().getDataFromChildFragment(data);
-	}
 
 	// MusicCatalogCallback that ensures that we are showing the controls
     private final MediaControllerCompat.Callback mMediaControllerCallback =

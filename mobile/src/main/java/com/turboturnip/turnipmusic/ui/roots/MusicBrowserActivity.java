@@ -28,6 +28,7 @@ import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.ui.base.BaseActivity;
 import com.turboturnip.turnipmusic.ui.base.CommandFragment;
+import com.turboturnip.turnipmusic.ui.base.MediaCommandFragment;
 import com.turboturnip.turnipmusic.utils.LogHelper;
 
 /**
@@ -56,13 +57,15 @@ public class MusicBrowserActivity extends BaseActivity
 	}
 
 	@Override
-	public void onMediaItemSelected(MediaBrowserCompat.MediaItem item) {
-		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + item.getMediaId());
-		if (item.isBrowsable()) {
-			navigateToBrowser(item.getMediaId());
+	public void onItemSelected(String filter) {
+		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + filter);
+
+		MusicFilter compiledFilter = new MusicFilter(filter);
+		if (compiledFilter.isValid()) {
+			navigateToBrowser(filter);
 		} else {
 			LogHelper.w(TAG, "Ignoring MediaItem that is not browsable: ",
-					"musicFilter=", item.getMediaId());
+					"musicFilter=", filter);
 		}
 	}
 
@@ -107,7 +110,8 @@ public class MusicBrowserActivity extends BaseActivity
 		if (fragment == null) {
 			return null;
 		}
-		MusicFilter filter = fragment.getFilter();
+		if (!(fragment instanceof MediaCommandFragment)) return "";
+		MusicFilter filter = ((MediaCommandFragment)fragment).getFilter();
 		if (filter == null)
 			return MusicFilter.rootFilter().toString();
 		return filter.toString();
@@ -124,7 +128,7 @@ public class MusicBrowserActivity extends BaseActivity
 					.playFromSearch(query, mVoiceSearchParams);
 			mVoiceSearchParams = null;
 		}
-		getCurrentFragment().onConnected();
+		((MediaCommandFragment)getCurrentFragment()).onConnected();
 	}
 
 	@Override

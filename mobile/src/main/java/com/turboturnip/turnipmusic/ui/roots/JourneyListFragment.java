@@ -139,12 +139,7 @@ public class JourneyListFragment extends ItemListCommandFragment {
 
 		@Override
 		public void onClick(View view) {
-			mCommandListener.onMediaItemPlayed(
-					new MediaBrowserCompat.MediaItem(
-							new MediaDescriptionCompat.Builder().setMediaId(toPlay.toString()).build(),
-							MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-					)
-			);
+			mCommandListener.onItemPlayed(toPlay.toString());
 		}
 	}
 

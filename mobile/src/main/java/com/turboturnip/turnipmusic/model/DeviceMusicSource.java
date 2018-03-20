@@ -87,14 +87,14 @@ public class DeviceMusicSource implements MusicProviderSource {
 				if (musicCursor.getInt(isMusicColumn) == 0) continue;
 
 				String title = musicCursor.getString(titleColumn);
-				String id = musicCursor.getString(idColumn);
+				String mediaId = musicCursor.getString(idColumn);
 				String filePath = musicCursor.getString(filePathColumn);
 				String artist = musicCursor.getString(artistColumn);
 				long duration = musicCursor.getLong(durationColumn);
 
 				String genre = "";
 				{
-					Uri genreUri = MediaStore.Audio.Genres.getContentUriForAudioId("external", Integer.parseInt(id));
+					Uri genreUri = MediaStore.Audio.Genres.getContentUriForAudioId("external", Integer.parseInt(mediaId));
 					genresCursor = context.getContentResolver().query(genreUri,
 							genresProjection, null, null, null);
 					int genreColumn = genresCursor.getColumnIndexOrThrow(MediaStore.Audio.Genres.NAME);
@@ -128,13 +128,15 @@ public class DeviceMusicSource implements MusicProviderSource {
 					List<SongEntity> songsInAlbum = db.songDao().getSongsInAlbum(albumEntity.getId());
 					albumIndex = 0;
 					for (SongEntity s : songsInAlbum){
-						if (s.mediaId.equals(id))
+						if (s.mediaId.equals(mediaId))
 							break;
 						albumIndex++;
 					}
 				}
 
-				SongEntity songEntity = new SongEntity(id, title, albumID, albumIndex);
+				int songDBId = db.songDao().getSongIdByMediaId(mediaId);
+				if (songDBId < 0) songDBId = 0;
+				SongEntity songEntity = new SongEntity(songDBId, mediaId, title, albumID, albumIndex);
 				songEntity.setId((int)db.songDao().insertSong(songEntity));
 
 				tracks.add(new Song(songEntity, albumEntity, filePath, artist, duration, genre));

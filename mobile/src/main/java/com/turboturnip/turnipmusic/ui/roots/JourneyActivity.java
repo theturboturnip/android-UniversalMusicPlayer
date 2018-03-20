@@ -27,7 +27,7 @@ public class JourneyActivity extends BaseActivity {
 	}
 
 	@Override
-	public void onMediaItemSelected(MediaBrowserCompat.MediaItem filter) {}
+	public void onItemSelected(String item) {}
 
 	@Override
 	public void getDataFromFragment(Bundle data) {
