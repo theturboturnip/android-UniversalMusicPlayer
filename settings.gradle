@@ -1,1 +1,1 @@
-include ':mobile', ':turboshuffle'
+include ':turnipmusic', ':turboshuffle', ':turboui', ':common', ':common'

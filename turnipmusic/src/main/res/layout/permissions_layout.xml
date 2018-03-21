@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp">
+
+        <TextView
+            android:id="@+id/permissions_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            tools:text="Permission Text" />
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/permission_accept_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Accept" />
+</LinearLayout>

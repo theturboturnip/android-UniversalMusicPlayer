@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TurboUI</string>
+    <string name="open_content_drawer">Open the main menu</string>
+    <string name="close_content_drawer">Close the main menu</string>
+</resources>
