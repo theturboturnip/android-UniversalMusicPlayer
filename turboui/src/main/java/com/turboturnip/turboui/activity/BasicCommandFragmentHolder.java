@@ -119,9 +119,6 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 
 		LogHelper.d(TAG, "Activity onCreate");
 
-
-
-
 		setContentView(getContentViewId());
 		mNavigationView = new NavigationView(this);
 		if (getNavHeaderId() >= 0)
