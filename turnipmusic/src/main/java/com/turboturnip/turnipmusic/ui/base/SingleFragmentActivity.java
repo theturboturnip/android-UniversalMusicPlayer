@@ -5,7 +5,7 @@ import android.os.Bundle;
 
 import com.turboturnip.turboui.fragment.CommandFragment;
 
-public abstract class SingleFragmentActivity extends ActionBarCastActivity {
+public abstract class SingleFragmentActivity extends BaseActivity {
 
 	@Override
 	protected void initializeFromParams(Bundle savedInstanceState, Intent intent){
@@ -17,7 +17,7 @@ public abstract class SingleFragmentActivity extends ActionBarCastActivity {
 	@Override
 	public void onItemSelected(String item) {}
 	@Override
-	public void onItemPlayed(String item) {}
+	public void onItemActioned(String item) {}
 
 	protected abstract Class getFragmentClass();
 

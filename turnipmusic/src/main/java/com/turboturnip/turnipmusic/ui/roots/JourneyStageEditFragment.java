@@ -10,9 +10,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import com.turboturnip.turboui.ext.BaseItemTouchHelperCallback;
+import com.turboturnip.turboui.ext.BaseRecyclerViewItemTouchHelperCallback;
 import com.turboturnip.turboui.ext.EnumSpinner;
-import com.turboturnip.turboui.ext.ItemTouchHelperAdapter;
+import com.turboturnip.turboui.ext.RecyclerViewItemTouchHelperAdapter;
 import com.turboturnip.turboui.fragment.CommandFragment;
 import com.turboturnip.turboui.fragment.EditorCommandFragment;
 import com.turboturnip.turnipmusic.R;
@@ -71,7 +71,7 @@ public class JourneyStageEditFragment extends EditorCommandFragment {
 		playCountEditor = createNumberField("Play Count");
 				poolAdapter = new PoolAdapter();
 		ItemTouchHelper.Callback callback =
-				new BaseItemTouchHelperCallback(poolAdapter, true, true);
+				new BaseRecyclerViewItemTouchHelperCallback(poolAdapter, true, true);
 		ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
 		filterRecycler = createLinearRecycler("Pools", poolAdapter);
 		touchHelper.attachToRecyclerView(filterRecycler);
@@ -139,9 +139,13 @@ public class JourneyStageEditFragment extends EditorCommandFragment {
 			filterValueSpinnerParent.addView(this.filterValueSpinner);
 		}
 	}
-	private class PoolAdapter extends RecyclerView.Adapter<JourneyStageEditFragment.PoolListEntryViewHolder> implements ItemTouchHelperAdapter {
+	private class PoolAdapter extends RecyclerView.Adapter<JourneyStageEditFragment.PoolListEntryViewHolder> implements RecyclerViewItemTouchHelperAdapter {
 		private int POOL_ROOT_TYPE = 0, FILTER_TYPE = 1;
 
+		@Override
+		public boolean canMoveItem(int position) {
+			return true;
+		}
 		@Override
 		public boolean onItemMove(int fromPosition, int toPosition) {
 			int fromParentPool = getParentPoolIndex(fromPosition), toParentPool = getParentPoolIndex(toPosition);
@@ -165,6 +169,11 @@ public class JourneyStageEditFragment extends EditorCommandFragment {
 				}
 			}
 			notifyItemMoved(fromPosition, toPosition);
+			return true;
+		}
+
+		@Override
+		public boolean canDismissItem(int position) {
 			return true;
 		}
 		@Override

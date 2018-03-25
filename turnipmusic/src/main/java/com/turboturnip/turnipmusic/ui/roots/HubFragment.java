@@ -78,7 +78,7 @@ public class HubFragment extends ItemListCommandFragment {
 		}
 
 		public void onClick(View button){
-			mCommandListener.onItemPlayed(journey.toString());
+			mCommandListener.onItemActioned(journey.toString());
 			/*Bundle args = new Bundle(1);
 			args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
 			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);*/

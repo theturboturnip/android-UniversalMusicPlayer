@@ -6,4 +6,6 @@
     <color name="turnip_green">#34d63e</color>
     <color name="turnip_green_light">#76ff70</color>
     <color name="turnip_green_dark">#00a300</color>
+
+    <color name="turnip_ui_icon_tint">#aaa</color>
 </resources>

@@ -16,7 +16,7 @@
   -->
 <resources>
 
-    <style name="TurnipMusicAppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="TurnipMusicAppTheme" parent="Theme.TurboTurnip.Base">
         <item name="colorPrimary">@color/turnip_purple</item>
         <item name="colorPrimaryDark">@color/turnip_purple_dark</item>
         <item name="colorAccent">@color/turnip_green</item>

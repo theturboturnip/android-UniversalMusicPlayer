@@ -145,4 +145,9 @@ public class MusicBrowserActivity extends BaseActivity
 
 	@Override
 	public void getDataFromFragment(Bundle data) {}
+
+	@Override
+	protected int getNavMenuItemId() {
+		return R.id.navigation_allmusic;
+	}
 }

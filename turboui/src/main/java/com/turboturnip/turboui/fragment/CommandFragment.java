@@ -45,7 +45,7 @@ public abstract class CommandFragment extends Fragment {
 		void setToolbarTitle(CharSequence title);
 		void navigateToNewFragment(Class newFragmentClass, Bundle initData);
 		void onItemSelected(String item);
-		void onItemPlayed(String item);
+		void onItemActioned(String item);
 		void getDataFromFragment(Bundle data);
 		void navigateBack();
 	}

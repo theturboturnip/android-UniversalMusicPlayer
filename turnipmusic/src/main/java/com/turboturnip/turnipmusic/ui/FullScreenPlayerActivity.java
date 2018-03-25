@@ -115,7 +115,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
 	@Override
 	public void onItemSelected(String item) {}
 	@Override
-	public void onItemPlayed(String item){}
+	public void onItemActioned(String item){}
 
 	private final MediaBrowserCompat.ConnectionCallback mConnectionCallback =
             new MediaBrowserCompat.ConnectionCallback() {

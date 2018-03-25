@@ -17,7 +17,6 @@ package com.turboturnip.turnipmusic.ui.base;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.NavigationView;
 import android.support.v7.app.MediaRouteButton;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -75,8 +74,8 @@ public abstract class ActionBarCastActivity extends BasicCommandFragmentHolder {
     };
 
     @Override
-    protected int getMenuId() {
-        return R.menu.main;
+    protected int getToolbarMenu() {
+        return R.menu.toolbar;
     }
 
     @Override
@@ -137,7 +136,7 @@ public abstract class ActionBarCastActivity extends BasicCommandFragmentHolder {
     }
 
 
-    @Override
+    /*@Override
     protected void populateDrawerItems(NavigationView navigationView) {
         super.populateDrawerItems(navigationView);
         if (this instanceof QueueActivity) {
@@ -149,7 +148,7 @@ public abstract class ActionBarCastActivity extends BasicCommandFragmentHolder {
         } else if (PlaceholderActivity.class.isAssignableFrom(getClass())) {
             navigationView.setCheckedItem(R.id.navigation_filters);
         }
-    }
+    }*/
 
     /**
      * Shows the Cast First Time User experience to the user (an overlay that explains what is

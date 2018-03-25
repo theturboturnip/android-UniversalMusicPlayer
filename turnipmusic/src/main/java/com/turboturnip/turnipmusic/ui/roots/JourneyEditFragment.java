@@ -10,8 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.turboturnip.common.utils.LogHelper;
-import com.turboturnip.turboui.ext.BaseItemTouchHelperCallback;
-import com.turboturnip.turboui.ext.ItemTouchHelperAdapter;
+import com.turboturnip.turboui.ext.BaseRecyclerViewItemTouchHelperCallback;
+import com.turboturnip.turboui.ext.RecyclerViewItemTouchHelperAdapter;
 import com.turboturnip.turboui.fragment.EditorCommandFragment;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.CompositeMusicFilter;
@@ -67,7 +67,7 @@ public class JourneyEditFragment extends EditorCommandFragment{
 		nameEditor = createTextField("Name");
 		stageAdapter = new StageAdapter();
 		ItemTouchHelper.Callback callback =
-				new BaseItemTouchHelperCallback(stageAdapter, true, true);
+				new BaseRecyclerViewItemTouchHelperCallback(stageAdapter, true, true);
 		ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
 		stageList = createLinearRecycler("Stages", stageAdapter);
 		touchHelper.attachToRecyclerView(stageList);
@@ -163,7 +163,10 @@ public class JourneyEditFragment extends EditorCommandFragment{
 			cachedViews = new StageCachedViews(parentView);
 		}
 	}
-	private class StageAdapter extends RecyclerView.Adapter<StageViewHolder> implements ItemTouchHelperAdapter {
+	private class StageAdapter extends RecyclerView.Adapter<StageViewHolder> implements RecyclerViewItemTouchHelperAdapter {
+		public boolean canMoveItem(int position){
+			return true;
+		}
 		@Override
 		public boolean onItemMove(int fromPosition, int toPosition) {
 			if (fromPosition < toPosition) {
@@ -176,6 +179,11 @@ public class JourneyEditFragment extends EditorCommandFragment{
 				}
 			}
 			notifyItemMoved(fromPosition, toPosition);
+			return true;
+		}
+
+		@Override
+		public boolean canDismissItem(int position) {
 			return true;
 		}
 		@Override

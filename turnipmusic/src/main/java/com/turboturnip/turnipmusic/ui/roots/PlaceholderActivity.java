@@ -16,6 +16,7 @@
 package com.turboturnip.turnipmusic.ui.roots;
 
 import com.turboturnip.turboui.fragment.PlaceholderFragment;
+import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.ui.base.SingleFragmentActivity;
 
 /**
@@ -26,5 +27,10 @@ public class PlaceholderActivity extends SingleFragmentActivity {
 	@Override
 	protected Class getFragmentClass() {
 		return PlaceholderFragment.class;
+	}
+
+	@Override
+	protected int getNavMenuItemId() {
+		return R.id.navigation_filters;
 	}
 }

@@ -100,35 +100,35 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 				}
 			};
 
-	protected int getMenuId(){
+	protected int getToolbarMenu(){
 		return -1;
 	}
-	protected int getNavMenuId(){
+	protected int getNavMenu(){
 		return -1;
 	}
-	protected int getNavHeaderId(){
+	protected int getNavHeaderLayout(){
 		return R.layout.nav_header;
 	}
-	protected int getContentViewId(){
+	protected int getContentViewLayout(){
 		return R.layout.command_fragment_frame;
 	}
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		LogHelper.d(TAG, "Activity onCreate");
 
-		setContentView(getContentViewId());
+		setContentView(getContentViewLayout());
 		mNavigationView = new NavigationView(this);
-		if (getNavHeaderId() >= 0)
-			mNavigationView.inflateHeaderView(getNavHeaderId());
-		if (getNavMenuId() >= 0)
-			mNavigationView.inflateMenu(getNavMenuId());
+		if (getNavHeaderLayout() >= 0)
+			mNavigationView.inflateHeaderView(getNavHeaderLayout());
+		if (getNavMenu() >= 0)
+			mNavigationView.inflateMenu(getNavMenu());
 		DrawerLayout.LayoutParams params = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
 		params.gravity = Gravity.START;
 		mNavigationView.setLayoutParams(params);
-		DrawerLayout layout = (DrawerLayout)findViewById(R.id.drawer_layout);
+		DrawerLayout layout = findViewById(R.id.drawer_layout);
 		layout.addView(mNavigationView);
 		layout.closeDrawers();
 
@@ -136,13 +136,6 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 		initializeToolbar();
 		initializeFromParams(savedInstanceState, getIntent());
 	}
-
-	/*@Override
-	public View onCreateView(String name, Context context, AttributeSet attrs) {*/
-		//View v = super.onCreateView(name, context, attrs);
-
-		//return v;
-	//}
 
 	@Override
 	protected void onStart() {
@@ -180,8 +173,8 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		if (getMenuId() < 0) return true;
-		getMenuInflater().inflate(getMenuId(), menu);
+		if (getToolbarMenu() < 0) return true;
+		getMenuInflater().inflate(getToolbarMenu(), menu);
 		return true;
 	}
 
@@ -243,8 +236,8 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 			throw new IllegalStateException("Layout is required to include a Toolbar with id " +
 					"'toolbar'");
 		}
-		if (getMenuId() >= 0)
-			mToolbar.inflateMenu(getMenuId());
+		if (getToolbarMenu() >= 0)
+			mToolbar.inflateMenu(getToolbarMenu());
 
 		mDrawerLayout = findViewById(R.id.drawer_layout);
 		if (mDrawerLayout != null) {
@@ -262,6 +255,9 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 		mToolbarInitialized = true;
 	}
 
+	protected int getNavMenuItemId(){
+		return -1;
+	}
 	protected void populateDrawerItems(NavigationView navigationView){
 		navigationView.setNavigationItemSelectedListener(
 				new NavigationView.OnNavigationItemSelectedListener() {
@@ -273,6 +269,9 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 						return true;
 					}
 				});
+		int menuItem = getNavMenuItemId();
+		if (menuItem >= 0)
+			navigationView.setCheckedItem(menuItem);
 	}
 
 	protected void updateDrawerToggle() {

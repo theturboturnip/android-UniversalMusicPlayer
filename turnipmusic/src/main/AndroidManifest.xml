@@ -35,7 +35,7 @@
     <application
         android:allowBackup="true"
         android:banner="@drawable/banner_tv"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/TurnipMusicAppTheme">
         <meta-data
@@ -92,7 +92,7 @@
         -->
         <activity
             android:name=".ui.NowPlayingActivity"
-            android:icon="@drawable/ic_launcher"></activity>
+            android:icon="@mipmap/ic_launcher"></activity>
 
         <!--
              (OPTIONAL) use this meta data to indicate which icon should be

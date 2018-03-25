@@ -135,7 +135,7 @@ public class JourneyListFragment extends ItemListCommandFragment {
 
 		@Override
 		public void onClick(View view) {
-			mCommandListener.onItemPlayed(toPlay.toString());
+			mCommandListener.onItemActioned(toPlay.toString());
 		}
 	}
 

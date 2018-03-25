@@ -103,7 +103,7 @@ public abstract class ItemListCommandFragment extends MediaCommandFragment {
 
 		if (itemView == null) {
 			itemView = LayoutInflater.from(this.getActivity())
-					.inflate(R.layout.media_list_item, parent, false);
+					.inflate(R.layout.generic_list_item, parent, false);
 			cachedViews = new ListItemCachedViews(itemView);
 			itemView.setTag(cachedViews);
 		}else{
@@ -158,11 +158,11 @@ public abstract class ItemListCommandFragment extends MediaCommandFragment {
 
 		ListItemCachedViews(View itemView){
 			this.itemView = itemView;
-			playButtonView = itemView.findViewById(R.id.play_button);
+			playButtonView = itemView.findViewById(R.id.action_button);
 			intoButtonView = itemView.findViewById(R.id.into_button);
-			playImageView = itemView.findViewById(R.id.play_drawable);
+			playImageView = itemView.findViewById(R.id.action_drawable);
 			intoImageView = itemView.findViewById(R.id.into_drawable);
-			playTextView = itemView.findViewById(R.id.play_text);
+			playTextView = itemView.findViewById(R.id.action_text);
 			titleView = itemView.findViewById(R.id.title);
 			subtitleView = itemView.findViewById(R.id.subtitle);
 		}

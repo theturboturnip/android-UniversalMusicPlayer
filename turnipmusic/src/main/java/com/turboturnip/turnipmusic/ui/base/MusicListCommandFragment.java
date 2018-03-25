@@ -178,7 +178,7 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 			@Override
 			public void onClick(View view) {
 				checkForUserVisibleErrors(false);
-				mCommandListener.onItemPlayed(item.getMediaId());
+				mCommandListener.onItemActioned(item.getMediaId());
 			}
 		};
 		itemData.playable = item.isPlayable() || item.isBrowsable();

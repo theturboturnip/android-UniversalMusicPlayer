@@ -15,11 +15,8 @@
  */
 package com.turboturnip.turnipmusic.ui.base;
 
-import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
@@ -36,7 +33,6 @@ import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.ui.FullScreenPlayerActivity;
 import com.turboturnip.turnipmusic.ui.PlaybackControlsFragment;
 import com.turboturnip.turnipmusic.ui.roots.MusicBrowserProvider;
-import com.turboturnip.turnipmusic.utils.ResourceHelper;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
@@ -66,15 +62,15 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
     private boolean isConnecting = false;
 
 	@Override
-	protected int getContentViewId() {
+	protected int getContentViewLayout() {
 		return R.layout.activity_player;
 	}
 	@Override
-	protected int getMenuId(){
-		return R.menu.main;
+	protected int getToolbarMenu(){
+		return R.menu.toolbar;
 	}
 	@Override
-	protected int getNavMenuId() {
+	protected int getNavMenu() {
 		return R.menu.drawer;
 	}
 
@@ -86,18 +82,6 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
 	    if (savedInstanceState == null) {
 		    startFullScreenActivityIfNeeded(getIntent());
 	    }
-
-        if (Build.VERSION.SDK_INT >= 21) {
-            // Since our app icon has the same color as colorPrimary, our entry in the Recent Apps
-            // list gets weird. We need to change either the icon or the color
-            // of the TaskDescription.
-            ActivityManager.TaskDescription taskDesc = new ActivityManager.TaskDescription(
-                    getTitle().toString(),
-                    BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_white),
-                    ResourceHelper.getThemeColor(this, R.attr.colorPrimary,
-                            android.R.color.darker_gray));
-            setTaskDescription(taskDesc);
-        }
 
         // Connect a media browser just to get the media session token. There are other ways
         // this can be done, for example by sharing the session token directly.
@@ -167,7 +151,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
     }
 
 	@Override
-	public void onItemPlayed(String id) {
+	public void onItemActioned(String id) {
 		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + id);
 
 		MediaControllerCompat.getMediaController(this).getTransportControls()

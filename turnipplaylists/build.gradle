@@ -28,9 +28,22 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.0'
+
+    // FFmpeg
+    implementation 'com.writingminds:FFmpegAndroid:0.3.2'
+    // youtube-dl/jython
+    // https://mvnrepository.com/artifact/org.python/jython
+    // implementation 'org.python:jython:2.7.0'
+
+
+    // Room
+    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
+    implementation 'android.arch.persistence.room:runtime:1.0.0'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     implementation project(':common')
     implementation project(':turboui')
+    implementation 'com.android.support:recyclerview-v7:27.1.0'
 }

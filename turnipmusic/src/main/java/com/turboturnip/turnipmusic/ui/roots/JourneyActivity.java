@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import com.turboturnip.common.utils.LogHelper;
+import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
 import com.turboturnip.turnipmusic.ui.base.BaseActivity;
@@ -54,6 +55,11 @@ public class JourneyActivity extends BaseActivity {
 			default:
 				break;
 		}
+	}
+
+	@Override
+	protected int getNavMenuItemId() {
+		return R.id.navigation_journeys;
 	}
 
 	private static class SaveJourneyAsyncTask extends AsyncTask<Void, Void, Void>{
