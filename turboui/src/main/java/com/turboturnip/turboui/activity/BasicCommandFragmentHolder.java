@@ -14,9 +14,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turboui.R;
@@ -51,6 +53,7 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 	protected Toolbar mToolbar;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private DrawerLayout mDrawerLayout;
+	private NavigationView mNavigationView;
 
 	private boolean mToolbarInitialized;
 
@@ -97,17 +100,52 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 				}
 			};
 
+	protected int getMenuId(){
+		return -1;
+	}
+	protected int getNavMenuId(){
+		return -1;
+	}
+	protected int getNavHeaderId(){
+		return R.layout.nav_header;
+	}
+	protected int getContentViewId(){
+		return R.layout.command_fragment_frame;
+	}
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		LogHelper.d(TAG, "Activity onCreate");
 
-		setContentView(R.layout.command_fragment_frame);
+
+
+
+		setContentView(getContentViewId());
+		mNavigationView = new NavigationView(this);
+		if (getNavHeaderId() >= 0)
+			mNavigationView.inflateHeaderView(getNavHeaderId());
+		if (getNavMenuId() >= 0)
+			mNavigationView.inflateMenu(getNavMenuId());
+		DrawerLayout.LayoutParams params = new DrawerLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT);
+		params.gravity = Gravity.START;
+		mNavigationView.setLayoutParams(params);
+		DrawerLayout layout = (DrawerLayout)findViewById(R.id.drawer_layout);
+		layout.addView(mNavigationView);
+		layout.closeDrawers();
+
 
 		initializeToolbar();
 		initializeFromParams(savedInstanceState, getIntent());
 	}
+
+	/*@Override
+	public View onCreateView(String name, Context context, AttributeSet attrs) {*/
+		//View v = super.onCreateView(name, context, attrs);
+
+		//return v;
+	//}
 
 	@Override
 	protected void onStart() {
@@ -142,9 +180,6 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 		}
 	}
 
-	protected int getMenuId(){
-		return -1;
-	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -216,16 +251,11 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 
 		mDrawerLayout = findViewById(R.id.drawer_layout);
 		if (mDrawerLayout != null) {
-			NavigationView navigationView = findViewById(R.id.nav_view);
-			if (navigationView == null) {
-				throw new IllegalStateException("Layout requires a NavigationView " +
-						"with id 'nav_view'");
-			}
 
 			// Create an ActionBarDrawerToggle that will handle opening/closing of the drawer:
 			mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
 					mToolbar, R.string.open_content_drawer, R.string.close_content_drawer);
-			populateDrawerItems(navigationView);
+			populateDrawerItems(mNavigationView);
 			setSupportActionBar(mToolbar);
 			updateDrawerToggle();
 		} else {

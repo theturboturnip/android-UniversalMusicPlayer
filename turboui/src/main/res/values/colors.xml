@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="turnip_purple">#ff00ff</color>
+    <color name="turnip_purple_dark">#c700cb</color>
+    <color name="turnip_purple_light">#ff63ff</color>
+    <color name="turnip_green">#34d63e</color>
+    <color name="turnip_green_light">#76ff70</color>
+    <color name="turnip_green_dark">#00a300</color>
+</resources>

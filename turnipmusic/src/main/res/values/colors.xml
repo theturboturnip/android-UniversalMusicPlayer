@@ -15,13 +15,6 @@
   limitations under the License.
   -->
 <resources>
-    <color name="turnip_purple">#ff00ff</color>
-    <color name="turnip_purple_dark">#c700cb</color>
-    <color name="turnip_purple_light">#ff63ff</color>
-    <color name="turnip_green">#34d63e</color>
-    <color name="turnip_green_light">#76ff70</color>
-    <color name="turnip_green_dark">#00a300</color>
-
     <color name="tv_branding">@color/turnip_purple</color>
     <color name="tv_branding_dark">@color/turnip_purple_dark</color>
     <color name="tv_branding_accent">@color/turnip_green</color>

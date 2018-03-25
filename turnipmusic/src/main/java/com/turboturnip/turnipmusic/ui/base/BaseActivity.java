@@ -65,7 +65,20 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
 
     private boolean isConnecting = false;
 
-    @Override
+	@Override
+	protected int getContentViewId() {
+		return R.layout.activity_player;
+	}
+	@Override
+	protected int getMenuId(){
+		return R.menu.main;
+	}
+	@Override
+	protected int getNavMenuId() {
+		return R.menu.drawer;
+	}
+
+	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 

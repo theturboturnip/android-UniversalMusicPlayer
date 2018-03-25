@@ -1,1 +1,1 @@
-include ':turnipmusic', ':turboshuffle', ':turboui', ':common', ':common'
+include ':turnipmusic', ':turboshuffle', ':turboui', ':common', ':common', ':turnipplaylists'
