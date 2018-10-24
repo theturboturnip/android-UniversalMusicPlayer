@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) 2014 The Android Open Source Project
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/generic_item_height">
+
+    <RelativeLayout
+        android:id="@+id/action_button"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:background="?selectableItemBackgroundBorderless"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/action_drawable"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentStart="false"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:tint="@color/turnip_ui_icon_tint"
+            android:tintMode="src_in"
+            app:srcCompat="@drawable/ic_circle_outline_black" />
+
+        <TextView
+            android:id="@+id/action_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textAlignment="center"
+            android:textColor="@color/turnip_ui_icon_tint"
+            tools:text="1" />
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="60dp"
+        android:layout_marginStart="@dimen/generic_item_text_margin_start"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="?android:attr/textColorPrimary"
+            tools:text="Repeat AC" />
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="?android:attr/textColorSecondary"
+            tools:text="John Doe, his brothers, his sisters, his pets and his more than amazing band" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/into_button"
+        android:layout_width="60dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:background="?selectableItemBackgroundBorderless">
+
+        <ImageView
+            android:id="@+id/into_drawable"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:tint="@color/turnip_ui_icon_tint"
+            app:srcCompat="@drawable/ic_chevron_right_black_24dp" />
+    </RelativeLayout>
+
+</RelativeLayout>

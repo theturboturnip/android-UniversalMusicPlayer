@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="colorPrimary">@color/turnip_purple</color>
-    <color name="colorPrimaryDark">@color/turnip_purple_dark</color>
-    <color name="colorAccent">#FF4081</color>
-</resources>

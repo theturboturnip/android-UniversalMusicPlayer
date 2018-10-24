@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <dimen name="edit_option_height">48dp</dimen>
+    <dimen name="edit_option_dropdown_text_height">48dp</dimen>
+
+    <dimen name="generic_item_height">72dp</dimen>
+    <dimen name="generic_item_icon_margin_start">12dp</dimen>
+    <dimen name="generic_item_text_margin_start">72dp</dimen>
+</resources>
