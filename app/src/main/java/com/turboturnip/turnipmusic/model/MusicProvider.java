@@ -26,7 +26,6 @@ import android.support.v4.media.MediaMetadataCompat;
 
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
-import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
 import com.turboturnip.turnipmusic.utils.AsyncHelper;
 
 import java.lang.ref.WeakReference;
@@ -51,13 +50,11 @@ public class MusicProvider {
 
     private static SongDatabase mDatabase;
 
-    // Categorized caches for music track data:
-    //private ConcurrentMap<String, List<Integer>> mMusicListByAlbum;
-	//private ConcurrentMap<String, List<Integer>> mMusicListByGenre;
-    private ConcurrentMap<Integer, Song> mMusicListById;
+    private ConcurrentMap<String, Song> mSongListByLibraryId;
+	private ConcurrentMap<String, Album> mAlbumListByLibraryId;
 
-    //private final Set<String> mFavoriteTracks;
-
+    private Context context;
+    
     enum State {
         NON_INITIALIZED, INITIALIZING, INITIALIZED
     }
@@ -74,14 +71,16 @@ public class MusicProvider {
     	void getChildren(List<MediaBrowserCompat.MediaItem> children);
 	}
 
-    public MusicProvider() {
-        this(new DeviceMusicSource());
+    public MusicProvider(Context c) {
+        this(c, new DeviceMusicSource());
     }
-    public MusicProvider(MusicProviderSource source) {
+    public MusicProvider(Context c, MusicProviderSource source) {
+        this.context = c;
         mSource = source;
 	    //mMusicListByAlbum = new ConcurrentHashMap<>();
 	    //mMusicListByGenre = new ConcurrentHashMap<>();
-        mMusicListById = new ConcurrentHashMap<>();
+        mSongListByLibraryId = new ConcurrentHashMap<>();
+        mAlbumListByLibraryId = new ConcurrentHashMap<>();
         //mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         if (instance != null)
@@ -89,15 +88,15 @@ public class MusicProvider {
         instance = this;
     }
 
-    public static MusicProvider getInstance(){
+    public static MusicProvider getInstance(Context context){
     	if (instance == null)
-    		new MusicProvider();
+    		new MusicProvider(context);
     	return instance;
     }
 
 	/**
 	 * Get the list of music tracks from a server and caches the track information
-	 * for future reference, keying tracks by musicId and grouping by genre.
+	 * for future reference, keying tracks by songLibraryId and grouping by genre.
 	 */
 	public void retrieveMediaAsync(final Context context, final MusicCatalogCallback callback) {
 		LogHelper.d(TAG, "retrieveMediaAsync called");
@@ -115,33 +114,40 @@ public class MusicProvider {
 
 		@Override
 		protected Void doInBackground(Context... params) {
-			if (MusicProvider.getInstance().mCurrentState == State.INITIALIZED) {
+			if (MusicProvider.getInstance(params[0]).mCurrentState == State.INITIALIZED) {
 				if (callback != null) {
 					// Nothing to do, execute callback immediately
 					callback.onMusicCatalogReady(true);
 				}
 				return null;
 			}
-			MusicProvider.getInstance().retrieveMedia(params[0]);
+			MusicProvider.getInstance(params[0]).retrieveMedia();
 			if (callback != null) {
-				callback.onMusicCatalogReady(MusicProvider.getInstance().mCurrentState == State.INITIALIZED);
+				callback.onMusicCatalogReady(MusicProvider.getInstance(params[0]).mCurrentState == State.INITIALIZED);
 			}
 			return null;
 		}
 	}
 
-	synchronized void retrieveMedia(Context context) {
+	synchronized void retrieveMedia() {
 		try {
 			if (mCurrentState == State.NON_INITIALIZED) {
 				mCurrentState = State.INITIALIZING;
 
 				mDatabase = SongDatabase.getInstance(context);
 
-				Iterator<Song> tracks = mSource.iterator(context, mDatabase);
-				while (tracks.hasNext()) {
-					Song item = tracks.next();
-					int songID = item.getId();
-					mMusicListById.put(songID, item);
+				Collection<Album> albums = mSource.albums(context);
+				Iterator<Album> albumIterator = albums.iterator();
+				while (albumIterator.hasNext()){
+				    Album item = albumIterator.next();
+				    mAlbumListByLibraryId.put(item.libraryId, item);
+                }
+
+				Collection<Song> songs = mSource.songs(context, mAlbumListByLibraryId, mDatabase);
+				Iterator<Song> songIterator = songs.iterator();
+				while (songIterator.hasNext()) {
+					Song item = songIterator.next();
+					mSongListByLibraryId.put(item.getLibraryId(), item);
 				}
 				mCurrentState = State.INITIALIZED;
 			}
@@ -154,15 +160,12 @@ public class MusicProvider {
 		}
 	}
 
-    public Song getSong(int musicId) {
-        return mMusicListById.containsKey(musicId) ? mMusicListById.get(musicId) : null;
-    }
-    public Song getSong(String musicId) {
-    	return getSong(Integer.decode(musicId));
+    public Song getSong(String songLibraryId) {
+    	return mSongListByLibraryId.containsKey(songLibraryId) ? mSongListByLibraryId.get(songLibraryId) : null;
     }
 
-    public synchronized void updateMusicArt(int musicId, Bitmap albumArt, Bitmap icon) {
-        Song song = getSong(musicId);
+    public synchronized void updateMusicArt(String songLibraryId, Bitmap albumArt, Bitmap icon) {
+        Song song = getSong(songLibraryId);
         MediaMetadataCompat metadata = new MediaMetadataCompat.Builder(song.getMetadata())
 
                 // set high resolution bitmap in METADATA_KEY_ALBUM_ART. This is used, for
@@ -187,43 +190,46 @@ public class MusicProvider {
     public Collection<Song> getFilteredSongs(MusicFilter filter){
 	    AsyncHelper.ThrowIfOnMainThread("getFilteredSongs()");
     	List<Song> songs = new ArrayList<>();
-	    List<Integer> ids;
+	    List<String> libraryIds;
 	    switch(filter.filterType){
 		    case ByAlbum:
-			    ids = mDatabase.songDao().getSongIdsInAlbum(mDatabase.albumDao().getAlbumByName(filter.filterValue).getId());
+				libraryIds = mSource.songMediaIdsForAlbumLibraryId(context, filter.filterValue);//mDatabase.songDao().getSongIdsInAlbum(mDatabase.albumDao().getAlbumByName(filter.filterValue).getId());
 			    break;
 		    case ByTag:
-			    ids = mDatabase.songTagJoinDao().getSongIdsForTag(mDatabase.tagDao().getTag(filter.filterValue).id);
-	            break;
+		    	//ids = mDatabase.songTagJoinDao().getSongIdsForTag(mDatabase.tagDao().getTag(filter.filterValue).id);
+	            //break;
 		    case Search:
-			    ids = mDatabase.songDao().orderedSearchForIds(filter.filterValue);
-		    	break;
+                //libraryIds = mDatabase.songDao().orderedSearchForIds(filter.filterValue);
+		    	//break;
 		    case ByArtist:
-			    ids = new ArrayList<>();
+                libraryIds = new ArrayList<>();
 		    	break;
 		    default:
-			    return mMusicListById.values();
+			    return mSongListByLibraryId.values();
 	    }
-	    for(Integer id : ids)
+	    for(String id : libraryIds)
 	    	songs.add(getSong(id));
     	return songs;
     }
     public static class GetFilteredSongsAsyncTask extends AsyncTask<MusicFilter, Void, Collection<Song>>{
     	private final FilteredSongCallback callback;
     	private final WeakReference<Collection<Song>> collectionRef;
+    	private final Context context;
 
-    	public GetFilteredSongsAsyncTask(FilteredSongCallback callback){
+    	public GetFilteredSongsAsyncTask(Context c, FilteredSongCallback callback){
     		this.callback = callback;
     		this.collectionRef = null;
+    		this.context = c;
 	    }
-	    public GetFilteredSongsAsyncTask(WeakReference<Collection<Song>> collectionRef){
+	    public GetFilteredSongsAsyncTask(Context c, WeakReference<Collection<Song>> collectionRef){
     		this.callback = null;
     		this.collectionRef = collectionRef;
+			this.context = c;
 	    }
 
 	    @Override
 	    protected Collection<Song> doInBackground(MusicFilter... params) {
-    		return getInstance().getFilteredSongs(params[0]);
+    		return getInstance(context).getFilteredSongs(params[0]);
 	    }
 	    @Override
 	    protected void onPostExecute(Collection<Song> collection){
@@ -240,16 +246,11 @@ public class MusicProvider {
 	    List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
 	    if (musicFilter.filterType == MusicFilterType.Explore){
-	    	List<String> possibleValues = new ArrayList<>();
 			if (MusicFilterType.ByAlbum.equals(musicFilter.filterValue)) {
-				List<AlbumEntity> albums = mDatabase.albumDao().getAlbums();
-				for (AlbumEntity album : albums)
-					possibleValues.add(album.name);
+				for (Album album : mAlbumListByLibraryId.values())
+					mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(MusicFilterType.valueFor(musicFilter.filterValue), album.libraryId, album.name));
 			}
 
-			for (String possibleValue : possibleValues){
-				mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(MusicFilterType.valueFor(musicFilter.filterValue), possibleValue));
-			}
 	    }else{
 	    	// We are filtering the songs, not showing what filter values exist
 			Collection<Song> songs = getFilteredSongs(musicFilter);
@@ -264,15 +265,17 @@ public class MusicProvider {
     public static class GetChildrenAsyncTask extends AsyncTask<Void, Void, List<MediaBrowserCompat.MediaItem>>{
     	private final MusicFilter filter;
     	private final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result;
+    	private final Context context;
 
-    	public GetChildrenAsyncTask(MusicFilter filter, MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result){
+    	public GetChildrenAsyncTask(Context c, MusicFilter filter, MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result){
     		this.filter = filter;
     		this.result = result;
+    		this.context = c;
 	    }
 
 	    @Override
 	    protected List<MediaBrowserCompat.MediaItem> doInBackground(Void... params) {
-		    return MusicProvider.getInstance().getChildren(filter);
+		    return MusicProvider.getInstance(context).getChildren(filter);
 	    }
 	    @Override
 	    protected void onPostExecute(List<MediaBrowserCompat.MediaItem> children) {
@@ -280,10 +283,13 @@ public class MusicProvider {
 	    }
     }
 
-    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(MusicFilterType filterType, String filterValue){
+	private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(MusicFilterType filterType, String filterValue) {
+		return createBrowsableMediaItemForPossibleFilterValue(filterType, filterValue, filterValue);
+	}
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(MusicFilterType filterType, String filterValue, String title){
 	    MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
 			    .setMediaId(new MusicFilter(filterType, filterValue).toString())
-			    .setTitle(filterValue)
+			    .setTitle(title)
 			    .setSubtitle("")
 			    .build();
 	    return new MediaBrowserCompat.MediaItem(description,

@@ -28,13 +28,9 @@ import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turboshuffle.SongPool;
 import com.turboturnip.turboshuffle.TurboShuffleSong;
 import com.turboturnip.turnipmusic.AlbumArtCache;
-import com.turboturnip.turnipmusic.model.CompositeMusicFilter;
-import com.turboturnip.turnipmusic.model.ConstJourney;
-import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 import com.turboturnip.turnipmusic.model.Song;
-import com.turboturnip.turnipmusic.utils.AsyncHelper;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -62,7 +58,7 @@ public class QueueManager {
     private int mCurrentCompiledQueueIndex;
     private static final int MAX_LOOKBACK = 10;
 
-    private ConstJourney journey;
+    //private ConstJourney journey;
 
 	private List<MediaSessionCompat.QueueItem> mCompiledQueue;
 
@@ -97,8 +93,8 @@ public class QueueManager {
     	mListeners.remove(l);
     }
 
-    public int getExplicitQueueIndex(String musicId){
-    	Song s = mMusicProvider.getSong(musicId);
+    public int getExplicitQueueIndex(String songLibraryId){
+    	Song s = mMusicProvider.getSong(songLibraryId);
     	if (s == null) return -1;
 	    // Uncomment this to make things in the implicit queue look like they are explicitly queued.
     	/*int index = mExplicitQueue.indexOf(s);
@@ -129,7 +125,7 @@ public class QueueManager {
 			updateCompiledQueue();
 			return true;
 		}
-		Toast.makeText(context, "Added "+mMusicProvider.getSong(song.getId()).getMetadata().getDescription().getTitle()+" to the queue.", Toast.LENGTH_SHORT).show();
+		Toast.makeText(context, "Added "+song.getMetadata().getDescription().getTitle()+" to the queue.", Toast.LENGTH_SHORT).show();
 		mExplicitQueue.add(song);
 		updateCompiledQueue();
 		return false;
@@ -207,7 +203,7 @@ public class QueueManager {
 		//	l.onCurrentQueueIndexUpdated(mCurrentCompiledQueueIndex);
 	}
 	private MediaSessionCompat.QueueItem queueItemFromSong(Song song, int queueIndex) {
-		return new MediaSessionCompat.QueueItem(mMusicProvider.getSong(song.getId()).getMetadata().getDescription(), queueIndex);
+		return new MediaSessionCompat.QueueItem(song.getMetadata().getDescription(), queueIndex);
 	}
 
 	Song getCurrentSong(){
@@ -262,7 +258,7 @@ public class QueueManager {
 		}
 	}
 
-	void startJourney(Journey newJourney){
+	/*void startJourney(Journey newJourney){
 		AsyncHelper.ThrowIfOnMainThread("startJourney()");
 		journey = new ConstJourney(newJourney);
 		setJourneyStage(0);
@@ -287,10 +283,10 @@ public class QueueManager {
 						new OrderedImplicitQueue() : new ShuffledImplicitQueue();
 		mImplicitQueue.initialize(pools);
 		updateCompiledQueue();
-	}
+	}*/
 
 	public void initImplicitQueue(){
-		startJourney(
+		/*startJourney(
 				new Journey(
 						"",
 						new Journey.Stage(
@@ -298,10 +294,20 @@ public class QueueManager {
 								Journey.Stage.PlayType.Repeat,
 								0,
 								null,
-								new CompositeMusicFilter(MusicFilter.emptyFilter())
+								new CompositeMusicFilter()
 						)
 				)
+		);*/
+		Collection<Song> songs = mMusicProvider.getFilteredSongs(MusicFilter.emptyFilter());
+		for(Song s : songs){
+			LogHelper.e(TAG, s != null);
+		}
+		SongPool pool = new SongPool(
+				songs.toArray(new TurboShuffleSong[songs.size()])
 		);
+		mImplicitQueue = new OrderedImplicitQueue();
+		mImplicitQueue.initialize(new SongPool[]{pool});
+		updateCompiledQueue();
 	}
 
 	public void stop(){
@@ -331,7 +337,7 @@ public class QueueManager {
             AlbumArtCache.getInstance().fetch(albumUri, new AlbumArtCache.FetchListener() {
                 @Override
                 public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                    mMusicProvider.updateMusicArt(song.getId(), bitmap, icon);
+                    mMusicProvider.updateMusicArt(song.getLibraryId(), bitmap, icon);
 
                     // If we are still playing the same music, notify the listeners:
                     Song currentSong = getCurrentSong();

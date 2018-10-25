@@ -2,25 +2,25 @@ package com.turboturnip.turnipmusic.model.db.entities;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.PrimaryKey;
 
 import com.turboturnip.turnipmusic.model.db.DBConstants;
 
-@Entity(tableName = DBConstants.SONG_TAG_JOIN_TABLE,
-		primaryKeys = { "songId", "tagId" },
+@Entity(tableName = DBConstants.TAG_MAP_TABLE,
 		foreignKeys = {
-@ForeignKey(entity = SongEntity.class,
-		parentColumns = "id",
-		childColumns = "songId"),
 @ForeignKey(entity = TagEntity.class,
 		parentColumns = "id",
 		childColumns = "tagId")
                 })
-public class SongTagJoinEntity {
-	public final int songId;
+public class TagMapEntity {
+	@PrimaryKey
+	public final int id;
+	public final String songMediaId;
 	public final int tagId;
 
-	public SongTagJoinEntity(int songId, int tagId){
-		this.songId = songId;
+	public TagMapEntity(int id, String songMediaId, int tagId){
+		this.id = id;
+		this.songMediaId = songMediaId;
 		this.tagId = tagId;
 	}
 }

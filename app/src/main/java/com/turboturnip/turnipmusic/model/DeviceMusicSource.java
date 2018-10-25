@@ -4,15 +4,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v4.media.MediaMetadataCompat;
 
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
-import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
-import com.turboturnip.turnipmusic.model.db.entities.SongEntity;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility Class that gets music from the device using MediaSource
@@ -22,15 +23,45 @@ public class DeviceMusicSource implements MusicProviderSource {
 
 	private static final String TAG = LogHelper.makeLogTag(DeviceMusicSource.class);
 
-	// TODO: Use the projections.
+	// TODO: Use the projections?
 	private static String[] musicProjection = null;
 	private static String[] genresProjection = null;
 	private static String[] albumProjection = null;
 
+	// TODO: Should this return Map<String, Album>?
 	@Override
-	public Iterator<Song> iterator(Context context, SongDatabase db) {
+    public Collection<Album> albums(Context context) {
+	    ArrayList<Album> albums = new ArrayList<>();
+
+        Cursor albumCursor = context.getContentResolver().query(
+                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumProjection, null, null,
+                null);
+        if (albumCursor == null){
+            LogHelper.e(TAG, "Failed to get albums");
+            return albums;
+        }
+        int albumIdColumn = albumCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+        int albumNameColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
+        int albumArtColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
+        int albumTotalSongsColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS);
+
+        albumCursor.moveToPosition(0);
+        while (albumCursor.moveToNext()) {
+            String albumLibraryId = albumCursor.getString(albumIdColumn);
+            String albumName = albumCursor.getString(albumNameColumn);
+            String artPath = albumCursor.getString(albumArtColumn);
+            long totalTrackCount = albumCursor.getLong(albumTotalSongsColumn);
+
+            albums.add(new Album(albumLibraryId, albumName, artPath, totalTrackCount));
+        }
+
+        return albums;
+    }
+
+	@Override
+	public Collection<Song> songs(Context context, Map<String, Album> albums, SongDatabase db) {
 		try {
-			ArrayList<Song> tracks = new ArrayList<>();
+			ArrayList<Song> songs = new ArrayList<>();
 			Cursor musicCursor = context.getContentResolver().query(
 					MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, musicProjection, null, null,
 					null);
@@ -38,10 +69,10 @@ public class DeviceMusicSource implements MusicProviderSource {
 
 			if (musicCursor == null) {
 				LogHelper.e(TAG, "Failed to retrieve music: Query Failed");
-				return tracks.iterator();
+				return songs;
 			} else if (!musicCursor.moveToFirst()) {
 				LogHelper.e(TAG, "No music found on the device!.");
-				return tracks.iterator();
+				return songs;
 			}
 			LogHelper.i(TAG, "Listing...");
 			// retrieve the indices of the columns where the ID, title, etc. of the song are
@@ -56,41 +87,21 @@ public class DeviceMusicSource implements MusicProviderSource {
 
 			int isMusicColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.IS_MUSIC);
 
-			Cursor albumCursor = context.getContentResolver().query(
-					MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumProjection, null, null,
-					null);
-			if (albumCursor == null){
-				LogHelper.e(TAG, "Failed to get albums");
-				return tracks.iterator();
-			}
-			int albumNameColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
-			int albumArtColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
-			int albumTotalSongsColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS);
-
-			// add the albums to the database
-			albumCursor.moveToPosition(0);
-			do {
-				String albumName = albumCursor.getString(albumNameColumn);
-				String artPath = albumCursor.getString(albumArtColumn);
-				int totalTrackCount = (int)albumCursor.getLong(albumTotalSongsColumn);
-				AlbumEntity preexistingEntity = db.albumDao().getAlbumByName(albumName);
-				if (preexistingEntity != null)
-					db.albumDao().updateAlbum(new AlbumEntity(preexistingEntity.getId(), albumName, totalTrackCount, artPath));
-				else
-					db.albumDao().insertAlbum(new AlbumEntity(albumName, totalTrackCount, artPath));
-			} while (albumCursor.moveToNext());
-
 			Cursor genresCursor;
 
 			// add each song to mItems
 			do {
 				if (musicCursor.getInt(isMusicColumn) == 0) continue;
 
-				String title = musicCursor.getString(titleColumn);
+				MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder();
+
 				String mediaId = musicCursor.getString(idColumn);
-				String filePath = musicCursor.getString(filePathColumn);
-				String artist = musicCursor.getString(artistColumn);
-				long duration = musicCursor.getLong(durationColumn);
+
+				metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, mediaId)
+						.putString(MediaMetadataCompat.METADATA_KEY_TITLE,  musicCursor.getString(titleColumn))
+						.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, musicCursor.getString(artistColumn))
+						.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, musicCursor.getLong(durationColumn))
+                        .putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, musicCursor.getLong(trackNumberColumn));
 
 				String genre = "";
 				{
@@ -104,52 +115,52 @@ public class DeviceMusicSource implements MusicProviderSource {
 					}
 					genresCursor.close();
 				}
+				metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre);
 
-				AlbumEntity albumEntity = null;
-				int albumID = -1;
-				int albumIndex = -1;
-				int albumDeviceID = musicCursor.getInt(albumIDColumn);
-				if (albumCursor.moveToPosition(albumDeviceID)) {
-					String albumName = albumCursor.getString(albumNameColumn);
-					albumEntity = db.albumDao().getAlbumByName(albumName);
 
-					// AlbumEntity cannot be null here, if the previous db update worked.
-					albumID = albumEntity.getId();
-					albumIndex = (int)musicCursor.getLong(trackNumberColumn);
+                int albumLibraryId = musicCursor.getInt(albumIDColumn);
+				Album album = albums.get(""+albumLibraryId);
+				if (album != null) {
+                    metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album.name)
+                            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, album.artPath)
+                            .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, album.trackCount);
 				} else {
-					String albumName = musicCursor.getString(albumFromMusicColumn);
-					albumEntity = db.albumDao().getAlbumByName(albumName);
-					if (albumEntity == null) {
-						albumEntity = new AlbumEntity(albumName, 1, "");
-						albumEntity.setId((int)db.albumDao().insertAlbum(albumEntity));
-					}
-					albumID = albumEntity.getId();
-
-					List<SongEntity> songsInAlbum = db.songDao().getSongsInAlbum(albumEntity.getId());
-					albumIndex = 0;
-					for (SongEntity s : songsInAlbum){
-						if (s.mediaId.equals(mediaId))
-							break;
-						albumIndex++;
-					}
+                    metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, musicCursor.getString(albumFromMusicColumn))
+                            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, "")
+                            .putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, 0);
 				}
 
-				int songDBId = db.songDao().getSongIdByMediaId(mediaId);
-				if (songDBId < 0) songDBId = 0;
-				SongEntity songEntity = new SongEntity(songDBId, mediaId, title, albumID, albumIndex);
-				songEntity.setId((int)db.songDao().insertSong(songEntity));
 
-				tracks.add(new Song(songEntity, albumEntity, filePath, artist, duration, genre));
+				songs.add(new Song(metadataBuilder.build(), musicCursor.getString(filePathColumn), album));
 			} while (musicCursor.moveToNext());
 
-			albumCursor.close();
 			musicCursor.close();
 
-			LogHelper.i(TAG, "Collected ", tracks.size(), " total songs");
-			return tracks.iterator();
+			LogHelper.i(TAG, "Collected ", songs.size(), " total songs");
+			return songs;
 		} catch (Exception e) {
 			LogHelper.e(TAG, e, "Could not retrieve music list");
 			throw new RuntimeException("Could not retrieve music list", e);
 		}
 	}
+
+    @Override
+	public List<String> songMediaIdsForAlbumLibraryId(Context context, String albumLibraryId){
+        Cursor songCursor = context.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ALBUM_ID},
+                "ALBUM_ID is ?",
+                new String[]{albumLibraryId},
+                null);
+
+        int idColumn = songCursor.getColumnIndex(MediaStore.Audio.Media._ID);
+
+        List<String> songMediaIds = new ArrayList<String>(songCursor.getCount());
+        songCursor.moveToPosition(0);
+        while (songCursor.moveToNext()) {
+            songMediaIds.add(songCursor.getString(idColumn));
+        }
+
+        return songMediaIds;
+    }
 }

@@ -9,8 +9,6 @@ import android.view.ViewGroup;
 
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.model.CompositeMusicFilter;
-import com.turboturnip.turnipmusic.model.Journey;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.ui.base.ItemListCommandFragment;
@@ -37,7 +35,7 @@ public class HubFragment extends ItemListCommandFragment {
 		mBrowserAdapter.addItem(new ListItemData("Filter by Tag", "", new HubButtonOnClickListener(MusicFilterType.ByTag), null));
 
 		mBrowserAdapter.addHeader(new ListItemData("Tests"));
-		mBrowserAdapter.addItem(new ListItemData("Repeat AC", "", null, new JourneyTestOnClickListener(
+		/*mBrowserAdapter.addItem(new ListItemData("Repeat AC", "", null, new JourneyTestOnClickListener(
 				new Journey("Test Repeat AC", new MusicFilter(MusicFilterType.ByAlbum, "Assassination Classroom"))
 		)));
 		mBrowserAdapter.addItem(new ListItemData("Shuffle Persona", "", null,
@@ -48,7 +46,7 @@ public class HubFragment extends ItemListCommandFragment {
 						)
 				))
 		);
-		mBrowserAdapter.addItem(new ListItemData("Shuffle AC, D, Persona"));
+		mBrowserAdapter.addItem(new ListItemData("Shuffle AC, D, Persona"));*/
 		mBrowserAdapter.notifyDataSetChanged();
 
 		return resultView;
@@ -70,7 +68,7 @@ public class HubFragment extends ItemListCommandFragment {
 		mCommandListener.setToolbarTitle(null);
 	}
 
-	private class JourneyTestOnClickListener implements View.OnClickListener{
+	/*private class JourneyTestOnClickListener implements View.OnClickListener{
 		private Journey journey;
 
 		JourneyTestOnClickListener(Journey journey){
@@ -81,9 +79,9 @@ public class HubFragment extends ItemListCommandFragment {
 			mCommandListener.onItemActioned(journey.toString());
 			/*Bundle args = new Bundle(1);
 			args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
-			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);*/
+			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);* // /
 		}
-	}
+	}*/
 	private class HubButtonOnClickListener implements View.OnClickListener{
 		private MusicFilter filter;
 

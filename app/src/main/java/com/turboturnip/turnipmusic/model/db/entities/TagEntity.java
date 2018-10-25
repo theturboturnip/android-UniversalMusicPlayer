@@ -10,25 +10,16 @@ import com.turboturnip.turnipmusic.model.db.DBConstants;
 public class TagEntity {
 	@PrimaryKey(autoGenerate = true)
 	public final int id;
-	public final int parentTableId;
 	public final String name;
 
 	@Ignore
 	public TagEntity(String name){
 		this.id = name.hashCode();
 		this.name = name;
-		this.parentTableId = -1;
-	}
-	@Ignore
-	public TagEntity(String name, TagEntity parent){
-		this.id = 0;
-		this.name = name;
-		this.parentTableId = parent.id;
 	}
 
-	public TagEntity(int id, int parentTableId, String name){
+	public TagEntity(int id, String name){
 		this.id = id;
-		this.parentTableId = parentTableId;
 		this.name = name;
 	}
 }

@@ -56,7 +56,7 @@ public class CastPlayback implements Playback {
     /** Playback interface Callbacks */
     private Callback mCallback;
     private long mCurrentPosition;
-    private int mCurrentMusicId;
+    private int mCurrentsongLibraryId;
 
     public CastPlayback(MusicProvider musicProvider, Context context) {
         mMusicProvider = musicProvider;
@@ -123,7 +123,7 @@ public class CastPlayback implements Playback {
                 mRemoteMediaClient.pause();
                 mCurrentPosition = (int) mRemoteMediaClient.getApproximateStreamPosition();
             } else {
-                loadMedia(mCurrentMusicId, false);
+                loadMedia(mCurrentsongLibraryId, false);
             }
         } catch (JSONException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
@@ -141,7 +141,7 @@ public class CastPlayback implements Playback {
                 mCurrentPosition = position;
             } else {
                 mCurrentPosition = position;
-                loadMedia(mCurrentMusicId, false);
+                loadMedia(mCurrentsongLibraryId, false);
             }
         } catch (JSONException e) {
             LogHelper.e(TAG, e, "Exception pausing cast playback");
@@ -153,12 +153,12 @@ public class CastPlayback implements Playback {
 
     @Override
     public void setCurrentMediaId(String mediaId) {
-        this.mCurrentMusicId = Integer.decode(mediaId);
+        this.mCurrentsongLibraryId = Integer.decode(mediaId);
     }
 
     @Override
     public String getCurrentMediaId() {
-        return mCurrentMusicId+"";
+        return mCurrentsongLibraryId+"";
     }
 
     @Override
@@ -183,18 +183,18 @@ public class CastPlayback implements Playback {
         return mPlaybackState;
     }
 
-    // TODO: This assumes the mediaId is the musicID. Is that right?
-    private void loadMedia(int musicId, boolean autoPlay) throws JSONException {
-        Song song = mMusicProvider.getSong(musicId);
+    // TODO: This assumes the mediaId is the songLibraryId. Is that right?
+    private void loadMedia(int songLibraryId, boolean autoPlay) throws JSONException {
+        Song song = mMusicProvider.getSong(""+songLibraryId);
         if (song == null) {
-            throw new IllegalArgumentException("Invalid mediaId " + musicId);
+            throw new IllegalArgumentException("Invalid mediaId " + songLibraryId);
         }
-        if (musicId == mCurrentMusicId) {
-            mCurrentMusicId = musicId;
+        if (songLibraryId == mCurrentsongLibraryId) {
+            mCurrentsongLibraryId = songLibraryId;
             mCurrentPosition = 0;
         }
         JSONObject customData = new JSONObject();
-        customData.put(ITEM_ID, musicId);
+        customData.put(ITEM_ID, songLibraryId);
         MediaInfo media = toCastMediaMetadata(song, customData);
         mRemoteMediaClient.load(media, autoPlay, mCurrentPosition, customData);
     }
@@ -255,8 +255,8 @@ public class CastPlayback implements Playback {
 
             if (customData != null && customData.has(ITEM_ID)) {
                 int remoteMediaId = Integer.decode(customData.getString(ITEM_ID));
-                if (mCurrentMusicId != remoteMediaId) {
-                    mCurrentMusicId = remoteMediaId;
+                if (mCurrentsongLibraryId != remoteMediaId) {
+                    mCurrentsongLibraryId = remoteMediaId;
                     if (mCallback != null) {
                         mCallback.setCurrentMediaId(""+remoteMediaId);
                     }

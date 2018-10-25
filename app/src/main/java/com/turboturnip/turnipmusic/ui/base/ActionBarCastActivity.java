@@ -32,7 +32,6 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turboui.activity.BasicCommandFragmentHolder;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.ui.roots.JourneyActivity;
 import com.turboturnip.turnipmusic.ui.roots.MusicBrowserActivity;
 import com.turboturnip.turnipmusic.ui.roots.PlaceholderActivity;
 import com.turboturnip.turnipmusic.ui.roots.QueueActivity;
@@ -83,8 +82,6 @@ public abstract class ActionBarCastActivity extends BasicCommandFragmentHolder {
 		switch (item) {
 			case R.id.navigation_allmusic:
 				return MusicBrowserActivity.class;
-			case R.id.navigation_journeys:
-				return JourneyActivity.class;
 			case R.id.navigation_filters:
 				return PlaceholderActivity.class;
 			case R.id.navigation_queue:

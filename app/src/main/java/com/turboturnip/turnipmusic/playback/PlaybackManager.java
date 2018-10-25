@@ -26,8 +26,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.turboturnip.common.utils.LogHelper;
-import com.turboturnip.turnipmusic.model.Journey;
-import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 
 import org.json.JSONException;
@@ -248,7 +246,7 @@ public class PlaybackManager implements Playback.Callback {
     }
 
 
-    private static class PlayNewJourneyAsyncTask extends AsyncTask<Journey, Void, Void>{
+    /*private static class PlayNewJourneyAsyncTask extends AsyncTask<Journey, Void, Void>{
         private PlaybackManager playbackManager;
 
         PlayNewJourneyAsyncTask(PlaybackManager playbackManager){
@@ -266,7 +264,7 @@ public class PlaybackManager implements Playback.Callback {
         protected void onPostExecute(Void status){
 	        playbackManager.mMediaSessionCallback.onSkipToNext();
         }
-    }
+    }*/
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
@@ -294,7 +292,7 @@ public class PlaybackManager implements Playback.Callback {
         @Override
 	    public void onPlayFromMediaId(String data, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId data:", data, "  extras=", extras);
-            try {
+            /*try {
             	Journey journey = new Journey(data);
             	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(journey);
                 return;
@@ -307,7 +305,7 @@ public class PlaybackManager implements Playback.Callback {
             	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(new Journey("Generated Journey", filter));
             }else if (mQueueManager.addToExplicitQueue(mContext, mMusicProvider.getSong(data))) {
 	            handlePlayRequest();
-            }
+            }*/
         }
 
         @Override

@@ -3,8 +3,6 @@ package com.turboturnip.turnipmusic.model;
 import android.support.v4.media.MediaMetadataCompat;
 
 import com.turboturnip.turboshuffle.TurboShuffleSong;
-import com.turboturnip.turnipmusic.model.db.entities.AlbumEntity;
-import com.turboturnip.turnipmusic.model.db.entities.SongEntity;
 
 import java.util.ArrayList;
 
@@ -13,14 +11,16 @@ import java.util.ArrayList;
  */
 
 public class Song implements TurboShuffleSong<Integer>{
-	private SongEntity dbEntity;
 	private MediaMetadataCompat metadata;
-	private String filePath;
-	private ArrayList<Integer> tags;
+	private final String filePath;
+	private final ArrayList<Integer> tags;
+    private final int metadataIdHash;
+    private final Album album; // TODO: Replace with Album
 
-	public Song(SongEntity dbEntity, AlbumEntity albumDBEntity, String filePath, String artist, Long duration, String genre){
-		this.dbEntity = dbEntity;
-		if (albumDBEntity != null &&  dbEntity.albumId != albumDBEntity.getId())
+	public Song(MediaMetadataCompat metadata, String filePath, Album album){//SongEntity dbEntity, AlbumEntity albumDBEntity,  String artist, Long duration, String genre){
+		this.metadata = metadata;
+		this.album = album;
+		/*if (albumDBEntity != null &&  dbEntity.albumId != albumDBEntity.getId())
 			throw new RuntimeException("Trying to create a Song with mismatching SongEntity and AlbumEntities");
 		this.metadata = new MediaMetadataCompat.Builder()
 				.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, dbEntity.getId()+"")
@@ -32,18 +32,20 @@ public class Song implements TurboShuffleSong<Integer>{
 				.putString(MediaMetadataCompat.METADATA_KEY_TITLE, dbEntity.name)
 				.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, dbEntity.albumIndex)
 				.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS, albumDBEntity == null ? 0 : albumDBEntity.trackCount)
-				.build();
+				.build();*/
 		this.filePath = filePath;
 		// TODO: Put tags in the constructor
 		this.tags = new ArrayList<>();
+		this.metadataIdHash = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID).hashCode();
 	}
 
 	public final MediaMetadataCompat getMetadata(){ return metadata; }
-	public void setMetadata(MediaMetadataCompat metadata) { this.metadata = metadata; }
+	public final void setMetadata(MediaMetadataCompat newVersion){ metadata = newVersion; }
 	public final String getFilePath(){ return filePath; }
-	public final Integer getId(){ return dbEntity.getId(); }
 	public final int getLengthInSeconds(){ return (int)this.metadata.getLong(MediaMetadataCompat.METADATA_KEY_DURATION); }
 	public final ArrayList<Integer> getTags(){ return tags; }
+	public final Integer getId() { return metadataIdHash; }
+	public final String getLibraryId() { return this.metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID); }
 
 	@Override
 	public boolean equals(Object o) {
@@ -56,11 +58,12 @@ public class Song implements TurboShuffleSong<Integer>{
 
 		Song that = (Song) o;
 
-		return dbEntity.getId() == that.dbEntity.getId();
+		return metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
+				== that.metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
 	}
 
 	@Override
 	public int hashCode() {
-		return dbEntity.getId();
+		return metadataIdHash;
 	}
 }

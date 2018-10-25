@@ -2,11 +2,8 @@ package com.turboturnip.turnipmusic.model.db;
 
 import android.arch.persistence.room.TypeConverter;
 
-import com.turboturnip.turnipmusic.model.Journey;
-import com.turboturnip.turnipmusic.model.MusicFilterType;
-
 public class Converters {
-	@TypeConverter
+/*	@TypeConverter
 	public static MusicFilterType toFilterType(int ordinal) {
 		return MusicFilterType.values()[ordinal];
 	}
@@ -22,5 +19,5 @@ public class Converters {
 	@TypeConverter
 	public static int toOrdinal(Journey.Stage.PlayType type) {
 		return type.ordinal();
-	}
+	}*/
 }

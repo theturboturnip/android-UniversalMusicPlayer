@@ -160,7 +160,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         super.onCreate();
         LogHelper.d(TAG, "onCreate");
 
-        mMusicProvider = MusicProvider.getInstance();
+        mMusicProvider = MusicProvider.getInstance(getApplicationContext());
 
         mPackageValidator = new PackageValidator(this);
 
@@ -352,14 +352,14 @@ public class MusicService extends MediaBrowserServiceCompat implements
             result.sendResult(new ArrayList<MediaItem>());
         } else if (mMusicProvider.isInitialized()) {
 	        result.detach();
-	        new MusicProvider.GetChildrenAsyncTask(parsedParentFiler, result).execute();
+	        new MusicProvider.GetChildrenAsyncTask(getApplicationContext(), parsedParentFiler, result).execute();
         } else {
             // otherwise, only return results when the music library is retrieved
             result.detach();
             mMusicProvider.retrieveMediaAsync(this, new MusicProvider.MusicCatalogCallback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
-	                new MusicProvider.GetChildrenAsyncTask(parsedParentFiler, result).execute();
+	                new MusicProvider.GetChildrenAsyncTask(getApplicationContext(), parsedParentFiler, result).execute();
                 }
             });
         }

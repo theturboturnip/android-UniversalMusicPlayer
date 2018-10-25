@@ -20,8 +20,12 @@ import android.content.Context;
 
 import com.turboturnip.turnipmusic.model.db.SongDatabase;
 
-import java.util.Iterator;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public interface MusicProviderSource {
-    Iterator<Song> iterator(Context context, SongDatabase db);
+    Collection<Album> albums(Context context);
+    Collection<Song> songs(Context context, Map<String, Album> albums, SongDatabase db);
+    List<String> songMediaIdsForAlbumLibraryId(Context context, String albumLibraryId);
 }
