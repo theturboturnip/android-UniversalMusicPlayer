@@ -34,7 +34,9 @@ public class DeviceMusicSource implements MusicProviderSource {
 	    ArrayList<Album> albums = new ArrayList<>();
 
         Cursor albumCursor = context.getContentResolver().query(
-                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumProjection, null, null,
+                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumProjection,
+                "NOT "+MediaStore.Audio.Albums.NUMBER_OF_SONGS+"=0",
+                null,
                 null);
         if (albumCursor == null){
             LogHelper.e(TAG, "Failed to get albums");
@@ -45,15 +47,18 @@ public class DeviceMusicSource implements MusicProviderSource {
         int albumArtColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
         int albumTotalSongsColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS);
 
-        albumCursor.moveToPosition(0);
-        while (albumCursor.moveToNext()) {
+        if (!albumCursor.moveToFirst()) return albums;
+        do {
             String albumLibraryId = albumCursor.getString(albumIdColumn);
             String albumName = albumCursor.getString(albumNameColumn);
             String artPath = albumCursor.getString(albumArtColumn);
             long totalTrackCount = albumCursor.getLong(albumTotalSongsColumn);
+            LogHelper.d(TAG, "Album ", albumName, " has ", totalTrackCount);
 
             albums.add(new Album(albumLibraryId, albumName, artPath, totalTrackCount));
-        }
+        } while (albumCursor.moveToNext());
+
+        albumCursor.close();
 
         return albums;
     }
@@ -148,18 +153,21 @@ public class DeviceMusicSource implements MusicProviderSource {
 	public List<String> songMediaIdsForAlbumLibraryId(Context context, String albumLibraryId){
         Cursor songCursor = context.getContentResolver().query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.ALBUM_ID},
-                "ALBUM_ID is ?",
+                new String[]{MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TRACK, MediaStore.Audio.Media.ALBUM_ID},
+                MediaStore.Audio.Media.ALBUM_ID+" is ?",
                 new String[]{albumLibraryId},
-                null);
+                MediaStore.Audio.Media.TRACK);
 
         int idColumn = songCursor.getColumnIndex(MediaStore.Audio.Media._ID);
 
-        List<String> songMediaIds = new ArrayList<String>(songCursor.getCount());
-        songCursor.moveToPosition(0);
-        while (songCursor.moveToNext()) {
-            songMediaIds.add(songCursor.getString(idColumn));
+        List<String> songMediaIds = new ArrayList<>(songCursor.getCount());
+        if (!songCursor.moveToFirst()){
+            songCursor.close();
+            return songMediaIds;
         }
+        do {
+            songMediaIds.add(songCursor.getString(idColumn));
+        }while (songCursor.moveToNext());
 
         return songMediaIds;
     }

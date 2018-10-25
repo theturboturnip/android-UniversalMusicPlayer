@@ -31,6 +31,8 @@ import com.turboturnip.turnipmusic.utils.AsyncHelper;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,7 +56,7 @@ public class MusicProvider {
 	private ConcurrentMap<String, Album> mAlbumListByLibraryId;
 
     private Context context;
-    
+
     enum State {
         NON_INITIALIZED, INITIALIZING, INITIALIZED
     }
@@ -77,11 +79,9 @@ public class MusicProvider {
     public MusicProvider(Context c, MusicProviderSource source) {
         this.context = c;
         mSource = source;
-	    //mMusicListByAlbum = new ConcurrentHashMap<>();
-	    //mMusicListByGenre = new ConcurrentHashMap<>();
+
         mSongListByLibraryId = new ConcurrentHashMap<>();
         mAlbumListByLibraryId = new ConcurrentHashMap<>();
-        //mFavoriteTracks = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         if (instance != null)
         	throw new RuntimeException("Tried to create a new MusicProvider when one already existed!");
@@ -136,19 +136,14 @@ public class MusicProvider {
 
 				mDatabase = SongDatabase.getInstance(context);
 
-				Collection<Album> albums = mSource.albums(context);
-				Iterator<Album> albumIterator = albums.iterator();
-				while (albumIterator.hasNext()){
-				    Album item = albumIterator.next();
-				    mAlbumListByLibraryId.put(item.libraryId, item);
+				for (Album album : mSource.albums(context)){
+				    mAlbumListByLibraryId.put(album.libraryId, album);
                 }
 
-				Collection<Song> songs = mSource.songs(context, mAlbumListByLibraryId, mDatabase);
-				Iterator<Song> songIterator = songs.iterator();
-				while (songIterator.hasNext()) {
-					Song item = songIterator.next();
-					mSongListByLibraryId.put(item.getLibraryId(), item);
+				for(Song song : mSource.songs(context, mAlbumListByLibraryId, mDatabase)) {
+					mSongListByLibraryId.put(song.getLibraryId(), song);
 				}
+
 				mCurrentState = State.INITIALIZED;
 			}
 		} finally {
@@ -247,8 +242,16 @@ public class MusicProvider {
 
 	    if (musicFilter.filterType == MusicFilterType.Explore){
 			if (MusicFilterType.ByAlbum.equals(musicFilter.filterValue)) {
-				for (Album album : mAlbumListByLibraryId.values())
-					mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(MusicFilterType.valueFor(musicFilter.filterValue), album.libraryId, album.name));
+			    List<Album> albums = new ArrayList<>(mAlbumListByLibraryId.values());
+                Collections.sort(albums, new Comparator<Album>() {
+                    @Override
+                    public int compare(Album album1, Album album2) {
+                        return album1.name.compareTo(album2.name);
+                    }
+                });
+
+				for (Album album : albums)
+					mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(MusicFilterType.valueFor(musicFilter.filterValue), album.libraryId + "", album.name));
 			}
 
 	    }else{
