@@ -40,7 +40,8 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.turboturnip.common.utils.LogHelper;
-import com.turboturnip.turnipmusic.ui.roots.MusicBrowserActivity;
+import com.turboturnip.turnipmusic.frontend.AlbumArtCache;
+import com.turboturnip.turnipmusic.frontend.roots.library.MusicBrowserActivity;
 import com.turboturnip.turnipmusic.utils.ResourceHelper;
 
 /**

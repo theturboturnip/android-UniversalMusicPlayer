@@ -68,7 +68,7 @@
 
                 <fragment
                     android:id="@+id/fragment_playback_controls"
-                    android:name="com.turboturnip.turnipmusic.ui.PlaybackControlsFragment"
+                    android:name="com.turboturnip.turnipmusic.frontend.roots.PlaybackControlsFragment"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/playback_controls_height"
                     tools:layout="@layout/fragment_playback_controls" />

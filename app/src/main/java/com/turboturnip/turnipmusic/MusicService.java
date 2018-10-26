@@ -41,15 +41,16 @@ package com.turboturnip.turnipmusic;
  import com.google.android.gms.common.ConnectionResult;
  import com.google.android.gms.common.GoogleApiAvailability;
  import com.turboturnip.common.utils.LogHelper;
+ import com.turboturnip.turnipmusic.backend.MusicProvider;
+ import com.turboturnip.turnipmusic.backend.PlaybackManager;
+ import com.turboturnip.turnipmusic.utils.PackageValidator;
  import com.turboturnip.turnipmusic.model.MusicFilter;
  import com.turboturnip.turnipmusic.model.MusicFilterType;
- import com.turboturnip.turnipmusic.model.MusicProvider;
- import com.turboturnip.turnipmusic.playback.CastPlayback;
- import com.turboturnip.turnipmusic.playback.LocalPlayback;
- import com.turboturnip.turnipmusic.playback.Playback;
- import com.turboturnip.turnipmusic.playback.PlaybackManager;
- import com.turboturnip.turnipmusic.playback.QueueManager;
- import com.turboturnip.turnipmusic.ui.NowPlayingActivity;
+ import com.turboturnip.turnipmusic.backend.playback.CastPlayback;
+ import com.turboturnip.turnipmusic.backend.playback.LocalPlayback;
+ import com.turboturnip.turnipmusic.backend.playback.Playback;
+ import com.turboturnip.turnipmusic.backend.queue.QueueManager;
+ import com.turboturnip.turnipmusic.frontend.roots.NowPlayingActivity;
  import com.turboturnip.turnipmusic.utils.CarHelper;
  import com.turboturnip.turnipmusic.utils.TvHelper;
  import com.turboturnip.turnipmusic.utils.WearHelper;
@@ -277,7 +278,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
         return START_STICKY;
     }
 
-    /*
+    /**
      * Handle case when user swipes the app away from the recents apps list by
      * stopping the service (and any ongoing playback).
      */
