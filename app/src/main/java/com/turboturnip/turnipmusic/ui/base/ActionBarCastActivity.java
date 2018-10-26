@@ -41,7 +41,7 @@ import com.turboturnip.turnipmusic.ui.roots.QueueActivity;
  * any activity that wants to be shown as a top level activity.
  *
  * The requirements for a subclass is to call {@link #initializeToolbar()} on onCreate, after
- * setContentView() is called and have three mandatory layout elements:
+ * setContentView() is called and have three mandatory play_from_filter_fab elements:
  * a {@link android.support.v7.widget.Toolbar} with id 'toolbar',
  * a {@link android.support.v4.widget.DrawerLayout} with id 'drawerLayout' and
  * a {@link android.widget.ListView} with id 'drawerList'.

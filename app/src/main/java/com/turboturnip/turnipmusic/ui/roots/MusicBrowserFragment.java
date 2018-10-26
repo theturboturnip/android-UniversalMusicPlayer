@@ -20,8 +20,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.media.MediaBrowserCompat;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.turboturnip.common.utils.LogHelper;
@@ -45,6 +50,8 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
     private static final String TAG = LogHelper.makeLogTag(MusicBrowserFragment.class);
 
     private MusicBrowserProvider mBrowserProvider;
+
+    private FloatingActionButton floatingActionButton;
 
     protected BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
         private boolean oldOnline = false;
@@ -76,6 +83,22 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
     public void onStop(){
     	super.onStop();
 	    this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        if (floatingActionButton == null) {
+            LogHelper.e(TAG, "Locating FAB, this is " + System.identityHashCode(this));
+            floatingActionButton = getActivity().findViewById(R.id.floatingActionButton);
+            floatingActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LogHelper.e(TAG, "FAB Hit");
+                }
+            });
+            floatingActionButton.show();
+        }
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     private final MediaBrowserCompat.SubscriptionCallback mSubscriptionCallback =
@@ -138,11 +161,24 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 		        	for (MusicFilterType explorableFilter : MusicFilterType.explorableTypes){
 		        		if (explorableFilter.toString().equals(mMusicFilter.filterValue)) {
 					        mCommandListener.setToolbarTitle("Exploring " + mMusicFilter.filterValue + "s");
+                            floatingActionButton.hide();
 				            return;
 		        		}
 			        }
+
 		        default:
 		        	mCommandListener.setToolbarTitle(mMusicFilter.filterType + ": " + mMusicFilter.filterValue);
+		        	floatingActionButton.show();
+		        	floatingActionButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            LogHelper.e(TAG, "FRAGMENT TAP");
+                            Bundle data = new Bundle();
+                            data.putString("REQUEST", "PLAY");
+                            data.putSerializable("FILTER", mMusicFilter);
+                            mCommandListener.getDataFromFragment(data);
+                        }
+                    });
 	        }
         }
     }

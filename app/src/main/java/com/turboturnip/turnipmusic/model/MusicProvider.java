@@ -251,7 +251,7 @@ public class MusicProvider {
                 });
 
 				for (Album album : albums)
-					mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(MusicFilterType.valueFor(musicFilter.filterValue), album.libraryId + "", album.name));
+					mediaItems.add(createBrowsableMediaItemForPossibleFilterValue(MusicFilterType.valueFor(musicFilter.filterValue), album.libraryId, album.name, album.artist));
 			}
 
 	    }else{
@@ -287,13 +287,13 @@ public class MusicProvider {
     }
 
 	private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(MusicFilterType filterType, String filterValue) {
-		return createBrowsableMediaItemForPossibleFilterValue(filterType, filterValue, filterValue);
+		return createBrowsableMediaItemForPossibleFilterValue(filterType, filterValue, filterValue, "");
 	}
-    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(MusicFilterType filterType, String filterValue, String title){
+    private MediaBrowserCompat.MediaItem createBrowsableMediaItemForPossibleFilterValue(MusicFilterType filterType, String filterValue, String title, String subtitle){
 	    MediaDescriptionCompat description = new MediaDescriptionCompat.Builder()
 			    .setMediaId(new MusicFilter(filterType, filterValue).toString())
 			    .setTitle(title)
-			    .setSubtitle("")
+			    .setSubtitle(subtitle)
 			    .build();
 	    return new MediaBrowserCompat.MediaItem(description,
 			    MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);

@@ -202,7 +202,8 @@ public abstract class ItemListCommandFragment extends MediaCommandFragment {
 		void applyToViews(ListItemCachedViews views){
 			views.titleView.setText(title);
 			views.subtitleView.setText(subtitle);
-			views.playButtonView.setVisibility(playable ? View.VISIBLE : View.GONE);
+			// If the thing is both browsable and playable, it can be played with a FAB once it is browsed.
+			views.playButtonView.setVisibility((playable && !browsable) ? View.VISIBLE : View.GONE);
 			views.playButtonView.setOnClickListener(onPlayClick);
 			if (playable && playText != null) views.playTextView.setText(playText);
 			views.intoButtonView.setVisibility(browsable ? View.VISIBLE : View.GONE);

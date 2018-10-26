@@ -46,16 +46,18 @@ public class DeviceMusicSource implements MusicProviderSource {
         int albumNameColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM);
         int albumArtColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART);
         int albumTotalSongsColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.NUMBER_OF_SONGS);
+        int albumArtistColumn = albumCursor.getColumnIndex(MediaStore.Audio.Albums.ARTIST);
 
         if (!albumCursor.moveToFirst()) return albums;
         do {
             String albumLibraryId = albumCursor.getString(albumIdColumn);
             String albumName = albumCursor.getString(albumNameColumn);
+            String albumArtist = albumCursor.getString(albumArtistColumn);
             String artPath = albumCursor.getString(albumArtColumn);
             long totalTrackCount = albumCursor.getLong(albumTotalSongsColumn);
             LogHelper.d(TAG, "Album ", albumName, " has ", totalTrackCount);
 
-            albums.add(new Album(albumLibraryId, albumName, artPath, totalTrackCount));
+            albums.add(new Album(albumLibraryId, albumName, albumArtist, artPath, totalTrackCount));
         } while (albumCursor.moveToNext());
 
         albumCursor.close();

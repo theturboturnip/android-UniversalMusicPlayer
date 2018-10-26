@@ -11,10 +11,11 @@ public class OrderedImplicitQueue extends ImplicitQueue {
 	public void initialize(SongPool[] pools){
 		super.initialize(pools);
 		this.currentPool = 0;
-		this.currentSong = 0;
+		this.currentSong = -1;
 	}
 	public Song nextSong(){
-		int newPool = currentPool, newSong = currentSong + 1;
+		int newPool = currentPool;
+		int newSong = currentSong + 1;
 		if (newSong >= pools[currentPool].songs.size()) {
 			newPool++;
 			newSong = 0;

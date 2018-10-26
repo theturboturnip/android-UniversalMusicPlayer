@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -55,6 +56,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
 
     private MediaBrowserCompat mMediaBrowser;
     private PlaybackControlsFragment mControlsFragment;
+    private FloatingActionButton mFAB;
     private CardView mControlsCardView;
 
 
@@ -99,6 +101,8 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
         if (mControlsFragment == null) {
             throw new IllegalStateException("Mising fragment with id 'controls'. Cannot continue.");
         }
+        mFAB = findViewById(R.id.floatingActionButton);
+        mFAB.hide();
         mControlsCardView = findViewById(R.id.controls_container);
 
         hidePlaybackControls();

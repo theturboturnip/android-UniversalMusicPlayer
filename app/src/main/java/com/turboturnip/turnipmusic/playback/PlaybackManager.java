@@ -26,6 +26,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.turboturnip.common.utils.LogHelper;
+import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicProvider;
 
 import org.json.JSONException;
@@ -246,17 +247,17 @@ public class PlaybackManager implements Playback.Callback {
     }
 
 
-    /*private static class PlayNewJourneyAsyncTask extends AsyncTask<Journey, Void, Void>{
+    private static class PlayFilterAsyncTask extends AsyncTask<MusicFilter, Void, Void>{
         private PlaybackManager playbackManager;
 
-        PlayNewJourneyAsyncTask(PlaybackManager playbackManager){
+        PlayFilterAsyncTask(PlaybackManager playbackManager){
             this.playbackManager = playbackManager;
         }
 
         @Override
-        protected Void doInBackground(Journey... params){
+        protected Void doInBackground(MusicFilter... params){
             if (params.length == 0) throw new RuntimeException("Tried to set the Queue Manager to have no journey!");
-            playbackManager.mQueueManager.startJourney(params[0]);
+            playbackManager.mQueueManager.playFromFilter(params[0]);
             return null;
         }
 
@@ -264,7 +265,7 @@ public class PlaybackManager implements Playback.Callback {
         protected void onPostExecute(Void status){
 	        playbackManager.mMediaSessionCallback.onSkipToNext();
         }
-    }*/
+    }
     private class MediaSessionCallback extends MediaSessionCompat.Callback {
         @Override
         public void onPlay() {
@@ -292,6 +293,7 @@ public class PlaybackManager implements Playback.Callback {
         @Override
 	    public void onPlayFromMediaId(String data, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId data:", data, "  extras=", extras);
+            if(data.equals("FILTER")) new PlayFilterAsyncTask(PlaybackManager.this).execute((MusicFilter) extras.getSerializable("FILTER"));
             /*try {
             	Journey journey = new Journey(data);
             	new PlayNewJourneyAsyncTask(PlaybackManager.this).execute(journey);

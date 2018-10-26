@@ -303,7 +303,16 @@ public class QueueManager {
 			LogHelper.e(TAG, s != null);
 		}
 		SongPool pool = new SongPool(
-				songs.toArray(new TurboShuffleSong[songs.size()])
+				songs.toArray(new TurboShuffleSong[0])
+		);
+		mImplicitQueue = new OrderedImplicitQueue();
+		mImplicitQueue.initialize(new SongPool[]{pool});
+		updateCompiledQueue();
+	}
+	public void playFromFilter(MusicFilter filter){
+		Collection<Song> songs = mMusicProvider.getFilteredSongs(filter);
+		SongPool pool = new SongPool(
+				songs.toArray(new TurboShuffleSong[0])
 		);
 		mImplicitQueue = new OrderedImplicitQueue();
 		mImplicitQueue.initialize(new SongPool[]{pool});

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+function print_help {
+	echo "Usage: $0 [--without-git] <output_path>"
+	echo "Must be called inside a git repository"
+	echo "Compresses the current git repository into the output file"
+}
+
+if [[ $# == 0 ]]
+then
+   print_help
+   exit 1
+fi
+
+git rev-parse || {
+	echo "Must be called within a Git repository!" >&2
+	exit 1
+}
+
+WITH_GIT=1
+LAST_ARGUMENT=${!#}
+ARGUMENTS=${@:1:$(($#-1))}
+for argument in $ARGUMENTS
+do
+	case $argument in
+		--without-git)
+			WITH_GIT=0 ;;
+		-h|--help)
+			print_help
+			exit 0 ;;
+		*)
+			echo "Invalid argument \"$argument\"" >&2
+			exit 1 ;;
+	esac
+done
+
+cd $(git rev-parse --show-toplevel)
+REPO_FILES=$(git ls-files)
+if [[ $WITH_GIT == 1 ]]
+then
+	REPO_FILES="$REPO_FILES
+$(find .git -name "*" -type f)"
+fi
+
+echo "$REPO_FILES" | tar -zcvf $LAST_ARGUMENT -T -

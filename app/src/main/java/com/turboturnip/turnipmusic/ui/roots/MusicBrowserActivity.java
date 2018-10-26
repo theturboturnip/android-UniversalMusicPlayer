@@ -19,6 +19,7 @@ import android.app.SearchManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.view.MenuItem;
 
@@ -144,7 +145,13 @@ public class MusicBrowserActivity extends BaseActivity
 	}
 
 	@Override
-	public void getDataFromFragment(Bundle data) {}
+	public void getDataFromFragment(Bundle data) {
+		LogHelper.e(TAG, "Get Data from Fragment");
+		if (data.getString("REQUEST", "NONE").equals("PLAY")){
+			LogHelper.e(TAG,"Got Fragment Play Request!");
+			MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls().playFromMediaId("FILTER", data);
+		}
+	}
 
 	@Override
 	protected int getNavMenuItemId() {

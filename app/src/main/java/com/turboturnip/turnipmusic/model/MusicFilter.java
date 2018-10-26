@@ -2,11 +2,12 @@ package com.turboturnip.turnipmusic.model;
 
 import com.turboturnip.common.utils.LogHelper;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-public class MusicFilter {
+public class MusicFilter implements Serializable {
 	public static final String TAG = LogHelper.makeLogTag(MusicFilter.class);
 
 	private static final String TYPE_VALUE_SEPARATOR = "/";
