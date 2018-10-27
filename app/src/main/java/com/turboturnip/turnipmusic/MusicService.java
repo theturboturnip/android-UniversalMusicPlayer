@@ -139,6 +139,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
     private MusicProvider mMusicProvider;
     private PlaybackManager mPlaybackManager;
+    private QueueManager mQueueManager;
 
     private MediaSessionCompat mSession;
     private MediaNotificationManager mMediaNotificationManager;
@@ -161,18 +162,16 @@ public class MusicService extends MediaBrowserServiceCompat implements
         super.onCreate();
         LogHelper.d(TAG, "onCreate");
 
-        mMusicProvider = MusicProvider.getInstance(getApplicationContext());
+        mMusicProvider = new MusicProvider(getApplicationContext());
 
         mPackageValidator = new PackageValidator(this);
 
-        if (QueueManager.getInstance() == null) {
-            new QueueManager(mMusicProvider, getResources(),
+        mQueueManager = new QueueManager(mMusicProvider, getResources(),
                     new QueueManager.MetadataUpdateListener() {
                         @Override
                         public void onMetadataChanged(MediaMetadataCompat metadata) {
-                            LogHelper.d(TAG, metadata == null);
+                            LogHelper.d(TAG, "QueueManager onMetadataChanged: "+(metadata == null));
                             mSession.setMetadata(metadata);
-
                         }
 
                         @Override
@@ -193,7 +192,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
                             mSession.setQueueTitle(title);
                         }
                     });
-        }
+
 
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
@@ -202,12 +201,12 @@ public class MusicService extends MediaBrowserServiceCompat implements
             @Override
             public void onMusicCatalogReady(boolean success) {
                 if (success)
-                    QueueManager.getInstance().initImplicitQueue();
+                    mQueueManager.initImplicitQueue();
             }
         });
 
         LocalPlayback playback = new LocalPlayback(this, mMusicProvider);
-        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, playback, this);
+        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, mQueueManager, playback, this);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(this, "MusicService");
@@ -353,14 +352,14 @@ public class MusicService extends MediaBrowserServiceCompat implements
             result.sendResult(new ArrayList<MediaItem>());
         } else if (mMusicProvider.isInitialized()) {
 	        result.detach();
-	        new MusicProvider.GetChildrenAsyncTask(getApplicationContext(), parsedParentFiler, result).execute();
+	        new MusicProvider.GetChildrenAsyncTask(mMusicProvider, parsedParentFiler, result).execute();
         } else {
             // otherwise, only return results when the music library is retrieved
             result.detach();
             mMusicProvider.retrieveMediaAsync(this, new MusicProvider.MusicCatalogCallback() {
                 @Override
                 public void onMusicCatalogReady(boolean success) {
-	                new MusicProvider.GetChildrenAsyncTask(getApplicationContext(), parsedParentFiler, result).execute();
+	                new MusicProvider.GetChildrenAsyncTask(mMusicProvider, parsedParentFiler, result).execute();
                 }
             });
         }

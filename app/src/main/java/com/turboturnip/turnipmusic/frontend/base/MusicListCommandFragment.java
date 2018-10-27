@@ -50,12 +50,8 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 	public void onStop(){
 		super.onStop();
 
-		if (mediaBrowser != null && mediaBrowser.isConnected() && mMusicFilter != null) {
-			mediaBrowser.unsubscribe(mMusicFilter.toString());
-		}
-
 		MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
-			if (controller != null) {
+		if (controller != null) {
 			controller.unregisterCallback(mMediaControllerCallback);
 		}
 	}
@@ -76,7 +72,8 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 	}
     @Override
     public void disconnectFromMediaBrowser() {
-        mediaBrowser.unsubscribe(mMusicFilter.toString());
+		if (mMusicFilter != null)
+        	mediaBrowser.unsubscribe(mMusicFilter.toString());
     }
 
     public MusicFilter getFilter() {
@@ -146,12 +143,12 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 					state = STATE_PAUSED;
 				}
 			}else{
-				int explicitQueueIndex = QueueManager.getInstance().getExplicitQueueIndex(mediaItem.getMediaId());
+				/*int explicitQueueIndex = QueueManager.getInstance().getExplicitQueueIndex(mediaItem.getMediaId());
 				if (explicitQueueIndex >= 0) {
 					state = STATE_QUEUED;
 					data.playText = (explicitQueueIndex + 1) > 9 ? "+" : "" + (explicitQueueIndex + 1);
 				}else if (pbState != null && (pbState.getState() == PlaybackStateCompat.STATE_PLAYING || pbState.getState() == PlaybackStateCompat.STATE_PAUSED))
-					state = STATE_QUEUEABLE;
+					state = STATE_QUEUEABLE;*/
 			}
 		}
 

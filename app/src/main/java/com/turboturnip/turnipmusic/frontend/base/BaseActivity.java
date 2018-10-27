@@ -59,7 +59,6 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     private CardView mControlsCardView;
 
 
-
     private boolean isConnecting = false;
 
 	@Override
@@ -75,7 +74,13 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 		return R.menu.drawer;
 	}
 
-	@Override
+    @Override
+    public MediaBrowserCompat getMediaBrowser() {
+        return mMediaBrowser;
+    }
+
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -83,15 +88,17 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 	    if (savedInstanceState == null) {
 		    startFullScreenActivityIfNeeded(getIntent());
 	    }
-
-        // Connect a media browser just to get the media session token. There are other ways
-        // this can be done, for example by sharing the session token directly.
-        mMediaBrowser = new MediaBrowserCompat(this,
-            new ComponentName(this, MusicService.class), mConnectionCallback, null);
     }
 
     @Override
     protected void onStart() {
+        // Connect a media browser just to get the media session token. There are other ways
+        // this can be done, for example by sharing the session token directly.
+        // Do this before super.onStart to make sure any fragments that try to get this property
+        // won't get null
+        mMediaBrowser = new MediaBrowserCompat(this,
+                new ComponentName(this, MusicService.class), mConnectionCallback, null);
+
         super.onStart();
         LogHelper.d(TAG, "Activity onStart");
 
@@ -109,17 +116,11 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         if (!isConnecting) {
 	        mMediaBrowser.connect();
 	        isConnecting = true;
+        }else{
+            LogHelper.e("Not telling the mediabrowser to connect");
         }
     }
-
-
-	@Override
-	protected void onNewIntent(Intent intent) {
-		super.onNewIntent(intent);
-		startFullScreenActivityIfNeeded(intent);
-	}
-
-	@Override
+    @Override
     protected void onStop() {
         super.onStop();
         LogHelper.d(TAG, "Activity onStop");
@@ -132,6 +133,11 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     }
 
 
+	@Override
+	protected void onNewIntent(Intent intent) {
+		super.onNewIntent(intent);
+		startFullScreenActivityIfNeeded(intent);
+	}
 
 	protected void startFullScreenActivityIfNeeded(Intent intent) {
 		if (intent != null && intent.getBooleanExtra(EXTRA_START_FULLSCREEN, false)) {
@@ -143,11 +149,6 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 			startActivity(fullScreenIntent);
 		}
 	}
-
-    @Override
-    public MediaBrowserCompat getMediaBrowser() {
-        return mMediaBrowser;
-    }
 
     protected void onMediaControllerConnected() {
         isConnecting = false;
@@ -188,12 +189,14 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
     protected boolean shouldShowControls() {
         MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
         LogHelper.d(TAG, "showShowControls eval with mediaController=", mediaController);
-        if (mediaController == null ||
-            mediaController.getMetadata() == null ||
-            mediaController.getPlaybackState() == null) {
-            LogHelper.d(TAG, "showShowControls=false as the controller doesn't exist" +
-                    "/the metadata is null/" +
-                    "the playback state is null");
+        assert(mediaController != null);
+
+        if (mediaController.getMetadata() == null){
+            LogHelper.d(TAG, "showShowControls=false as the metadata is null");
+            return false;
+        }
+        if (mediaController.getPlaybackState() == null) {
+            LogHelper.d(TAG, "showShowControls=false as the playback state is null");
             return false;
         }
         switch (mediaController.getPlaybackState().getState()) {
@@ -203,16 +206,17 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
                 LogHelper.d(TAG, "showShowControls=false as the state is ERROR/NONE/STOPPED");
                 return false;
             default:
-                LogHelper.d(TAG, "showShowControls=true as state is");
-            	LogHelper.e(TAG, mediaController.getPlaybackState().getState());
+                LogHelper.d(TAG, "showShowControls=true as state is", mediaController.getPlaybackState().getState());
                 return true;
         }
     }
 
     private void connectToSession(MediaSessionCompat.Token token) throws RemoteException {
         MediaControllerCompat mediaController = new MediaControllerCompat(this, token);
-        MediaControllerCompat.setMediaController(this, mediaController);
+        LogHelper.e(TAG, "Calling registerCallback on " + mediaController);
         mediaController.registerCallback(mMediaControllerCallback);
+
+        MediaControllerCompat.setMediaController(this, mediaController);
 
         LogHelper.e(TAG, "connected");
         if (shouldShowControls()) {
@@ -235,6 +239,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         new MediaControllerCompat.Callback() {
             @Override
             public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
+                LogHelper.e(TAG, "onPlaybackStateChanged");
                 if (shouldShowControls()) {
                     showPlaybackControls();
                 } else {
@@ -246,6 +251,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
             @Override
             public void onMetadataChanged(MediaMetadataCompat metadata) {
+                LogHelper.e(TAG, "onMetadataChanged");
                 if (shouldShowControls()) {
                     showPlaybackControls();
                 } else {
@@ -260,7 +266,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
         new MediaBrowserCompat.ConnectionCallback() {
             @Override
             public void onConnected() {
-                LogHelper.d(TAG, "onConnected");
+                LogHelper.d(TAG, "mediaBrowserConnectionCallback.onConnected, session token ", mMediaBrowser.getSessionToken().describeContents());
                 try {
                     connectToSession(mMediaBrowser.getSessionToken());
                 } catch (RemoteException e) {

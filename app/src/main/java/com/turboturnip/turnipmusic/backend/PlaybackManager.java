@@ -31,6 +31,7 @@ import com.turboturnip.turnipmusic.backend.queue.QueueManager;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Manage the interactions among the container service, the queue manager and the actual playback.
@@ -51,11 +52,12 @@ public class PlaybackManager implements Playback.Callback {
 
     public PlaybackManager(PlaybackServiceCallback serviceCallback, Resources resources,
                            MusicProvider musicProvider,
+                           QueueManager queueManager,
                            Playback playback, Context context) {
         mMusicProvider = musicProvider;
         mServiceCallback = serviceCallback;
         mResources = resources;
-        mQueueManager = QueueManager.getInstance();
+        mQueueManager = queueManager;
         mMediaSessionCallback = new MediaSessionCallback();
         mPlayback = playback;
         mPlayback.setCallback(this);

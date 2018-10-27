@@ -51,8 +51,6 @@ public class MusicProvider {
 
     private MusicProviderSource mSource;
 
-    private static MusicProvider instance;
-
     private static SongDatabase mDatabase;
 
     private ConcurrentMap<String, Song> mSongListByLibraryId;
@@ -86,16 +84,16 @@ public class MusicProvider {
         mSongListByLibraryId = new ConcurrentHashMap<>();
         mAlbumListByLibraryId = new ConcurrentHashMap<>();
 
-        if (instance != null)
+        /*if (instance != null)
         	throw new RuntimeException("Tried to create a new MusicProvider when one already existed!");
-        instance = this;
+        instance = this;*/
     }
 
-    public static MusicProvider getInstance(Context context){
+    /*public static MusicProvider getInstance(Context context){
     	if (instance == null)
     		new MusicProvider(context);
     	return instance;
-    }
+    }*/
 
 	/**
 	 * Get the list of music tracks from a server and caches the track information
@@ -106,9 +104,9 @@ public class MusicProvider {
 
 
 		// Asynchronously load the music catalog in a separate thread
-		new AsyncRetrieveMediaTask(callback).execute(context);
+		new AsyncRetrieveMediaTask(callback).execute(this);
 	}
-	private static class AsyncRetrieveMediaTask extends AsyncTask<Context, Void, Void>{
+	private static class AsyncRetrieveMediaTask extends AsyncTask<MusicProvider, Void, Void>{
 		private final MusicCatalogCallback callback;
 
 		AsyncRetrieveMediaTask(MusicCatalogCallback callback){
@@ -116,17 +114,17 @@ public class MusicProvider {
 		}
 
 		@Override
-		protected Void doInBackground(Context... params) {
-			if (MusicProvider.getInstance(params[0]).mCurrentState == State.INITIALIZED) {
+		protected Void doInBackground(MusicProvider... params) {
+			if (params[0].mCurrentState == State.INITIALIZED) {
 				if (callback != null) {
 					// Nothing to do, execute callback immediately
 					callback.onMusicCatalogReady(true);
 				}
 				return null;
 			}
-			MusicProvider.getInstance(params[0]).retrieveMedia();
+			params[0].retrieveMedia();
 			if (callback != null) {
-				callback.onMusicCatalogReady(MusicProvider.getInstance(params[0]).mCurrentState == State.INITIALIZED);
+				callback.onMusicCatalogReady(params[0].mCurrentState == State.INITIALIZED);
 			}
 			return null;
 		}
@@ -212,22 +210,22 @@ public class MusicProvider {
     public static class GetFilteredSongsAsyncTask extends AsyncTask<MusicFilter, Void, Collection<Song>>{
     	private final FilteredSongCallback callback;
     	private final WeakReference<Collection<Song>> collectionRef;
-    	private final Context context;
+    	private final MusicProvider musicProvider;
 
-    	public GetFilteredSongsAsyncTask(Context c, FilteredSongCallback callback){
+    	public GetFilteredSongsAsyncTask(MusicProvider musicProvider, FilteredSongCallback callback){
     		this.callback = callback;
     		this.collectionRef = null;
-    		this.context = c;
+    		this.musicProvider = musicProvider;
 	    }
-	    public GetFilteredSongsAsyncTask(Context c, WeakReference<Collection<Song>> collectionRef){
+	    public GetFilteredSongsAsyncTask(MusicProvider musicProvider, WeakReference<Collection<Song>> collectionRef){
     		this.callback = null;
     		this.collectionRef = collectionRef;
-			this.context = c;
+			this.musicProvider = musicProvider;
 	    }
 
 	    @Override
 	    protected Collection<Song> doInBackground(MusicFilter... params) {
-    		return getInstance(context).getFilteredSongs(params[0]);
+    		return musicProvider.getFilteredSongs(params[0]);
 	    }
 	    @Override
 	    protected void onPostExecute(Collection<Song> collection){
@@ -271,17 +269,17 @@ public class MusicProvider {
     public static class GetChildrenAsyncTask extends AsyncTask<Void, Void, List<MediaBrowserCompat.MediaItem>>{
     	private final MusicFilter filter;
     	private final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result;
-    	private final Context context;
+		private final MusicProvider musicProvider;
 
-    	public GetChildrenAsyncTask(Context c, MusicFilter filter, MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result){
+    	public GetChildrenAsyncTask(MusicProvider musicProvider, MusicFilter filter, MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result){
     		this.filter = filter;
     		this.result = result;
-    		this.context = c;
+    		this.musicProvider = musicProvider;
 	    }
 
 	    @Override
 	    protected List<MediaBrowserCompat.MediaItem> doInBackground(Void... params) {
-		    return MusicProvider.getInstance(context).getChildren(filter);
+		    return musicProvider.getChildren(filter);
 	    }
 	    @Override
 	    protected void onPostExecute(List<MediaBrowserCompat.MediaItem> children) {

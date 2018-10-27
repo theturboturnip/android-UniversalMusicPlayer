@@ -62,15 +62,15 @@ public class QueueManager {
 
 	private List<MediaSessionCompat.QueueItem> mCompiledQueue;
 
-	private static QueueManager instance = null;
+	//private static QueueManager instance = null;
 
 	public QueueManager(@NonNull MusicProvider musicProvider,
                         @NonNull Resources resources,
                         @NonNull MetadataUpdateListener listener) {
-		if (instance != null){
+		/*if (instance != null){
 			throw new RuntimeException("Tried to create a QueueManager when one already existed!");
 		}
-		instance = this;
+		instance = this;*/
 
         mMusicProvider = musicProvider;
         mListeners.add(listener);
@@ -83,9 +83,9 @@ public class QueueManager {
 	    mCurrentCompiledQueueIndex = -1;
 		mCurrentSong = null;
     }
-    public static QueueManager getInstance(){
+    /*public static QueueManager getInstance(){
 		return instance;
-    }
+    }*/
     public static void addMetadataListener(MetadataUpdateListener l){
     	mListeners.add(l);
     }
@@ -335,6 +335,7 @@ public class QueueManager {
         final Song song = getCurrentSong();
         MediaMetadataCompat metadata = song.getMetadata();
 
+        LogHelper.e(TAG, "Total Queue Listeners for updateMetadata: ", mListeners.size());
 	    for (MetadataUpdateListener l : mListeners)
 		    l.onMetadataChanged(metadata);
 

@@ -44,6 +44,8 @@ import com.turboturnip.turnipmusic.frontend.AlbumArtCache;
 import com.turboturnip.turnipmusic.frontend.roots.library.MusicBrowserActivity;
 import com.turboturnip.turnipmusic.utils.ResourceHelper;
 
+import java.util.ArrayList;
+
 /**
  * Keeps track of a notification and updates it automatically for a given
  * MediaSession. Maintaining a visible notification (usually) guarantees that the music service
@@ -293,11 +295,11 @@ public class MediaNotificationManager extends BroadcastReceiver {
         final NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(mService, CHANNEL_ID);
 
-        final int playPauseButtonPosition = addActions(notificationBuilder);
+        final int[] buttonPositions = addActions(notificationBuilder);
         notificationBuilder
                 .setStyle(new MediaStyle()
                         // show only play/pause in compact view
-                        .setShowActionsInCompactView(playPauseButtonPosition)
+                        .setShowActionsInCompactView(buttonPositions)
                         .setShowCancelButton(true)
                         .setCancelButtonIntent(mStopIntent)
                         .setMediaSession(mSessionToken))
@@ -330,20 +332,16 @@ public class MediaNotificationManager extends BroadcastReceiver {
         return notificationBuilder.build();
     }
 
-    private int addActions(final NotificationCompat.Builder notificationBuilder) {
+    private int[] addActions(final NotificationCompat.Builder notificationBuilder) {
         LogHelper.d(TAG, "updatePlayPauseAction");
 
-        int playPauseButtonPosition = 0;
+        int totalActions = 0;
+
         // If skip to previous action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
-            notificationBuilder.addAction(R.drawable.ic_skip_previous_white_24dp,
+            notificationBuilder.addAction(R.drawable.ic_skip_previous_white_36dp,
                     mService.getString(R.string.label_previous), mPreviousIntent);
-
-            // If there is a "skip to previous" button, the play/pause button will
-            // be the second one. We need to keep track of it, because the MediaStyle notification
-            // requires to specify the index of the buttons (actions) that should be visible
-            // when in compact view.
-            playPauseButtonPosition = 1;
+            totalActions++;
         }
 
         // Play or pause button, depending on the current state.
@@ -352,22 +350,27 @@ public class MediaNotificationManager extends BroadcastReceiver {
         final PendingIntent intent;
         if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
             label = mService.getString(R.string.label_pause);
-            icon = R.drawable.uamp_ic_pause_white_24dp;
+            icon = R.drawable.ic_pause_white_36dp;
             intent = mPauseIntent;
         } else {
             label = mService.getString(R.string.label_play);
-            icon = R.drawable.uamp_ic_play_arrow_white_24dp;
+            icon = R.drawable.ic_play_arrow_white_36dp;
             intent = mPlayIntent;
         }
         notificationBuilder.addAction(new NotificationCompat.Action(icon, label, intent));
+        totalActions++;
 
         // If skip to next action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
-            notificationBuilder.addAction(R.drawable.ic_skip_next_white_24dp,
+            notificationBuilder.addAction(R.drawable.ic_skip_next_white_36dp,
                     mService.getString(R.string.label_next), mNextIntent);
+            totalActions++;
         }
 
-        return playPauseButtonPosition;
+        // Create a list of all of the action indices that exist
+        int[] actionIndices = new int[totalActions];
+        for (int i = 0; i < totalActions; actionIndices[i] = i++);
+        return actionIndices;
     }
 
     private void setNotificationPlaybackState(NotificationCompat.Builder builder) {
