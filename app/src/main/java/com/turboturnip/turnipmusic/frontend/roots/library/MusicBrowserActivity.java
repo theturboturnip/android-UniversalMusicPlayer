@@ -24,10 +24,11 @@ import android.view.MenuItem;
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turboui.fragment.CommandFragment;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.frontend.base.MusicBrowserCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.MusicListCommandFragment;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.frontend.base.BaseActivity;
-import com.turboturnip.turnipmusic.frontend.base.MediaCommandFragment;
 
 /**
  * Main activity for the music player.
@@ -99,8 +100,8 @@ public class MusicBrowserActivity extends BaseActivity
 		if (fragment == null) {
 			return null;
 		}
-		if (!(fragment instanceof MediaCommandFragment)) return "";
-		MusicFilter filter = ((MediaCommandFragment)fragment).getFilter();
+		if (!(fragment instanceof MusicListCommandFragment)) return "";
+		MusicFilter filter = ((MusicListCommandFragment)fragment).getFilter();
 		if (filter == null)
 			return MusicFilter.rootFilter().toString();
 		return filter.toString();
@@ -108,7 +109,7 @@ public class MusicBrowserActivity extends BaseActivity
 
 	@Override
 	protected void onMediaControllerConnected() {
-		((MediaCommandFragment)getCurrentFragment()).onConnected();
+		((MusicBrowserCommandFragment)getCurrentFragment()).connectToMediaBrowser();
 	}
 
 	@Override

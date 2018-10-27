@@ -33,12 +33,11 @@ import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.frontend.roots.FullScreenPlayerActivity;
 import com.turboturnip.turnipmusic.frontend.roots.PlaybackControlsFragment;
-import com.turboturnip.turnipmusic.frontend.roots.library.MusicBrowserProvider;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends ActionBarCastActivity implements MusicBrowserProvider{
+public abstract class BaseActivity extends ActionBarCastActivity implements MediaBrowserProvider {
 
     private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
 	public static final String EXTRA_START_FULLSCREEN =
@@ -188,17 +187,23 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
      */
     protected boolean shouldShowControls() {
         MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
+        LogHelper.d(TAG, "showShowControls eval with mediaController=", mediaController);
         if (mediaController == null ||
             mediaController.getMetadata() == null ||
             mediaController.getPlaybackState() == null) {
+            LogHelper.d(TAG, "showShowControls=false as the controller doesn't exist" +
+                    "/the metadata is null/" +
+                    "the playback state is null");
             return false;
         }
         switch (mediaController.getPlaybackState().getState()) {
             case PlaybackStateCompat.STATE_ERROR:
             case PlaybackStateCompat.STATE_NONE:
             case PlaybackStateCompat.STATE_STOPPED:
+                LogHelper.d(TAG, "showShowControls=false as the state is ERROR/NONE/STOPPED");
                 return false;
             default:
+                LogHelper.d(TAG, "showShowControls=true as state is");
             	LogHelper.e(TAG, mediaController.getPlaybackState().getState());
                 return true;
         }
@@ -214,7 +219,7 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
             showPlaybackControls();
         } else {
             LogHelper.d(TAG, "connectionCallback.onConnected: " +
-                "hiding controls because metadata is null");
+                "hiding controls");
             hidePlaybackControls();
         }
 
@@ -224,10 +229,6 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Musi
 
         onMediaControllerConnected();
     }
-
-
-
-
 
 	// MusicCatalogCallback that ensures that we are showing the controls
     private final MediaControllerCompat.Callback mMediaControllerCallback =

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.frontend.roots.library;
+package com.turboturnip.turnipmusic.frontend.base;
 
 import android.support.v4.media.MediaBrowserCompat;
 
-public interface MusicBrowserProvider {
+public interface MediaBrowserProvider {
     MediaBrowserCompat getMediaBrowser();
 }

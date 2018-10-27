@@ -16,13 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.turboturnip.common.utils.LogHelper;
+import com.turboturnip.turboui.fragment.CommandFragment;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ItemListCommandFragment extends MediaCommandFragment {
+public abstract class ItemListCommandFragment extends MusicBrowserCommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(ItemListCommandFragment.class);
 
 	static { AppCompatDelegate.setCompatVectorFromResourcesEnabled(true); }

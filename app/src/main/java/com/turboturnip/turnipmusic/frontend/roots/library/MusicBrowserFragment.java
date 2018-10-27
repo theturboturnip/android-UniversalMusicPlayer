@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.MusicService;
+import com.turboturnip.turnipmusic.frontend.base.MediaBrowserProvider;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.frontend.base.MusicListCommandFragment;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
@@ -50,7 +51,7 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 
     private static final String TAG = LogHelper.makeLogTag(MusicBrowserFragment.class);
 
-    private MusicBrowserProvider mBrowserProvider;
+    private MediaBrowserProvider mBrowserProvider;
 
     private FloatingActionButton floatingActionButton;
 
@@ -129,10 +130,10 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
         };
 
     @Override
-	public void onConnected(){
-    	super.onConnected();
+	public void connectToMediaBrowser(){
+    	super.connectToMediaBrowser();
 
-	    mBrowserProvider = (MusicBrowserProvider)mCommandListener;
+	    mBrowserProvider = (MediaBrowserProvider)mCommandListener;
 
 	    // Unsubscribing before subscribing is required if this filter already has a subscriber
 		// on this MediaBrowser instance. Subscribing to an already subscribed filter will replace

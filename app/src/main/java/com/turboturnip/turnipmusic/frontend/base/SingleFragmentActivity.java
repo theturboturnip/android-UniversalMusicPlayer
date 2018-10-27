@@ -5,6 +5,9 @@ import android.os.Bundle;
 
 import com.turboturnip.turboui.fragment.CommandFragment;
 
+/**
+ * An activity which only shows a single fragment
+ */
 public abstract class SingleFragmentActivity extends BaseActivity {
 
 	@Override

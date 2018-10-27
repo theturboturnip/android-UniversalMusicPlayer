@@ -95,4 +95,9 @@ public class HubFragment extends ItemListCommandFragment {
 			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);
 		}
 	}
+
+	@Override
+	public void connectToMediaBrowser() {}
+	@Override
+	public void disconnectFromMediaBrowser() {}
 }

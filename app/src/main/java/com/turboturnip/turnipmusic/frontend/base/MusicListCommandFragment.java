@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -18,6 +19,7 @@ import android.view.View;
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.backend.queue.QueueManager;
+import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 
 import java.util.List;
@@ -35,22 +37,58 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 	private static ColorStateList sColorStatePlaying;
 	private static ColorStateList sColorStateNotPlaying;
 
+	public static final String ARG_MUSIC_FILTER = "music_filter";
+	protected MusicFilter mMusicFilter;
+
+	@Override
+    public void onStart() {
+        super.onStart();
+        LogHelper.d(TAG, "fragment.onStart, musicFilter=", mMusicFilter);
+    }
+
 	@Override
 	public void onStop(){
 		super.onStop();
+
+		if (mediaBrowser != null && mediaBrowser.isConnected() && mMusicFilter != null) {
+			mediaBrowser.unsubscribe(mMusicFilter.toString());
+		}
+
 		MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
 			if (controller != null) {
 			controller.unregisterCallback(mMediaControllerCallback);
 		}
 	}
+
 	@Override
-	public void onConnected(){
-		super.onConnected();
+	public void connectToMediaBrowser(){
+        mMusicFilter = getFilter();
+        if (mMusicFilter == null) {
+            mMusicFilter = new MusicFilter(mediaBrowser.getRoot());
+            //LogHelper.d(TAG,"media ID was null, now ", mMediaId);
+        }
+        updateTitle();
+
 		MediaControllerCompat controller = MediaControllerCompat.getMediaController(getActivity());
 		if (controller != null) {
 			controller.registerCallback(mMediaControllerCallback);
 		}
 	}
+    @Override
+    public void disconnectFromMediaBrowser() {
+        mediaBrowser.unsubscribe(mMusicFilter.toString());
+    }
+
+    public MusicFilter getFilter() {
+		Bundle args = getArguments();
+		if (args != null) {
+			String musicFilterString = args.getString(ARG_MUSIC_FILTER);
+			if (musicFilterString != null)
+				return new MusicFilter(musicFilterString);
+		}
+		return null;
+	}
+
 	// Receive callbacks from the MediaController. Here we update our state such as which queue
 	// is being shown, the current title and description and the PlaybackState.
 	protected final MediaControllerCompat.Callback mMediaControllerCallback =
