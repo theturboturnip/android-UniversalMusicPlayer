@@ -43,6 +43,7 @@ package com.turboturnip.turnipmusic;
  import com.turboturnip.common.utils.LogHelper;
  import com.turboturnip.turnipmusic.backend.MusicProvider;
  import com.turboturnip.turnipmusic.backend.PlaybackManager;
+ import com.turboturnip.turnipmusic.frontend.AlbumArtCache;
  import com.turboturnip.turnipmusic.utils.PackageValidator;
  import com.turboturnip.turnipmusic.model.MusicFilter;
  import com.turboturnip.turnipmusic.model.MusicFilterType;
@@ -248,6 +249,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 
         registerCarConnectionReceiver();
+
+        AlbumArtCache.getInstance().generateDefaultArt(getApplicationContext());
     }
 
     /**

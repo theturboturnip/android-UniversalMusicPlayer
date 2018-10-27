@@ -104,6 +104,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             if (metadata != null) {
+                LogHelper.e(TAG, "New Metadata for FullScreenPlayer");
                 updateMediaDescription(metadata.getDescription());
                 updateDuration(metadata);
             }
@@ -305,32 +306,39 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
     }
 
     private void fetchImageAsync(@NonNull MediaDescriptionCompat description) {
-        if (description.getIconUri() == null) {
-            return;
-        }
-        String artUrl = description.getIconUri().toString();
-        mCurrentArtUrl = artUrl;
         AlbumArtCache cache = AlbumArtCache.getInstance();
-        Bitmap art = cache.getBigImage(artUrl);
-        if (art == null) {
-            art = description.getIconBitmap();
-        }
-        if (art != null) {
-            // if we have the art cached or from the MediaDescription, use it:
-            mBackgroundImage.setImageBitmap(art);
-        } else {
-            // otherwise, fetch a high res version and update:
-            cache.fetch(artUrl, new AlbumArtCache.FetchListener() {
-                @Override
-                public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
-                    // sanity check, in case a new fetch request has been done while
-                    // the previous hasn't yet returned:
-                    if (artUrl.equals(mCurrentArtUrl)) {
-                        mBackgroundImage.setImageBitmap(bitmap);
-                    }
+        Bitmap art;
+        if (description.getIconUri() == null) {
+            LogHelper.e(TAG, "Using Default ARt: ", cache.defaultArt);
+            mBackgroundImage.setImageDrawable(cache.defaultArt);
+        }else{
+            String artUrl = description.getIconUri().toString();
+            mCurrentArtUrl = artUrl;
+            art = cache.getBigImage(artUrl);
+            if (art == null) {
+                LogHelper.e(TAG, "cache returned null");
+                art = description.getIconBitmap();
+                if (art == null){
+                    // otherwise, fetch a high res version and update:
+                    cache.fetch(artUrl, new AlbumArtCache.FetchListener() {
+                        @Override
+                        public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
+                            // sanity check, in case a new fetch request has been done while
+                            // the previous hasn't yet returned:
+                            if (artUrl.equals(mCurrentArtUrl)) {
+                                mBackgroundImage.setImageBitmap(bitmap);
+                            }
+                        }
+                    });
                 }
-            });
+            }
+            if (art != null) {
+                // if we have the art cached or from the MediaDescription, use it:
+                mBackgroundImage.setImageBitmap(art);
+            }
         }
+
+
     }
 
     private void updateMediaDescription(MediaDescriptionCompat description) {

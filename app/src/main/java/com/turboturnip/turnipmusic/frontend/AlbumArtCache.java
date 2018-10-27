@@ -16,11 +16,16 @@
 
 package com.turboturnip.turnipmusic.frontend;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.LruCache;
 
 import com.turboturnip.common.utils.LogHelper;
+import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.utils.BitmapHelper;
 
 import java.io.IOException;
@@ -45,6 +50,8 @@ public final class AlbumArtCache {
     private static final int BIG_BITMAP_INDEX = 0;
     private static final int ICON_BITMAP_INDEX = 1;
 
+    public Drawable defaultArt;
+
     private final LruCache<String, Bitmap[]> mCache;
 
     private static final AlbumArtCache sInstance = new AlbumArtCache();
@@ -57,14 +64,17 @@ public final class AlbumArtCache {
         // Holds no more than MAX_ALBUM_ART_CACHE_SIZE bytes, bounded by maxmemory/4 and
         // Integer.MAX_VALUE:
         int maxSize = Math.min(MAX_ALBUM_ART_CACHE_SIZE,
-            (int) (Math.min(Integer.MAX_VALUE, Runtime.getRuntime().maxMemory()/4)));
+                (int) (Math.min(Integer.MAX_VALUE, Runtime.getRuntime().maxMemory() / 4)));
         mCache = new LruCache<String, Bitmap[]>(maxSize) {
             @Override
             protected int sizeOf(String key, Bitmap[] value) {
                 return value[BIG_BITMAP_INDEX].getByteCount()
-                    + value[ICON_BITMAP_INDEX].getByteCount();
+                        + value[ICON_BITMAP_INDEX].getByteCount();
             }
         };
+    }
+    public void generateDefaultArt(Context context){
+        defaultArt = context.getResources().getDrawable(R.drawable.ic_turnip_96dp);
     }
 
     public Bitmap getBigImage(String artUrl) {
