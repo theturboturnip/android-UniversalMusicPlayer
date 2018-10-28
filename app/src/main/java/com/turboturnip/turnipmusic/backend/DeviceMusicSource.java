@@ -24,18 +24,20 @@ public class DeviceMusicSource implements MusicProviderSource {
 
 	private static final String TAG = LogHelper.makeLogTag(DeviceMusicSource.class);
 
-	// TODO: Use the projections?
-	private static String[] musicProjection = null;
-	private static String[] genresProjection = null;
-	private static String[] albumProjection = null;
-
 	// TODO: Should this return Map<String, Album>?
 	@Override
     public Collection<Album> albums(Context context) {
 	    ArrayList<Album> albums = new ArrayList<>();
 
         Cursor albumCursor = context.getContentResolver().query(
-                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumProjection,
+                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+				new String[]{
+						MediaStore.Audio.Media._ID,
+						MediaStore.Audio.Albums.ALBUM,
+						MediaStore.Audio.Albums.ALBUM_ART,
+						MediaStore.Audio.Albums.NUMBER_OF_SONGS,
+						MediaStore.Audio.Albums.ARTIST
+				},
                 "NOT "+MediaStore.Audio.Albums.NUMBER_OF_SONGS+"=0",
                 null,
                 null);
@@ -56,7 +58,7 @@ public class DeviceMusicSource implements MusicProviderSource {
             String albumArtist = albumCursor.getString(albumArtistColumn);
             String artPath = albumCursor.getString(albumArtColumn);
             long totalTrackCount = albumCursor.getLong(albumTotalSongsColumn);
-            LogHelper.d(TAG, "Album ", albumName, " has ", totalTrackCount);
+            //LogHelper.d(TAG, "Album ", albumName, " has ", totalTrackCount);
 
             albums.add(new Album(albumLibraryId, albumName, albumArtist, artPath, totalTrackCount));
         } while (albumCursor.moveToNext());
@@ -68,13 +70,24 @@ public class DeviceMusicSource implements MusicProviderSource {
 
 	@Override
 	public Collection<Song> songs(Context context, Map<String, Album> albums, SongDatabase db) {
-		try {
 			ArrayList<Song> songs = new ArrayList<>();
 			Cursor musicCursor = context.getContentResolver().query(
-					MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, musicProjection, null, null,
-					null);
+					MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Audio.Media._ID,
+                            MediaStore.Audio.Media.TITLE,
+                            MediaStore.Audio.Media.DATA,
+                            MediaStore.Audio.Media.ALBUM,
+                            MediaStore.Audio.Media.ARTIST,
+                            MediaStore.Audio.Media.ALBUM_ID,
+                            MediaStore.Audio.Media.DURATION,
+                            MediaStore.Audio.Media.TRACK,
+                            MediaStore.Audio.Media.IS_MUSIC
+                    }, null, null,
+                    MediaStore.Audio.Media.ALBUM_ID); // Sort by album id to get better cache behaviour when accessing albums
 
 
+        try {
 			if (musicCursor == null) {
 				LogHelper.e(TAG, "Failed to retrieve music: Query Failed");
 				return songs;
@@ -84,8 +97,8 @@ public class DeviceMusicSource implements MusicProviderSource {
 			}
 			LogHelper.i(TAG, "Listing...");
 			// retrieve the indices of the columns where the ID, title, etc. of the song are
+            int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
 			int titleColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-			int idColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media._ID);
 			int filePathColumn = musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
 			int albumFromMusicColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM);
 			int artistColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
@@ -114,14 +127,18 @@ public class DeviceMusicSource implements MusicProviderSource {
 				String genre = "";
 				{
 					Uri genreUri = MediaStore.Audio.Genres.getContentUriForAudioId("external", Integer.parseInt(mediaId));
-					genresCursor = context.getContentResolver().query(genreUri,
-							genresProjection, null, null, null);
-					int genreColumn = genresCursor.getColumnIndexOrThrow(MediaStore.Audio.Genres.NAME);
-					if (genresCursor.moveToFirst()) {
-						genre = genresCursor.getString(genreColumn);
-						LogHelper.i("Found Genre: ", genre);
-					}
-					genresCursor.close();
+					genresCursor = context.getContentResolver().query(
+					        genreUri,
+							new String[]{
+                                    MediaStore.Audio.Genres.NAME
+                            }, null, null, null);
+					if (genresCursor != null) {
+                        int genreColumn = genresCursor.getColumnIndexOrThrow(MediaStore.Audio.Genres.NAME);
+                        if (genresCursor.moveToFirst()) {
+                            genre = genresCursor.getString(genreColumn);
+                        }
+                        genresCursor.close();
+                    }
 				}
 				metadataBuilder.putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre);
 
@@ -147,6 +164,8 @@ public class DeviceMusicSource implements MusicProviderSource {
 			LogHelper.i(TAG, "Collected ", songs.size(), " total songs");
 			return songs;
 		} catch (Exception e) {
+		    if (musicCursor != null) musicCursor.close();
+
 			LogHelper.e(TAG, e, "Could not retrieve music list");
 			throw new RuntimeException("Could not retrieve music list", e);
 		}
@@ -160,6 +179,7 @@ public class DeviceMusicSource implements MusicProviderSource {
                 MediaStore.Audio.Media.ALBUM_ID+" is ?",
                 new String[]{albumLibraryId},
                 MediaStore.Audio.Media.TRACK);
+        if (songCursor == null) return new ArrayList<>();
 
         int idColumn = songCursor.getColumnIndex(MediaStore.Audio.Media._ID);
 
