@@ -12,7 +12,6 @@ import com.turboturnip.turnipmusic.frontend.base.MusicListCommandFragment;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Now QueueManager isn't a singleton, figure out how to do this properly
 public class QueueFragment extends MusicListCommandFragment implements QueueManager.MetadataUpdateListener{
 	private static final String TAG = LogHelper.makeLogTag(QueueFragment.class);
 
@@ -26,11 +25,11 @@ public class QueueFragment extends MusicListCommandFragment implements QueueMana
 		super.onStart();
 
 		QueueManager.addMetadataListener(this);
-		//QueueManager instance = QueueManager.getInstance();
-		/*if (instance == null)
+		QueueManager instance = QueueManager.getInstance();
+		if (instance == null)
 			onQueueUpdated("", new ArrayList<MediaSessionCompat.QueueItem>(), 0);
 		else
-			onQueueUpdated("", instance.getCompiledQueue(), instance.getCompiledQueueIndex());*/
+			onQueueUpdated("", instance.getCompiledQueue(), instance.getCompiledQueueIndex());
 	}
 	@Override
 	public void onStop() {

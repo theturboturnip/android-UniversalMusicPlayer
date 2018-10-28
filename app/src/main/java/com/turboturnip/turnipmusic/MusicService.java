@@ -140,7 +140,31 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
     private MusicProvider mMusicProvider;
     private PlaybackManager mPlaybackManager;
-    private QueueManager mQueueManager;
+    private QueueManager.MetadataUpdateListener mQueueMetadataUpdateListener = new QueueManager.MetadataUpdateListener() {
+        @Override
+        public void onMetadataChanged(MediaMetadataCompat metadata) {
+            LogHelper.d(TAG, "QueueManager onMetadataChanged: "+(metadata == null));
+            mSession.setMetadata(metadata);
+        }
+
+        @Override
+        public void onMetadataRetrieveError() {
+            mPlaybackManager.updatePlaybackState(
+                    getString(R.string.error_no_metadata));
+        }
+
+        @Override
+        public void onCurrentQueueIndexUpdated(int queueIndex) {
+            mPlaybackManager.handlePlayRequest();
+        }
+
+        @Override
+        public void onQueueUpdated(String title,
+                                   List<MediaSessionCompat.QueueItem> newQueue, int queueIndex) {
+            mSession.setQueue(newQueue);
+            mSession.setQueueTitle(title);
+        }
+    };
 
     private MediaSessionCompat mSession;
     private MediaNotificationManager mMediaNotificationManager;
@@ -167,33 +191,10 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         mPackageValidator = new PackageValidator(this);
 
-        mQueueManager = new QueueManager(mMusicProvider, getResources(),
-                    new QueueManager.MetadataUpdateListener() {
-                        @Override
-                        public void onMetadataChanged(MediaMetadataCompat metadata) {
-                            LogHelper.d(TAG, "QueueManager onMetadataChanged: "+(metadata == null));
-                            mSession.setMetadata(metadata);
-                        }
-
-                        @Override
-                        public void onMetadataRetrieveError() {
-                            mPlaybackManager.updatePlaybackState(
-                                    getString(R.string.error_no_metadata));
-                        }
-
-                        @Override
-                        public void onCurrentQueueIndexUpdated(int queueIndex) {
-                            mPlaybackManager.handlePlayRequest();
-                        }
-
-                        @Override
-                        public void onQueueUpdated(String title,
-                                                   List<MediaSessionCompat.QueueItem> newQueue, int queueIndex) {
-                            mSession.setQueue(newQueue);
-                            mSession.setQueueTitle(title);
-                        }
-                    });
-
+        if (QueueManager.getInstance() == null)
+            new QueueManager(mMusicProvider, getResources(), mQueueMetadataUpdateListener);
+        else
+            QueueManager.addMetadataListener(mQueueMetadataUpdateListener);
 
         // To make the app more responsive, fetch and cache catalog information now.
         // This can help improve the response time in the method
@@ -202,12 +203,12 @@ public class MusicService extends MediaBrowserServiceCompat implements
             @Override
             public void onMusicCatalogReady(boolean success) {
                 if (success)
-                    mQueueManager.initImplicitQueue();
+                    QueueManager.getInstance().initImplicitQueue();
             }
         });
 
         LocalPlayback playback = new LocalPlayback(this, mMusicProvider);
-        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, mQueueManager, playback, this);
+        mPlaybackManager = new PlaybackManager(this, getResources(), mMusicProvider, QueueManager.getInstance(), playback, this);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(this, "MusicService");
@@ -252,6 +253,29 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         AlbumArtCache.getInstance().generateDefaultArt(getApplicationContext());
     }
+    /**
+     * (non-Javadoc)
+     * @see android.app.Service#onDestroy()
+     */
+    @Override
+    public void onDestroy() {
+        LogHelper.d(TAG, "onDestroy");
+
+        QueueManager.removeMetadataListener(mQueueMetadataUpdateListener);
+
+        unregisterCarConnectionReceiver();
+        // Service is being killed, so make sure we release our resources
+        mPlaybackManager.handleStopRequest(null);
+        mMediaNotificationManager.stopNotification();
+
+        if (mCastSessionManager != null) {
+            mCastSessionManager.removeSessionManagerListener(mCastSessionManagerListener,
+                    CastSession.class);
+        }
+
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mSession.release();
+    }
 
     /**
      * (non-Javadoc)
@@ -288,27 +312,6 @@ public class MusicService extends MediaBrowserServiceCompat implements
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
         stopSelf();
-    }
-
-    /**
-     * (non-Javadoc)
-     * @see android.app.Service#onDestroy()
-     */
-    @Override
-    public void onDestroy() {
-        LogHelper.d(TAG, "onDestroy");
-        unregisterCarConnectionReceiver();
-        // Service is being killed, so make sure we release our resources
-        mPlaybackManager.handleStopRequest(null);
-        mMediaNotificationManager.stopNotification();
-
-        if (mCastSessionManager != null) {
-            mCastSessionManager.removeSessionManagerListener(mCastSessionManagerListener,
-                    CastSession.class);
-        }
-
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
-        mSession.release();
     }
 
     @Override
