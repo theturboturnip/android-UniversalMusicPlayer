@@ -141,7 +141,7 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 		//
 		// This is temporary: A bug is being fixed that will make subscribe
 		// consistently call onChildrenLoaded initially, no matter if it is replacing an existing
-		// subscriber or not. Currently this only happens if the filter has no previous
+		// subscriber or not. Currently this only happens if the filter has no moveToPrevious
 		// subscriber or if the media content changes on the service side, so we need to
 		// unsubscribe first.
 		mBrowserProvider.getMediaBrowser().unsubscribe(mMusicFilter.toString());

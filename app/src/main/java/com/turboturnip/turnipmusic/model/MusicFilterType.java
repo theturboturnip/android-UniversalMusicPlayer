@@ -12,7 +12,8 @@ public enum MusicFilterType {
 	Explore("Explore"),
 	ByAlbum("Album"),
 	ByArtist("Artist"),
-	ByTag("Tag");
+	ByTag("Tag"),
+	Song("Song");
 
 	private final String name;
 

@@ -8,6 +8,6 @@ public interface Shuffle {
     int getTotalLength(); // Length of -1 (or 0) implies the Shuffle can continue forever.
     int getLengthRemaining(); // Returns the amount of songs left, if the Shuffle is bounded. Returns -1 otherwise
 
-    void advance(); // Move to the next Song.
-    Song nextSong(); // Return the Song to play next.
+    void advance(); // Move to the moveToNext Song.
+    Song nextSong(); // Return the Song to play moveToNext.
 }

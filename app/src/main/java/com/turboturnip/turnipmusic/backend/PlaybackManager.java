@@ -29,9 +29,9 @@ import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.backend.playback.Playback;
 import com.turboturnip.turnipmusic.backend.queue.QueueManager;
 import com.turboturnip.turnipmusic.model.MusicFilter;
+import com.turboturnip.turnipmusic.model.MusicFilterType;
 
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Manage the interactions among the container service, the queue manager and the actual playback.
@@ -40,7 +40,7 @@ public class PlaybackManager implements Playback.Callback {
 
     private static final String TAG = LogHelper.makeLogTag(PlaybackManager.class);
 
-    private static final long BACK_SKIP_MAX_TIME = 10 * 1000; // The maximum point in milliseconds a song can be within where pressing the "previous" button will skip it back to the start.
+    private static final long BACK_SKIP_MAX_TIME = 10 * 1000; // The maximum point in milliseconds a song can be within where pressing the "moveToPrevious" button will skip it back to the start.
 
     private MusicProvider mMusicProvider;
     private Resources mResources;
@@ -158,8 +158,8 @@ public class PlaybackManager implements Playback.Callback {
     @Override
     public void onCompletion() {
         // The media player finished playing the current song, so we go ahead
-        // and start the next.
-        if (mQueueManager.next()) {
+        // and start the moveToNext.
+        if (mQueueManager.moveToNext()) {
         	LogHelper.e(TAG, "onCompletion");
             handlePlayRequest();
         } else {
@@ -176,12 +176,6 @@ public class PlaybackManager implements Playback.Callback {
     @Override
     public void onError(String error) {
         updatePlaybackState(error);
-    }
-
-    @Override
-    public void setCurrentMediaId(String mediaId) {
-        LogHelper.d(TAG, "setCurrentMediaId", mediaId);
-        mQueueManager.updateHistoryFromMediaIDFromCompiledQueue(mediaId);
     }
 
 
@@ -253,7 +247,7 @@ public class PlaybackManager implements Playback.Callback {
         public void onPlay() {
             LogHelper.d(TAG, "play");
             if (mQueueManager.getCurrentSong() == null) {
-                if (mQueueManager.next())
+                if (mQueueManager.moveToNext())
                 	handlePlayRequest();
             }else
                 handlePlayRequest();
@@ -262,7 +256,7 @@ public class PlaybackManager implements Playback.Callback {
         @Override
         public void onSkipToQueueItem(long queueId) {
             LogHelper.d(TAG, "OnSkipToQueueItem:" + queueId);
-            mQueueManager.updateHistoryFromNewCompiledQueueIndex((int)queueId);
+            mQueueManager.moveToCompiledQueueIndex((int)queueId);
             mQueueManager.updateMetadata();
         }
 
@@ -276,6 +270,9 @@ public class PlaybackManager implements Playback.Callback {
 	    public void onPlayFromMediaId(String data, Bundle extras) {
             LogHelper.d(TAG, "playFromMediaId data:", data, "  extras=", extras);
             if(data.equals("FILTER")) new PlayFilterAsyncTask(PlaybackManager.this).execute((MusicFilter) extras.getSerializable("FILTER"));
+            else{
+                new PlayFilterAsyncTask(PlaybackManager.this).execute(new MusicFilter(MusicFilterType.Song, data));
+            }
         }
 
         @Override
@@ -293,7 +290,7 @@ public class PlaybackManager implements Playback.Callback {
         @Override
         public void onSkipToNext() {
             LogHelper.d(TAG, "skipToNext");
-            if (mQueueManager.next()) {
+            if (mQueueManager.moveToNext()) {
                 handlePlayRequest();
             } else {
                 handleStopRequest("Cannot skip");
@@ -304,7 +301,7 @@ public class PlaybackManager implements Playback.Callback {
         public void onSkipToPrevious() {
             if (mPlayback.getCurrentStreamPosition() > BACK_SKIP_MAX_TIME)
             	mPlayback.seekTo(0);
-            else if (mQueueManager.previous()) {
+            else if (mQueueManager.moveToPrevious()) {
                 handlePlayRequest();
             } else {
                 handleStopRequest(null);
@@ -326,7 +323,7 @@ public class PlaybackManager implements Playback.Callback {
          **/
         @Override
         public void onPlayFromSearch(final String query, final Bundle extras) {
-        	// TODO: This should be an insert to the front of the explicit queue, and a next() to immediately play it.
+        	// TODO: This should be an insert to the front of the explicit queue, and a moveToNext() to immediately play it.
             LogHelper.d(TAG, "playFromSearch  query=", query, " extras=", extras);
 
             mPlayback.setState(PlaybackStateCompat.STATE_CONNECTING);

@@ -47,7 +47,6 @@ package com.turboturnip.turnipmusic;
  import com.turboturnip.turnipmusic.utils.PackageValidator;
  import com.turboturnip.turnipmusic.model.MusicFilter;
  import com.turboturnip.turnipmusic.model.MusicFilterType;
- import com.turboturnip.turnipmusic.backend.playback.CastPlayback;
  import com.turboturnip.turnipmusic.backend.playback.LocalPlayback;
  import com.turboturnip.turnipmusic.backend.playback.Playback;
  import com.turboturnip.turnipmusic.backend.queue.QueueManager;
@@ -160,8 +159,8 @@ public class MusicService extends MediaBrowserServiceCompat implements
 
         @Override
         public void onQueueUpdated(String title,
-                                   List<MediaSessionCompat.QueueItem> newQueue, int queueIndex) {
-            mSession.setQueue(newQueue);
+                                   QueueManager.QueueData.CompiledData compiledData) {
+            mSession.setQueue(compiledData.mCompiledQueue);
             mSession.setQueueTitle(title);
         }
     };
@@ -240,12 +239,12 @@ public class MusicService extends MediaBrowserServiceCompat implements
         int playServicesAvailable =
                 GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
 
-        if (!TvHelper.isTvUiMode(this) && playServicesAvailable == ConnectionResult.SUCCESS) {
+        /*if (!TvHelper.isTvUiMode(this) && playServicesAvailable == ConnectionResult.SUCCESS) {
             mCastSessionManager = CastContext.getSharedInstance(this).getSessionManager();
             mCastSessionManagerListener = new CastSessionManagerListener();
             mCastSessionManager.addSessionManagerListener(mCastSessionManagerListener,
                     CastSession.class);
-        }
+        }*/
 
         mMediaRouter = MediaRouter.getInstance(getApplicationContext());
 
@@ -456,7 +455,7 @@ public class MusicService extends MediaBrowserServiceCompat implements
      * Session Manager Listener responsible for switching the Playback instances
      * depending on whether it is connected to a remote player.
      */
-    private class CastSessionManagerListener implements SessionManagerListener<CastSession> {
+    /*private class CastSessionManagerListener implements SessionManagerListener<CastSession> {
 
         @Override
         public void onSessionEnded(CastSession session, int error) {
@@ -512,5 +511,5 @@ public class MusicService extends MediaBrowserServiceCompat implements
         @Override
         public void onSessionSuspended(CastSession session, int reason) {
         }
-    }
+    }*/
 }

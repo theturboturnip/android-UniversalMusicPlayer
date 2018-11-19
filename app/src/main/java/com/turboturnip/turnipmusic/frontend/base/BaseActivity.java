@@ -156,6 +156,9 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 
 	@Override
 	public void onItemActioned(String id) {
+    }
+    @Override
+    public void onItemSelected(String id) {
 		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + id);
 
 		MediaControllerCompat.getMediaController(this).getTransportControls()

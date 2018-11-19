@@ -96,11 +96,6 @@ public interface Playback {
          * @param error to be added to the PlaybackState
          */
         void onError(String error);
-
-        /**
-         * @param mediaId being currently played
-         */
-        void setCurrentMediaId(String mediaId);
     }
 
     void setCallback(Callback callback);

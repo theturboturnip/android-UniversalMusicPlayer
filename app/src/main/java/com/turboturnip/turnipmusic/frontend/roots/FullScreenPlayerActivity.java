@@ -324,7 +324,7 @@ public class FullScreenPlayerActivity extends ActionBarCastActivity {
                         @Override
                         public void onFetched(String artUrl, Bitmap bitmap, Bitmap icon) {
                             // sanity check, in case a new fetch request has been done while
-                            // the previous hasn't yet returned:
+                            // the moveToPrevious hasn't yet returned:
                             if (artUrl.equals(mCurrentArtUrl)) {
                                 mBackgroundImage.setImageBitmap(bitmap);
                             }

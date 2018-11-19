@@ -124,7 +124,7 @@ public class PackageValidator {
             if (mValidCertificates.isEmpty()) {
                 LogHelper.w(TAG, "The list of valid certificates is empty. Either your file ",
                         "res/xml/allowed_media_browser_callers.xml is empty or there was an error ",
-                        "while reading it. Check previous log messages.");
+                        "while reading it. Check moveToPrevious log messages.");
             }
             return false;
         }

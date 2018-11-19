@@ -34,6 +34,7 @@ import com.turboturnip.turnipmusic.utils.AsyncHelper;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -200,6 +201,9 @@ public class MusicProvider {
 		    case ByArtist:
                 libraryIds = new ArrayList<>();
 		    	break;
+			case Song:
+				libraryIds = Collections.singletonList(filter.filterValue);
+				break;
 		    default:
 			    return mSongListByLibraryId.values();
 	    }

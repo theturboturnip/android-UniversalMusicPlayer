@@ -27,9 +27,10 @@ public class QueueFragment extends MusicListCommandFragment implements QueueMana
 		QueueManager.addMetadataListener(this);
 		QueueManager instance = QueueManager.getInstance();
 		if (instance == null)
-			onQueueUpdated("", new ArrayList<MediaSessionCompat.QueueItem>(), 0);
-		else
-			onQueueUpdated("", instance.getCompiledQueue(), instance.getCompiledQueueIndex());
+			onQueueUpdated("", new QueueManager.QueueData.CompiledData(new ArrayList<MediaSessionCompat.QueueItem>(), 0));
+		else {
+			onQueueUpdated("", instance.getCompiledQueueData());
+		}
 	}
 	@Override
 	public void onStop() {
@@ -55,17 +56,21 @@ public class QueueFragment extends MusicListCommandFragment implements QueueMana
 	@Override
 	public void onCurrentQueueIndexUpdated(int queueIndex) {}
 	@Override
-	public void onQueueUpdated(String title, List<MediaSessionCompat.QueueItem> newCompiledQueue, int queueIndex) {
+	public void onQueueUpdated(String title, QueueManager.QueueData.CompiledData compiledQueue) {
 		mBrowserAdapter.clear();
 		int i = 0;
-		if (queueIndex > 0) mBrowserAdapter.addHeader(new ListItemData("History"));
-		for (MediaSessionCompat.QueueItem item : newCompiledQueue) {
-			if (i == queueIndex){
+		if (compiledQueue.mCurrentCompiledQueueIndex > 0) mBrowserAdapter.addHeader(new ListItemData("History"));
+		for (MediaSessionCompat.QueueItem item : compiledQueue.mCompiledQueue) {
+			if (i == compiledQueue.mCurrentCompiledQueueIndex) {
 				mBrowserAdapter.addHeader(new ListItemData("Current Song"));
-			}else if (i == queueIndex + 1)
+			} else if (i == compiledQueue.mCurrentCompiledQueueIndex + 1)
 				mBrowserAdapter.addHeader(new ListItemData("Next Up"));
-			mBrowserAdapter.addItem(getDataForListItem(new MediaBrowserCompat.MediaItem(item.getDescription(),
-					MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)));
+			if (item.getDescription().getMediaId() == null) {
+				mBrowserAdapter.addHeader(new ListItemData(item.getDescription().getTitle()));
+			} else {
+				mBrowserAdapter.addItem(getDataForListItem(new MediaBrowserCompat.MediaItem(item.getDescription(),
+						MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)));
+			}
 			i++;
 		}
 		mBrowserAdapter.notifyDataSetChanged();

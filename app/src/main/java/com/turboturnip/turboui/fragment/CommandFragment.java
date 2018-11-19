@@ -10,7 +10,7 @@ import com.turboturnip.common.utils.LogHelper;
 public abstract class CommandFragment extends Fragment {
 	private static final String TAG = LogHelper.makeLogTag(CommandFragment.class);
 
-	// Any data sent back where the boolean assigned to this tag is true should be rerouted to the previous fragment if it exists.
+	// Any data sent back where the boolean assigned to this tag is true should be rerouted to the moveToPrevious fragment if it exists.
 	public static final String PASS_BACK_TAG = "PASSBACK";
 
 	protected CommandFragmentListener mCommandListener = null;

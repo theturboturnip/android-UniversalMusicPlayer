@@ -191,7 +191,7 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 		if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item)) {
 			return true;
 		}
-		// If not handled by drawerToggle, home needs to be handled by returning to previous
+		// If not handled by drawerToggle, home needs to be handled by returning to moveToPrevious
 		if (item != null && item.getItemId() == android.R.id.home) {
 			onBackPressed();
 			return true;
@@ -206,7 +206,7 @@ public abstract class BasicCommandFragmentHolder extends AppCompatActivity imple
 			mDrawerLayout.closeDrawers();
 			return;
 		}
-		// Otherwise, it may return to the previous fragment stack
+		// Otherwise, it may return to the moveToPrevious fragment stack
 		FragmentManager fragmentManager = getSupportFragmentManager();
 		if (fragmentManager.getBackStackEntryCount() > 0) {
 			if (!fragmentStack.isEmpty())

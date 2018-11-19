@@ -62,7 +62,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
     public static final String ACTION_PAUSE = "com.turboturnip.turnipmusic.pause";
     public static final String ACTION_PLAY = "com.turboturnip.turnipmusic.play";
     public static final String ACTION_PREV = "com.turboturnip.turnipmusic.prev";
-    public static final String ACTION_NEXT = "com.turboturnip.turnipmusic.next";
+    public static final String ACTION_NEXT = "com.turboturnip.turnipmusic.moveToNext";
     public static final String ACTION_STOP = "com.turboturnip.turnipmusic.stop";
     public static final String ACTION_STOP_CASTING = "com.turboturnip.turnipmusic.stop_cast";
 
@@ -337,7 +337,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
 
         int totalActions = 0;
 
-        // If skip to previous action is enabled
+        // If skip to moveToPrevious action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
             notificationBuilder.addAction(R.drawable.ic_skip_previous_white_36dp,
                     mService.getString(R.string.label_previous), mPreviousIntent);
@@ -360,7 +360,7 @@ public class MediaNotificationManager extends BroadcastReceiver {
         notificationBuilder.addAction(new NotificationCompat.Action(icon, label, intent));
         totalActions++;
 
-        // If skip to next action is enabled
+        // If skip to moveToNext action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
             notificationBuilder.addAction(R.drawable.ic_skip_next_white_36dp,
                     mService.getString(R.string.label_next), mNextIntent);
