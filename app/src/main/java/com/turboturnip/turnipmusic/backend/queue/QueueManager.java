@@ -80,6 +80,8 @@ public class QueueManager {
 			int compiledIndex = -1;
 			List<MediaSessionCompat.QueueItem> compiledQueue = new ArrayList<>();
 
+			// Queue Item Indices are one-indexed
+			int currentItemIndex = 1;
 			// Add History
 			{
 				// TODO: Use an iterator over the history for better efficiency
@@ -87,19 +89,19 @@ public class QueueManager {
 				if (startIndex < 0) startIndex = 0;
 
 				for (int i = startIndex; i < mHistory.size(); i++) {
-					compiledQueue.add(new MediaSessionCompat.QueueItem(mHistory.get(i).getMetadata().getDescription(), i - startIndex));
+					compiledQueue.add(new MediaSessionCompat.QueueItem(mHistory.get(i).getMetadata().getDescription(), currentItemIndex++));
 				}
 			}
 			// Add current Song
 			if (mCurrentSong != null){
-				compiledIndex = compiledQueue.size();
+				compiledIndex = currentItemIndex++;
 				compiledQueue.add(new MediaSessionCompat.QueueItem(mCurrentSong.getMetadata().getDescription(), compiledIndex));
 			}
 			// Add future Songs
 			{
 				boolean hasForesight = true;
 				for (Shuffle s : mUpcoming) {
-					compiledQueue.add(new MediaSessionCompat.QueueItem(new MediaDescriptionCompat.Builder().setTitle(s.getClass().getName()).build(), compiledQueue.size()));
+					compiledQueue.add(new MediaSessionCompat.QueueItem(new MediaDescriptionCompat.Builder().setTitle(s.getClass().getName()).build(), 0));
 					if (hasForesight && s instanceof ForesightShuffle){
 						List<Song> futureSongs = ((ForesightShuffle) s).guaranteedSongs();
 						LogHelper.e(TAG, "Future Songs Length:", futureSongs.size(), " Remaining: ", s.getLengthRemaining());
@@ -199,6 +201,7 @@ public class QueueManager {
 		return true;
 	}
 	public void moveToCompiledQueueIndex(int compiledIndex){
+		compiledIndex--; // Queue Indices are one-indexed
 		synchronized (data) {
 			if (compiledIndex < data.compiledData.mCurrentCompiledQueueIndex){
 				// Skipping backwards to an item in history
@@ -218,7 +221,7 @@ public class QueueManager {
 		synchronized (data){
 			QueueData.CompiledData compiledData = data.compiledData;
 			if (compiledData.mCurrentCompiledQueueIndex == -1) return null;
-			return compiledData.mCompiledQueue.get(compiledData.mCurrentCompiledQueueIndex);
+			return compiledData.mCompiledQueue.get(compiledData.mCurrentCompiledQueueIndex - 1);
 		}
 	}
 	public Song getCurrentSong(){

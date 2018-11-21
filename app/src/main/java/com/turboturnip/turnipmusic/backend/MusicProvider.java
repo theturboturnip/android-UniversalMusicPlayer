@@ -158,6 +158,7 @@ public class MusicProvider {
 	}
 
     public Song getSong(String songLibraryId) {
+		if (songLibraryId == null) return null;
     	return mSongListByLibraryId.containsKey(songLibraryId) ? mSongListByLibraryId.get(songLibraryId) : null;
     }
 

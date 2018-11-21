@@ -1,5 +1,6 @@
-package com.turboturnip.turnipmusic.frontend.base;
+package com.turboturnip.turnipmusic.frontend.base.legacy;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.AnimationDrawable;
@@ -18,7 +19,6 @@ import android.view.View;
 
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.backend.queue.QueueManager;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 
@@ -156,38 +156,45 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 	}
 
 	@Override
-	protected Drawable getDrawableFromListItemState(int state) {
+	protected Drawable getDrawableFromListItemState(ListItemData data, int state) {
+		Activity a = getActivity();
+		if (a == null) return null;
+
 		if (sColorStateNotPlaying == null || sColorStatePlaying == null) {
-			initializeColorStateLists(getActivity());
+			initializeColorStateLists(a);
+		}
+
+		if (data.actionType == ListItemData.ActionType.Browsable){
+			return ContextCompat.getDrawable(a, R.drawable.ic_chevron_right_black_24dp);
 		}
 
 		switch (state) {
 			case STATE_PLAYABLE: {
-				Drawable playDrawable = ContextCompat.getDrawable(getActivity(),
+				Drawable playDrawable = ContextCompat.getDrawable(a,
 						R.drawable.ic_play_arrow_black_36dp);
 				DrawableCompat.setTintList(playDrawable, sColorStateNotPlaying);
 				return playDrawable;
 			}
 			case STATE_PLAYING: {
 				AnimationDrawable animation = (AnimationDrawable)
-						ContextCompat.getDrawable(getActivity(), R.drawable.ic_equalizer_white_36dp);
+						ContextCompat.getDrawable(a, R.drawable.ic_equalizer_white_36dp);
 				DrawableCompat.setTintList(animation, sColorStatePlaying);
 				animation.start();
 				return animation;
 			}
 			case STATE_PAUSED: {
-				Drawable playDrawable = ContextCompat.getDrawable(getActivity(),
+				Drawable playDrawable = ContextCompat.getDrawable(a,
 						R.drawable.ic_equalizer1_white_36dp);
 				DrawableCompat.setTintList(playDrawable, sColorStatePlaying);
 				return playDrawable;
 			}
 			case STATE_QUEUED: {
-				Drawable queuedDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.ic_circle_outline_black);
+				Drawable queuedDrawable = ContextCompat.getDrawable(a, R.drawable.ic_circle_outline_black);
 				DrawableCompat.setTintList(queuedDrawable, sColorStatePlaying);
 				return queuedDrawable;
 			}
 			case STATE_QUEUEABLE: {
-				Drawable queueableDrawable = ContextCompat.getDrawable(getActivity(),
+				Drawable queueableDrawable = ContextCompat.getDrawable(a,
 						R.drawable.ic_queue_black);
 				DrawableCompat.setTintList(queueableDrawable, sColorStateNotPlaying);
 				return queueableDrawable;
@@ -197,27 +204,15 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 		}
 	}
 	protected ListItemData getDataForListItem(final MediaBrowserCompat.MediaItem item){
-		ListItemData itemData = new ListItemData();
 		MediaDescriptionCompat description = item.getDescription();
-		itemData.title = description.getTitle();
-		itemData.subtitle = description.getSubtitle();
-		itemData.internalData = item;
-		itemData.onIntoClick = new View.OnClickListener() {
-			@Override
-			public void onClick(View view) {
-				checkForUserVisibleErrors(false);
-				mCommandListener.onItemSelected(item.getMediaId());
-			}
-		};
-		itemData.onPlayClick = new View.OnClickListener() {
+		ListItemData itemData = new ListItemData(description.getTitle(), description.getSubtitle(), new View.OnClickListener() {
 			@Override
 			public void onClick(View view) {
 				checkForUserVisibleErrors(false);
 				mCommandListener.onItemActioned(item.getMediaId());
 			}
-		};
-		itemData.playable = item.isPlayable() || item.isBrowsable();
-		itemData.browsable = item.isBrowsable();
+		}, item.isBrowsable() ? ListItemData.ActionType.Browsable : ListItemData.ActionType.Playable);
+		itemData.internalData = item;
 
 		return itemData;
 	}

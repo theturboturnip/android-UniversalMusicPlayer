@@ -1,5 +1,6 @@
 package com.turboturnip.turnipmusic.frontend.roots.library;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -9,32 +10,49 @@ import android.view.ViewGroup;
 
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.R;
+import com.turboturnip.turnipmusic.frontend.base.ItemListCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.LinearItemListCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.ListableHeader;
+import com.turboturnip.turnipmusic.frontend.base.ListableItem;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
-import com.turboturnip.turnipmusic.frontend.base.ItemListCommandFragment;
 
-public class HubFragment extends ItemListCommandFragment {
+public class HubFragment extends LinearItemListCommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(HubFragment.class);
-
-	private static final int STATE_PLAYABLE = 2;
 
 	@Override
 	public boolean isRoot(){
 		return true;
 	}
 
+	private class HubButton extends ListableItem {
+        private MusicFilter filter;
+
+        HubButton(ItemListCommandFragment owner, CharSequence title, CharSequence subtitle, MusicFilterType toExplore) {
+            super(owner, title, subtitle, null, true, false);
+            filter = new MusicFilter(MusicFilterType.Explore, toExplore.toString());
+        }
+
+        @Override
+        public void onBrowse(){
+            Bundle args = new Bundle(1);
+            args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
+            mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);
+        }
+    }
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 	                         Bundle savedInstanceState) {
 		View resultView = super.onCreateView(inflater, container, savedInstanceState);
 
-		mBrowserAdapter.clear();
-		mBrowserAdapter.addHeader(new ListItemData("Built In Filters"));
-		mBrowserAdapter.addItem(new ListItemData("Filter by Album", "", new HubButtonOnClickListener(MusicFilterType.ByAlbum), null));
-		mBrowserAdapter.addItem(new ListItemData("Filter by Artist", "", new HubButtonOnClickListener(MusicFilterType.ByArtist), null));
-		mBrowserAdapter.addItem(new ListItemData("Filter by Tag", "", new HubButtonOnClickListener(MusicFilterType.ByTag), null));
+		mAdapter.items.clear();
+        mAdapter.items.add(new ListableHeader(this, "Built In Filters"));
+        mAdapter.items.add(new HubButton(this, "Filter by Album", "", MusicFilterType.ByAlbum));
+        mAdapter.items.add(new HubButton(this, "Filter by Artist", "", MusicFilterType.ByArtist));
+        mAdapter.items.add(new HubButton(this, "Filter by Tag", "", MusicFilterType.ByTag));
 
-		mBrowserAdapter.addHeader(new ListItemData("Tests"));
+        mAdapter.items.add(new ListableHeader(this, "Tests"));
 		/*mBrowserAdapter.addItem(new ListItemData("Repeat AC", "", null, new JourneyTestOnClickListener(
 				new Journey("Test Repeat AC", new MusicFilter(MusicFilterType.ByAlbum, "Assassination Classroom"))
 		)));
@@ -47,53 +65,14 @@ public class HubFragment extends ItemListCommandFragment {
 				))
 		);
 		mBrowserAdapter.addItem(new ListItemData("Shuffle AC, D, Persona"));*/
-		mBrowserAdapter.notifyDataSetChanged();
+        mAdapter.notifyDataSetChanged();
 
 		return resultView;
 	}
 
 	@Override
-	protected int getNewListItemState(ListItemData itemData){
-		if (itemData.playable) return STATE_PLAYABLE;
-		return STATE_NONE;
-	}
-	@Override
-	protected Drawable getDrawableFromListItemState(int state){
-		if (state == STATE_PLAYABLE) return ContextCompat.getDrawable(getActivity(),R.drawable.ic_play_arrow_black_36dp);
-		return null;
-	}
-
-	@Override
 	protected void updateTitle(){
 		mCommandListener.setToolbarTitle(null);
-	}
-
-	/*private class JourneyTestOnClickListener implements View.OnClickListener{
-		private Journey journey;
-
-		JourneyTestOnClickListener(Journey journey){
-			this.journey = journey;
-		}
-
-		public void onClick(View button){
-			mCommandListener.onItemActioned(journey.toString());
-			/*Bundle args = new Bundle(1);
-			args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
-			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);* // /
-		}
-	}*/
-	private class HubButtonOnClickListener implements View.OnClickListener{
-		private MusicFilter filter;
-
-		HubButtonOnClickListener(MusicFilterType toExplore){
-			this.filter = new MusicFilter(MusicFilterType.Explore, toExplore.toString());
-		}
-
-		public void onClick(View button){
-			Bundle args = new Bundle(1);
-			args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
-			mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);
-		}
 	}
 
 	@Override

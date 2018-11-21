@@ -24,8 +24,8 @@ import android.view.MenuItem;
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turboui.fragment.CommandFragment;
 import com.turboturnip.turnipmusic.R;
-import com.turboturnip.turnipmusic.frontend.base.MusicBrowserCommandFragment;
-import com.turboturnip.turnipmusic.frontend.base.MusicListCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.BaseCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.legacy.MusicListCommandFragment;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.frontend.base.BaseActivity;
@@ -56,16 +56,22 @@ public class MusicBrowserActivity extends BaseActivity
 	}
 
 	@Override
-	public void onItemSelected(String filter) {
-		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + filter);
+	public void onItemActioned(String filter) {
+		LogHelper.d(TAG, "onMediaItemActioned, musicFilter=" + filter);
 
 		MusicFilter compiledFilter = new MusicFilter(filter);
 		if (compiledFilter.isValid()) {
 			navigateToBrowser(filter);
 		} else {
-			LogHelper.w(TAG, "Ignoring MediaItem that is not browsable: ",
-					"musicFilter=", filter);
+			// TODO: Play the damn song
+			// TODO: Is this the right place for this?
+			MediaControllerCompat.getMediaController(MusicBrowserActivity.this).getTransportControls().playFromMediaId(filter, null);
 		}
+	}
+
+	@Override
+	public void onItemSelected(String id) {
+		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + id);
 	}
 
 	protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
@@ -109,7 +115,7 @@ public class MusicBrowserActivity extends BaseActivity
 
 	@Override
 	protected void onMediaControllerConnected() {
-		((MusicBrowserCommandFragment)getCurrentFragment()).connectToMediaBrowser();
+		((BaseCommandFragment)getCurrentFragment()).connectToMediaBrowser();
 	}
 
 	@Override

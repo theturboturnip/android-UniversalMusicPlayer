@@ -6,8 +6,8 @@ import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turboui.fragment.CommandFragment;
 
 // TODO: Rename to BaseCommandFragment?
-public abstract class MusicBrowserCommandFragment extends CommandFragment  {
-    private static final String TAG = LogHelper.makeLogTag(MusicBrowserCommandFragment.class);
+public abstract class BaseCommandFragment extends CommandFragment  {
+    private static final String TAG = LogHelper.makeLogTag(BaseCommandFragment.class);
 
     private MediaBrowserProvider browserProvider;
     protected MediaBrowserCompat mediaBrowser;

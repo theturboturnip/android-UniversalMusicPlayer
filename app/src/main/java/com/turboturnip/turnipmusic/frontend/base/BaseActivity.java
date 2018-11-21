@@ -29,15 +29,20 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.widget.CardView;
 
 import com.turboturnip.common.utils.LogHelper;
+import com.turboturnip.turboui.activity.BasicCommandFragmentHolder;
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.frontend.roots.FullScreenPlayerActivity;
+import com.turboturnip.turnipmusic.frontend.roots.PlaceholderActivity;
 import com.turboturnip.turnipmusic.frontend.roots.PlaybackControlsFragment;
+import com.turboturnip.turnipmusic.frontend.roots.TestItemLinearListActivity;
+import com.turboturnip.turnipmusic.frontend.roots.library.MusicBrowserActivity;
+import com.turboturnip.turnipmusic.frontend.roots.queue.QueueActivity;
 
 /**
  * Base activity for activities that need to show a playback control fragment when media is playing.
  */
-public abstract class BaseActivity extends ActionBarCastActivity implements MediaBrowserProvider {
+public abstract class BaseActivity extends BasicCommandFragmentHolder implements MediaBrowserProvider {
 
     private static final String TAG = LogHelper.makeLogTag(BaseActivity.class);
 	public static final String EXTRA_START_FULLSCREEN =
@@ -164,6 +169,20 @@ public abstract class BaseActivity extends ActionBarCastActivity implements Medi
 		MediaControllerCompat.getMediaController(this).getTransportControls()
 				.playFromMediaId(id, null);
 	}
+
+
+    @Override
+    protected Class getActivityClassForSelectedItem(int item) {
+        switch (item) {
+            case R.id.navigation_allmusic:
+                return MusicBrowserActivity.class;
+            case R.id.navigation_filters:
+                return TestItemLinearListActivity.class;
+            case R.id.navigation_queue:
+                return QueueActivity.class;
+        }
+        return null;
+    }
 
     protected void showPlaybackControls() {
         LogHelper.d(TAG, "showPlaybackControls");

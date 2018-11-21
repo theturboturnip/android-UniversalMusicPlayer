@@ -7,10 +7,9 @@ import android.support.v4.media.session.MediaSessionCompat;
 import com.turboturnip.common.utils.LogHelper;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.backend.queue.QueueManager;
-import com.turboturnip.turnipmusic.frontend.base.MusicListCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.legacy.MusicListCommandFragment;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class QueueFragment extends MusicListCommandFragment implements QueueManager.MetadataUpdateListener{
 	private static final String TAG = LogHelper.makeLogTag(QueueFragment.class);

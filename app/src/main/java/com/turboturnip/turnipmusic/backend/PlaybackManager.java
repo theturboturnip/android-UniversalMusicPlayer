@@ -239,7 +239,8 @@ public class PlaybackManager implements Playback.Callback {
 
         @Override
         protected void onPostExecute(Void status){
-	        playbackManager.mMediaSessionCallback.onSkipToNext();
+            if (playbackManager.mQueueManager.getCurrentSong() == null)
+	            playbackManager.mMediaSessionCallback.onSkipToNext();
         }
     }
     private class MediaSessionCallback extends MediaSessionCompat.Callback {

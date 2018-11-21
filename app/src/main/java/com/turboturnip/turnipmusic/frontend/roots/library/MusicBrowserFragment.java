@@ -34,7 +34,7 @@ import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.MusicService;
 import com.turboturnip.turnipmusic.frontend.base.MediaBrowserProvider;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
-import com.turboturnip.turnipmusic.frontend.base.MusicListCommandFragment;
+import com.turboturnip.turnipmusic.frontend.base.legacy.MusicListCommandFragment;
 import com.turboturnip.turnipmusic.utils.NetworkHelper;
 
 import java.util.List;
