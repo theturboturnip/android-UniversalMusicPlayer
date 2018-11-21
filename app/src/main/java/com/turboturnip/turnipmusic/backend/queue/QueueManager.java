@@ -96,6 +96,7 @@ public class QueueManager {
 			if (mCurrentSong != null){
 				compiledIndex = currentItemIndex++;
 				compiledQueue.add(new MediaSessionCompat.QueueItem(mCurrentSong.getMetadata().getDescription(), compiledIndex));
+				compiledIndex--; // USe zero-indexing for the compiled index so it can be used for...?
 			}
 			// Add future Songs
 			{
@@ -109,7 +110,7 @@ public class QueueManager {
 							hasForesight = false;
 						else {
 							for (Song song : futureSongs) {
-								compiledQueue.add(new MediaSessionCompat.QueueItem(song.getMetadata().getDescription(), compiledQueue.size()));
+								compiledQueue.add(new MediaSessionCompat.QueueItem(song.getMetadata().getDescription(), currentItemIndex++));
 							}
 						}
 					}else {
@@ -221,7 +222,7 @@ public class QueueManager {
 		synchronized (data){
 			QueueData.CompiledData compiledData = data.compiledData;
 			if (compiledData.mCurrentCompiledQueueIndex == -1) return null;
-			return compiledData.mCompiledQueue.get(compiledData.mCurrentCompiledQueueIndex - 1);
+			return compiledData.mCompiledQueue.get(compiledData.mCurrentCompiledQueueIndex);
 		}
 	}
 	public Song getCurrentSong(){
