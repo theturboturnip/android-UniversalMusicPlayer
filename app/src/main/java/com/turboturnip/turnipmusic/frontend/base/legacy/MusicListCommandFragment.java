@@ -24,6 +24,7 @@ import com.turboturnip.turnipmusic.utils.MediaIDHelper;
 
 import java.util.List;
 
+@Deprecated
 public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 	private static final String TAG = LogHelper.makeLogTag(MusicListCommandFragment.class);
 
@@ -209,7 +210,7 @@ public abstract class MusicListCommandFragment extends ItemListCommandFragment {
 			@Override
 			public void onClick(View view) {
 				checkForUserVisibleErrors(false);
-				mCommandListener.onItemActioned(item.getMediaId());
+				//mCommandListener.onItemActioned(item.getMediaId());
 			}
 		}, item.isBrowsable() ? ListItemData.ActionType.Browsable : ListItemData.ActionType.Playable);
 		itemData.internalData = item;

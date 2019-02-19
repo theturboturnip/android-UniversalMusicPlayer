@@ -26,6 +26,7 @@ import com.turboturnip.turboui.fragment.CommandFragment;
 import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.frontend.base.BaseCommandFragment;
 import com.turboturnip.turnipmusic.frontend.base.legacy.MusicListCommandFragment;
+import com.turboturnip.turnipmusic.frontend.roots.library.legacy.MusicBrowserFragment;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 import com.turboturnip.turnipmusic.frontend.base.BaseActivity;
@@ -44,8 +45,6 @@ public class MusicBrowserActivity extends BaseActivity
 
 	public static final String NEW_FILTER_EXTRA = "com.turboturnip.turnipmusic.NEW_FILTER_EXTRA";
 
-	private Bundle mVoiceSearchParams;
-
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		String musicFilter = getFilter();
@@ -55,7 +54,7 @@ public class MusicBrowserActivity extends BaseActivity
 		super.onSaveInstanceState(outState);
 	}
 
-	@Override
+	/*@Override
 	public void onItemActioned(String filter) {
 		LogHelper.d(TAG, "onMediaItemActioned, musicFilter=" + filter);
 
@@ -72,7 +71,7 @@ public class MusicBrowserActivity extends BaseActivity
 	@Override
 	public void onItemSelected(String id) {
 		LogHelper.d(TAG, "onMediaItemSelected, musicFilter=" + id);
-	}
+	}*/
 
 	protected void initializeFromParams(Bundle savedInstanceState, Intent intent) {
 		String mediaFilterString = null;
@@ -96,9 +95,10 @@ public class MusicBrowserActivity extends BaseActivity
 	private void navigateToBrowser(String mediaFilter) {
 		LogHelper.d(TAG, "navigateToBrowser, mediaFilter=" + mediaFilter);
 
-		Bundle args = new Bundle(1);
-		args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, mediaFilter);
-		navigateToNewFragment(MusicBrowserFragment.class, args);
+		//Bundle args = new Bundle(1);
+		//args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, mediaFilter);
+		//navigateToNewFragment(MusicBrowserFragment.class, args);
+		navigateToNewFragment(AlbumListFragment.class, null);
 	}
 
 	public String getFilter() {

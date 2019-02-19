@@ -17,11 +17,6 @@ public abstract class SingleFragmentActivity extends BaseActivity {
 			navigateToNewFragment(getFragmentClass(), new Bundle());
 	}
 
-	@Override
-	public void onItemSelected(String item) {}
-	@Override
-	public void onItemActioned(String item) {}
-
 	protected abstract Class getFragmentClass();
 
 	@Override

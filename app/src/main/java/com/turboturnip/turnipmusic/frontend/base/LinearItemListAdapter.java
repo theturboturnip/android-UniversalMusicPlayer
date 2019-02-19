@@ -62,17 +62,39 @@ public class LinearItemListAdapter extends ItemListCommandFragment.RecyclerAdapt
 
         viewHolder.titleView.setText(item.title);
         if (viewHolder.subtitleView != null) viewHolder.subtitleView.setText(item.subtitle);
-        if (viewHolder.playButton != null && item.playable) viewHolder.playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                item.onPlay();
+        if (viewHolder.playButton != null){
+            if (item.playable && item.browsable) {
+                viewHolder.playButton.setVisibility(View.VISIBLE);
+                viewHolder.playButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        item.onPlay();
+                    }
+                });
+            }else{
+                viewHolder.playButton.setVisibility(View.GONE);
             }
-        });
-        if (viewHolder.browseButton != null && item.browsable) viewHolder.browseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                item.onBrowse();
+        }
+        if (viewHolder.browseButton != null) {
+            if (item.browsable) {
+                viewHolder.browseButton.setVisibility(View.VISIBLE);
+                viewHolder.browseButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        item.onBrowse();
+                    }
+                });
+            }else if (item.playable) {
+                viewHolder.browseButton.setVisibility(View.VISIBLE);
+                viewHolder.browseButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        item.onPlay();
+                    }
+                });
+            }else{
+                viewHolder.browseButton.setVisibility(View.GONE);
             }
-        });
+        }
     }
 }

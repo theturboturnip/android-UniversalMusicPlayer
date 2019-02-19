@@ -159,17 +159,6 @@ public abstract class BaseActivity extends BasicCommandFragmentHolder implements
         isConnecting = false;
     }
 
-	@Override
-	public void onItemActioned(String id) {
-    }
-    @Override
-    public void onItemSelected(String id) {
-		LogHelper.d(TAG, "onMediaItemPlayed, musicFilter=" + id);
-
-		MediaControllerCompat.getMediaController(this).getTransportControls()
-				.playFromMediaId(id, null);
-	}
-
 
     @Override
     protected Class getActivityClassForSelectedItem(int item) {

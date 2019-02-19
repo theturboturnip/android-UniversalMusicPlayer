@@ -1,19 +1,16 @@
 package com.turboturnip.turnipmusic.frontend.roots.library;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.turboturnip.common.utils.LogHelper;
-import com.turboturnip.turnipmusic.R;
 import com.turboturnip.turnipmusic.frontend.base.ItemListCommandFragment;
 import com.turboturnip.turnipmusic.frontend.base.LinearItemListCommandFragment;
 import com.turboturnip.turnipmusic.frontend.base.ListableHeader;
 import com.turboturnip.turnipmusic.frontend.base.ListableItem;
+import com.turboturnip.turnipmusic.frontend.roots.library.legacy.MusicBrowserFragment;
 import com.turboturnip.turnipmusic.model.MusicFilter;
 import com.turboturnip.turnipmusic.model.MusicFilterType;
 
@@ -37,7 +34,7 @@ public class HubFragment extends LinearItemListCommandFragment {
         public void onBrowse(){
             Bundle args = new Bundle(1);
             args.putString(MusicBrowserFragment.ARG_MUSIC_FILTER, filter.toString());
-            mCommandListener.navigateToNewFragment(MusicBrowserFragment.class, args);
+            mCommandListener.navigateToNewFragment(AlbumListFragment.class, new Bundle());
         }
     }
 

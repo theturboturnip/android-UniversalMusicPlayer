@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.turboturnip.turnipmusic.frontend.roots.library;
+package com.turboturnip.turnipmusic.frontend.roots.library.legacy;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -47,6 +47,7 @@ import java.util.List;
  * Once connected, the fragment subscribes to get all the children.
  * All {@link MediaBrowserCompat.MediaItem}'s that can be browsed are shown in a ListView.
  */
+@Deprecated
 public class MusicBrowserFragment extends MusicListCommandFragment {
 
     private static final String TAG = LogHelper.makeLogTag(MusicBrowserFragment.class);
@@ -55,37 +56,6 @@ public class MusicBrowserFragment extends MusicListCommandFragment {
 
     private FloatingActionButton floatingActionButton;
 
-    protected BroadcastReceiver mConnectivityChangeReceiver = new BroadcastReceiver() {
-        private boolean oldOnline = false;
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // We don't care about network changes while this fragment is not associated
-            // with a media ID (for example, while it is being initialized)
-            if (mMusicFilter != null && !mMusicFilter.isValid()) {
-                boolean isOnline = NetworkHelper.isOnline(context);
-                if (isOnline != oldOnline) {
-                    oldOnline = isOnline;
-                    checkForUserVisibleErrors(false);
-                    if (isOnline) {
-                        mBrowserAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-        }
-    };
-    @Override
-    public void onStart(){
-    	super.onStart();
-
-	    // Registers BroadcastReceiver to track network connection changes.
-	    this.getActivity().registerReceiver(mConnectivityChangeReceiver,
-			    new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-    }
-    @Override
-    public void onStop(){
-    	super.onStop();
-	    this.getActivity().unregisterReceiver(mConnectivityChangeReceiver);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
